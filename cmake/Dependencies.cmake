@@ -1,0 +1,56 @@
+###########################################################################
+#   Copyright (C) 2013 by sanpolo CO.LTD                                  #
+#                                                                         #
+#   This file is part of GMEditor.                                        #
+#                                                                         #
+#   GMEditor is free software; you can redistribute it and/or modify it   #
+#   under the terms of the LGPL License.                                  #
+#                                                                         #
+#   GMEditor is distributed in the hope that it will be useful,but WITHOUT#
+#   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY    #
+#   or FITNESS FOR A PARTICULAR PURPOSE.                                  #
+#                                                                         #
+#   You should have received a copy of the LGPL License along with this   #
+#   program.  If not, see <http://www.render001.com/gmeditor/licenses>.   #
+#                                                                         #
+#   GMEditor website: http://www.render001.com/gmeditor                   #
+###########################################################################
+
+include(FindPkgMacros)
+getenv_path(GMEDITOR_DEP_DIRS)
+
+#######################################################################
+# Core dependencies
+#######################################################################
+
+# Find threading library
+FIND_PACKAGE(Threads REQUIRED)
+
+# Find Boost
+set(Boost_USE_STATIC_LIBS       ON)
+set(Boost_USE_MULTITHREADED     ON)
+set(Boost_USE_STATIC_RUNTIME    OFF)
+set(BOOST_ROOT                  "${BOOST_SEARCH_PATH}")
+#set(Boost_DEBUG                 ON)
+set(Boost_MINIMUM_VERSION       "1.44.0")
+
+set(Boost_ADDITIONAL_VERSIONS "1.53.0" "1.47.0" "1.46.1" "1.46" "1.46.0" "1.45" "1.45.0" "1.44" "1.44.0")
+
+set(GME_BOOST_COMPONENTS log thread filesystem system program_options regex)
+find_package(Boost ${Boost_MINIMUM_VERSION} COMPONENTS ${GME_BOOST_COMPONENTS})
+if (NOT Boost_FOUND)
+        # Try again with the other type of libs
+        if(Boost_USE_STATIC_LIBS)
+                set(Boost_USE_STATIC_LIBS)
+        else()
+                set(Boost_USE_STATIC_LIBS OFF)
+        endif()
+        find_package(Boost ${Boost_MINIMUM_VERSION} COMPONENTS ${GME_BOOST_COMPONENTS})
+endif()
+
+if (Boost_FOUND)
+	include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+	link_directories(${Boost_LIBRARY_DIRS})
+	# Don't use old boost versions interfaces
+	ADD_DEFINITIONS(-DBOOST_FILESYSTEM_NO_DEPRECATED)
+endif ()
