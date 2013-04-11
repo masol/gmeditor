@@ -16,18 +16,57 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef GME_CONFIG_H
-#define GME_CONFIG_H
 
-// The configured options and settings for gme
+#include "config.h"
+#include "mainframe.h"
+#include "utils/option.h"
+#include <boost/scope_exit.hpp>
+#include "dm/doc.h"
 
-#define GME_VERSION_MAJOR "@GME_VERSION_MAJOR@"
-#define GME_VERSION_MINOR "@GME_VERSION_MINOR@"
+class MyApp : public wxApp
+{
+public:
+    bool OnInit()
+    {
+        //initionlize config.
+        typedef const char*   str_point;
+        str_point*   mb_args = new str_point[argc];
+        for(int i = 0; i < argc;i++)
+        {
+            wxString string(argv[i]);
+            mb_args[i] = strdup(string.mb_str());
+        }
+	    BOOST_SCOPE_EXIT( (&mb_args) (&argc))
+	    {
+	        for(int i = 0; i < argc; i++)
+	        {
+	            free(const_cast<char*>(mb_args[i]));
+            }
+            delete[] mb_args;
+	    }BOOST_SCOPE_EXIT_END
+        
+    	if(!gme::Option::instance().initFromArgs(argc,mb_args ))
+		    return false;
 
-// for i18n
-//#include "utils/i18n"
-#define GME_GETTEXT(str)       str
-#define __(str)	GME_GETTEXT(str)
+	    std::string source("system.source");
+	    if(gme::Option::instance().is_existed(source))
+	    {
+		    std::vector<std::string> srcset = gme::Option::instance().get<std::vector<std::string> >(source);
+		    if(srcset.size())
+		    {
+    		    std::vector<std::string>::iterator it = srcset.begin();
+		    	gme::Doc::instance().loadScene(*it);
+            }
+        }
 
 
-#endif	/* GME_CONFIG_H */
+        wxFrame* frame = new gme::MainFrame(NULL);
+        SetTopWindow(frame);
+        frame->Maximize();
+        frame->Show();
+        return true;
+    }
+};
+
+DECLARE_APP(MyApp)
+IMPLEMENT_APP(MyApp)

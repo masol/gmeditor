@@ -16,18 +16,45 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef GME_CONFIG_H
-#define GME_CONFIG_H
+#include "config.h"
+#include "dm/doc.h"
+#include "slg/slg.h"
+#include "luxrays/utils/properties.h"
+#include "utils/pathext.h"
+#include <boost/algorithm/string/predicate.hpp>
 
-// The configured options and settings for gme
+namespace gme{
 
-#define GME_VERSION_MAJOR "@GME_VERSION_MAJOR@"
-#define GME_VERSION_MINOR "@GME_VERSION_MINOR@"
+Doc::Doc(void)
+{
+    m_pSession = NULL;
+}
 
-// for i18n
-//#include "utils/i18n"
-#define GME_GETTEXT(str)       str
-#define __(str)	GME_GETTEXT(str)
+Doc::~Doc(void)
+{
+    if(m_pSession)
+    {
+        delete m_pSession;
+        m_pSession = NULL;
+    }
+}
+
+bool
+Doc::loadScene(const std::string &path)
+{
+    std::string ext = boost::filesystem::gme_ext::get_extension(path);
+    if(boost::iequals(ext,".cfg"))
+    {
+        luxrays::Properties cmdLineProp;
+        slg::RenderConfig *config = new slg::RenderConfig(&path, &cmdLineProp);
+        m_pSession = new slg::RenderSession(config);
+        m_pSession->Start();
+        return true;
+    }
+    return false;
+}
 
 
-#endif	/* GME_CONFIG_H */
+
+}
+

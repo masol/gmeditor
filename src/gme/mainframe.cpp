@@ -16,18 +16,45 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef GME_CONFIG_H
-#define GME_CONFIG_H
-
-// The configured options and settings for gme
-
-#define GME_VERSION_MAJOR "@GME_VERSION_MAJOR@"
-#define GME_VERSION_MINOR "@GME_VERSION_MINOR@"
-
-// for i18n
-//#include "utils/i18n"
-#define GME_GETTEXT(str)       str
-#define __(str)	GME_GETTEXT(str)
+#include "config.h"
+#include "mainframe.h"
+#include "mainview.h"
 
 
-#endif	/* GME_CONFIG_H */
+namespace gme{
+
+MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
+                  wxDefaultPosition, wxSize(800,600),
+                  wxDEFAULT_FRAME_STYLE)                              
+{
+    // notify wxAUI which frame to use
+    m_mgr.SetManagedWindow(this);
+
+    // create several text controls
+    wxTextCtrl* text1 = new wxTextCtrl(this, -1, _("Pane 1 - sample text"),
+                  wxDefaultPosition, wxSize(200,150),
+                  wxNO_BORDER | wxTE_MULTILINE);
+                            
+    MainView* text3 = new MainView(this);
+     
+    wxTextCtrl* text2 = new wxTextCtrl(this, -1, _("Pane 2 - sample text"),
+                  wxDefaultPosition, wxSize(200,150),
+                  wxNO_BORDER | wxTE_MULTILINE);
+                                    
+    // add the panes to the manager
+    m_mgr.AddPane(text1, wxLEFT, wxT("Pane Number One"));
+    m_mgr.AddPane(text2, wxBOTTOM, wxT("Pane Number Two"));
+    m_mgr.AddPane(text3, wxCENTER);
+                           
+    // tell the manager to "commit" all the changes just made
+    m_mgr.Update();
+}
+
+MainFrame::~MainFrame()
+{
+    // deinitialize the frame manager
+    m_mgr.UnInit();
+}
+ 
+} //namespace gme
+

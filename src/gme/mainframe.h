@@ -16,18 +16,24 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef GME_CONFIG_H
-#define GME_CONFIG_H
+#ifndef  GME_MAINFRAME_H
+#define  GME_MAINFRAME_H
 
-// The configured options and settings for gme
+#include <wx/wx.h>
+#include <wx/aui/aui.h>
 
-#define GME_VERSION_MAJOR "@GME_VERSION_MAJOR@"
-#define GME_VERSION_MINOR "@GME_VERSION_MINOR@"
+namespace gme{
 
-// for i18n
-//#include "utils/i18n"
-#define GME_GETTEXT(str)       str
-#define __(str)	GME_GETTEXT(str)
+class MainFrame : public wxFrame {
+public:
+    MainFrame(wxWindow* parent);
+    virtual ~MainFrame();
+private:
+    wxAuiManager m_mgr;
+};
+
+}
 
 
-#endif	/* GME_CONFIG_H */
+
+#endif  //GME_MAINFRAME_H

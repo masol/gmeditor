@@ -16,18 +16,48 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef GME_CONFIG_H
-#define GME_CONFIG_H
+#ifndef  GME_MAINVIEW_H
+#define  GME_MAINVIEW_H
 
-// The configured options and settings for gme
-
-#define GME_VERSION_MAJOR "@GME_VERSION_MAJOR@"
-#define GME_VERSION_MINOR "@GME_VERSION_MINOR@"
-
-// for i18n
-//#include "utils/i18n"
-#define GME_GETTEXT(str)       str
-#define __(str)	GME_GETTEXT(str)
+#include <wx/wx.h>
 
 
-#endif	/* GME_CONFIG_H */
+namespace gme{
+
+class MainView : public wxScrolledWindow
+{
+typedef wxScrolledWindow    inherited;
+public:
+    MainView(wxFrame* parent);
+    virtual ~MainView();
+        
+    void paintEvent(wxPaintEvent & evt);
+    void paintNow();
+    void render(wxDC& dc);
+
+    // some useful events
+    void mouseMoved(wxMouseEvent& event);
+    void mouseDown(wxMouseEvent& event);
+    void mouseWheelMoved(wxMouseEvent& event);
+    void mouseReleased(wxMouseEvent& event);
+    void rightClick(wxMouseEvent& event);
+    void mouseLeftWindow(wxMouseEvent& event);
+    void keyPressed(wxKeyEvent& event);
+    void keyReleased(wxKeyEvent& event);
+        
+    DECLARE_EVENT_TABLE()
+};
+
+} //end namespace gme
+
+
+
+
+
+
+
+
+
+
+
+#endif //GME_MAINVIEW_H

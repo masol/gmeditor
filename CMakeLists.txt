@@ -80,6 +80,19 @@ if (NOT Boost_FOUND)
 	MESSAGE(FATAL_ERROR "--> Could not locate required Boost files - Please check ${BOOST_SEARCH_PATH}")
 endif()
 
+if (NOT wxWidgets_FOUND)
+	MESSAGE(FATAL_ERROR "--> Could not locate required wxWidgets files - Please check ${wxWidgets_ROOT_DIR}")
+endif()
+
+if (NOT SLG_FOUND)
+	MESSAGE(FATAL_ERROR "--> Could not locate required luxrays files - Please check $ENV{GMEDITOR_DEP_DIRS}")
+endif()
+
+if (NOT FreeImage_FOUND)
+	MESSAGE(FATAL_ERROR "--> Could not locate required FreeImage files - Please check ${FREEIMAGE_SEARCH_PATH}")
+endif()
+
+
 set(GME_VERSION_MAJOR 0)
 set(GME_VERSION_MINOR 1)
 
@@ -90,7 +103,10 @@ configure_file(
   "${GME_BUILD_DIR}/include/config.h"
   )
 
+#Message(STATUS "wxWidgets_LIBRARY : ${wxWidgets_LIBRARIES}")
+
 add_subdirectory(src/utils)
+add_subdirectory(src/dm)
 add_subdirectory(src/gme)
 
 ###########################################################################

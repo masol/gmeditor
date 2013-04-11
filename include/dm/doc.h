@@ -16,18 +16,54 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef GME_CONFIG_H
-#define GME_CONFIG_H
+#ifndef  GME_DM_DOC_H
+#define  GME_DM_DOC_H
 
-// The configured options and settings for gme
+#include "utils/singleton.h"
+#include <boost/thread/recursive_mutex.hpp>
+#include "slg/rendersession.h"
 
-#define GME_VERSION_MAJOR "@GME_VERSION_MAJOR@"
-#define GME_VERSION_MINOR "@GME_VERSION_MINOR@"
+namespace gme{
 
-// for i18n
-//#include "utils/i18n"
-#define GME_GETTEXT(str)       str
-#define __(str)	GME_GETTEXT(str)
+class Doc : public Singleton<Doc>
+{
+protected:
+    friend class DocScopeLocker;
+    friend class Singleton<Doc>;
+    typedef Singleton<Doc>   inherited;
+    Doc(void);
+    boost::recursive_mutex      m_mutex;
+private:
+    slg::RenderSession          *m_pSession;
+protected:
+    /** @brief 锁定文档。
+    **/
+    inline  void    lock(){
+        m_mutex.lock();
+    }
+    /** @brief 解锁文档。
+    **/
+    inline  void    unlock(){
+        m_mutex.unlock();
+    }
+public:
+    bool    loadScene(const std::string &path);
+    ~Doc(void);
+};
+
+class DocScopeLocker
+{
+public:
+    DocScopeLocker(){
+        Doc::instance().lock();
+    }
+    ~DocScopeLocker(){
+        Doc::instance().unlock();
+    }
+};
+
+}
 
 
-#endif	/* GME_CONFIG_H */
+
+#endif  //GME_DM_DOC_H

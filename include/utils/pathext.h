@@ -16,18 +16,41 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef GME_CONFIG_H
-#define GME_CONFIG_H
+#ifndef GME_UTILS_PATHEXT_H
+#define GME_UTILS_PATHEXT_H
 
-// The configured options and settings for gme
+//#define BOOST_FILESYSTEM_VERSION 3
+#include <boost/filesystem.hpp>
+/**
+ * @file        pathext.h
+ * @brief       扩展了boost::path，增加了link友好的canonicalize方法。
+ **/
 
-#define GME_VERSION_MAJOR "@GME_VERSION_MAJOR@"
-#define GME_VERSION_MINOR "@GME_VERSION_MINOR@"
+namespace boost{
+namespace filesystem{
+namespace gme_ext{
 
-// for i18n
-//#include "utils/i18n"
-#define GME_GETTEXT(str)       str
-#define __(str)	GME_GETTEXT(str)
+	/** @brief 对p执行canonicalize操作，不同于boost::path中的方法，本方法正确处理了符号链接。
+	 */
+	boost::filesystem::path canonicalize(const boost::filesystem::path& p);
+
+	/** @brief 解析路径p，并将其中含有符号链接的部分替换为实际路径。同时对结果执行canonicalize操作。
+	 */
+	boost::filesystem::path resolve_sym(const boost::filesystem::path& p);
+
+	/** @brief 读取符号链接result所对应的真实路径。
+	 *   @param result result保存了请求转化的符号链接，必须其是一个符号链接。
+	 */
+	bool read_symlink(boost::filesystem::path &result);
+
+	/** @brief 获取指定路径的后缀。
+	**/
+	std::string   get_extension(const std::string &path);
+
+}//gme_ext
+}//boost
+}//filesystem
 
 
-#endif	/* GME_CONFIG_H */
+#endif //GME_UTILS_PATHEXT_H
+

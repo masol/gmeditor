@@ -16,18 +16,41 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef GME_CONFIG_H
-#define GME_CONFIG_H
-
-// The configured options and settings for gme
-
-#define GME_VERSION_MAJOR "@GME_VERSION_MAJOR@"
-#define GME_VERSION_MINOR "@GME_VERSION_MINOR@"
-
-// for i18n
-//#include "utils/i18n"
-#define GME_GETTEXT(str)       str
-#define __(str)	GME_GETTEXT(str)
 
 
-#endif	/* GME_CONFIG_H */
+#ifndef GME_UTILS_SINGLETON_H
+#define GME_UTILS_SINGLETON_H
+
+#include <boost/utility.hpp>
+#include <boost/thread/once.hpp>
+#include <boost/scoped_ptr.hpp>
+
+namespace gme
+{
+    template<class T>
+    class Singleton : private boost::noncopyable
+    {
+    public:
+        static T& instance()
+        {
+            boost::call_once(T::init, m_once_flag);
+            return *m_instance_ptr;
+        }
+        static void init()
+        {
+            m_instance_ptr.reset(new T());
+        }
+    protected:
+        ~Singleton() {}
+        Singleton() {}
+    private:
+        static boost::scoped_ptr<T> m_instance_ptr;
+        static boost::once_flag     m_once_flag;
+    };
+}
+
+template<class T> boost::scoped_ptr<T> gme::Singleton<T>::m_instance_ptr(0);
+template<class T> boost::once_flag gme::Singleton<T>::m_once_flag = BOOST_ONCE_INIT;
+
+#endif //GME_UTILS_SINGLETON_H
+
