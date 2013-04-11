@@ -92,6 +92,14 @@ if (NOT FreeImage_FOUND)
 	MESSAGE(FATAL_ERROR "--> Could not locate required FreeImage files - Please check ${FREEIMAGE_SEARCH_PATH}")
 endif()
 
+if (NOT OPENCL_FOUND)
+	MESSAGE(FATAL_ERROR "--> Could not locate required OpenCL files, disabling OpenCL support - Please check ${OPENCL_SEARCH_PATH}")
+endif()
+
+if (NOT OPENGL_FOUND)
+	MESSAGE(FATAL_ERROR "--> Could not locate required OpenGL files, disabling OpenCL support, disabling samples build")
+endif()
+
 
 set(GME_VERSION_MAJOR 0)
 set(GME_VERSION_MINOR 1)

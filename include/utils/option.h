@@ -73,8 +73,10 @@ namespace gme{
         ptree_slot	m_slots;                         /**<slottype表 */
 
 #ifndef GME_NOTHREAD_SAFE
-        //我们只需要一个锁，这增加了潜在的锁定等待时间。但是option应该不会成为hotspot.
-        //因此，一个锁的策略其粒度应该足够了。
+        /**
+		 *	@brief 允许在多线程之间访问Option对象。
+		 *	@details 我们只需要一个锁，这增加了潜在的锁定等待时间。但是option应该不会成为hotspot.因此，一个锁的策略其粒度应该足够了。
+		**/
         boost::shared_mutex m_mutex;        /**<mutex for m_ptree */
 #endif //GME_NOTHREAD_SAFE
 

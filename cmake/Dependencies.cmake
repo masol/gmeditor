@@ -63,9 +63,12 @@ find_package(wxWidgets 2.8 COMPONENTS aui stc html adv core base REQUIRED)
 #    set(wxUSE_STATIC_DEFINE "wxUSE_STATIC=1")    
  	IF(MSVC)
  		include_directories( ${wxWidgets_ROOT_DIR}/include/msvc )
- 	ELSE(MSVC)
-    	include_directories(SYSTEM ${wxWidgets_INCLUDE_DIRS})
  	ENDIF(MSVC)    
+   	include_directories(SYSTEM ${wxWidgets_INCLUDE_DIRS})
+	
+	if(WIN32)
+		set(wxWidgets_LIBRARY_DIRS "${wxWidgets_ROOT_DIR}/lib/vc_lib")
+	endif()
 	link_directories(${wxWidgets_LIBRARY_DIRS})
 
 	STRING(REGEX REPLACE ";" ";-D" wxWidgets_DEFINITIONS "${wxWidgets_DEFINITIONS}")
@@ -85,6 +88,21 @@ find_package(FreeImage)
 if (FreeImage_FOUND)
 	include_directories(SYSTEM ${FreeImage_INCLUDE_DIRS})
 endif ()
+
+find_package(OpenGL)
+
+if (OPENGL_FOUND)
+	include_directories(SYSTEM ${OPENGL_INCLUDE_PATH})
+endif()
+
+
+set(OPENCL_ROOT                  "${OPENCL_SEARCH_PATH}")
+find_package(OpenCL)
+# OpenCL
+if (OPENCL_FOUND)
+	include_directories(SYSTEM ${OPENCL_INCLUDE_DIR} ${OPENCL_C_INCLUDE_DIR})
+endif ()
+
 
 find_package(SLG)
 

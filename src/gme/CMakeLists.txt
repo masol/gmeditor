@@ -41,19 +41,18 @@ add_executable(gmeditor ${GME_SRCS})
 
 IF (WIN32)
 TARGET_LINK_LIBRARIES(gmeditor
- GL
- OpenCL
  dm
  utils 
  ${FreeImage_LIBRARIES}
  ${SLG_LIBRARY}
  ${LUXRAYS_LIBRARY}
+ ${OPENGL_LIBRARY}
+ ${OPENCL_LIBRARIES}
 )
+set_target_properties(gmeditor PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS") 
 ELSE(WIN32)
 #Message(STATUS "wxWidgets_LIBRARY : ${wxWidgets_LIBRARIES_Cache}")
 TARGET_LINK_LIBRARIES(gmeditor
-  GL
-  OpenCL
   dm
   utils
   ${wxWidgets_LIBRARIES_Cache}
@@ -61,6 +60,8 @@ TARGET_LINK_LIBRARIES(gmeditor
   ${SLG_LIBRARY}
   ${LUXRAYS_LIBRARY}
   ${Boost_LIBRARIES}
+  ${OPENGL_LIBRARY}
+  ${OPENCL_LIBRARIES}
 )
 ENDIF(WIN32)
 

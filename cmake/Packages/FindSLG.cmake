@@ -26,7 +26,10 @@
 # SLG_FOUND, If false, do not try to use slg.
 
 # also defined, but not for general use are
-# SLG_DEBUG_LIBRARY, where to find the slg library in debug mode.
+# SLG_LIBRARY_DBG, where to find the slg library in debug mode.
+# LUXRAYS_LIBRARY_DBG, where to find the luxrays library in debug mode.
+# SLG_LIBRARY_REL, where to find the slg library in release mode.
+# LUXRAYS_LIBRARY_REL, where to find the luxrays library in release mode.
 
 FIND_PATH(SLG_INCLUDE_DIR slg/slg.h
   $ENV{GMEDITOR_DEP_DIRS}/luxrays/include
@@ -36,34 +39,46 @@ FIND_PATH(SLG_INCLUDE_DIR slg/slg.h
 
 # With Win32, important to have both
 IF(WIN32)
-  FIND_LIBRARY(SLG_LIBRARY smallluxgpu
-               ${SLG_INCLUDE_DIR}/../build/lib
+  FIND_LIBRARY(SLG_LIBRARY_REL smallluxgpu
+               ${SLG_INCLUDE_DIR}/../build/lib/Release
                ${SLG_INCLUDE_DIR}/../lib               
                /usr/local/lib
                /usr/lib)
-  FIND_LIBRARY(SLG_DEBUG_LIBRARY smallluxgpud
-               ${SLG_INCLUDE_DIR}/../build/lib
+  FIND_LIBRARY(SLG_LIBRARY_DBG smallluxgpu
+               ${SLG_INCLUDE_DIR}/../build/lib/Debug
                ${SLG_INCLUDE_DIR}/../lib               
                /usr/local/lib
                /usr/lib)
-  FIND_LIBRARY(LUXRAYS_LIBRARY luxrays
-               ${SLG_INCLUDE_DIR}/../build/lib
+
+  FIND_LIBRARY(LUXRAYS_LIBRARY_REL luxrays
+               ${SLG_INCLUDE_DIR}/../build/lib/Release
+               ${SLG_INCLUDE_DIR}/../lib               
+               /usr/local/lib
+               /usr/lib)
+  FIND_LIBRARY(LUXRAYS_LIBRARY_DBG luxrays
+               ${SLG_INCLUDE_DIR}/../build/lib/Debug
                ${SLG_INCLUDE_DIR}/../lib               
                /usr/local/lib
                /usr/lib)
 ELSE(WIN32)
   # On unix system, debug and release have the same name
-  FIND_LIBRARY(SLG_LIBRARY smallluxgpu
+  FIND_LIBRARY(SLG_LIBRARY_REL smallluxgpu
                ${SLG_INCLUDE_DIR}/../build/lib
                ${SLG_INCLUDE_DIR}/../lib               
                /usr/local/lib
                /usr/lib)
-  FIND_LIBRARY(SLG_DEBUG_LIBRARY smallluxgpud
+  FIND_LIBRARY(SLG_LIBRARY_DBG smallluxgpu
                ${SLG_INCLUDE_DIR}/../build/lib
                ${SLG_INCLUDE_DIR}/../lib               
                /usr/local/lib
                /usr/lib)
-  FIND_LIBRARY(LUXRAYS_LIBRARY luxrays
+
+  FIND_LIBRARY(LUXRAYS_LIBRARY_REL luxrays
+               ${SLG_INCLUDE_DIR}/../build/lib
+               ${SLG_INCLUDE_DIR}/../lib               
+               /usr/local/lib
+               /usr/lib)
+  FIND_LIBRARY(LUXRAYS_LIBRARY_DBG luxrays
                ${SLG_INCLUDE_DIR}/../build/lib
                ${SLG_INCLUDE_DIR}/../lib               
                /usr/local/lib
@@ -71,11 +86,13 @@ ELSE(WIN32)
 ENDIF(WIN32)
 
 IF(SLG_INCLUDE_DIR)
-  IF(SLG_LIBRARY)
-    SET(SLG_FOUND "YES")
-    SET(SLG_LIBRARY ${SLG_LIBRARY} ${CMAKE_DL_LIBS})
-    SET(SLG_DEBUG_LIBRARY ${SLG_DEBUG_LIBRARY} ${CMAKE_DL_LIBS})
-  ENDIF(SLG_LIBRARY)
+	SET(SLG_FOUND "YES")
+	SET(SLG_LIBRARY
+		optimized ${SLG_LIBRARY_REL}
+		debug ${SLG_LIBRARY_DBG})
+	SET(LUXRAYS_LIBRARY
+		optimized ${LUXRAYS_LIBRARY_REL}
+		debug ${LUXRAYS_LIBRARY_DBG})
 ENDIF(SLG_INCLUDE_DIR)
 
 MARK_AS_ADVANCED(SLG_FOUND)
