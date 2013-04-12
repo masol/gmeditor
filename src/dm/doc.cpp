@@ -18,43 +18,57 @@
 
 #include "config.h"
 #include "dm/doc.h"
+#include <iostream>
+
+#include "luxrays/luxrays.h"
 #include "slg/slg.h"
-#include "luxrays/utils/properties.h"
-#include "utils/pathext.h"
-#include <boost/algorithm/string/predicate.hpp>
+
+
+static
+void FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) {
+	printf("\n*** ");
+	if(fif != FIF_UNKNOWN)
+		printf("%s Format\n", FreeImage_GetFormatFromFIF(fif));
+
+	printf("%s", message);
+	printf(" ***\n");
+}
+
+static
+void LuxRaysDebugHandler(const char *msg) {
+	std::cerr << "[LuxRays] " << msg << std::endl;
+}
+
+static
+void SDLDebugHandler(const char *msg) {
+	std::cerr << "[SDL] " << msg << std::endl;
+}
+
+static
+void SLGDebugHandler(const char *msg) {
+	std::cerr << "[SLG] " << msg << std::endl;
+}
+
 
 namespace gme{
 
 Doc::Doc(void)
 {
-    m_pSession = NULL;
+	slg::LuxRays_DebugHandler = ::LuxRaysDebugHandler;
+	slg::SLG_DebugHandler = ::SLGDebugHandler;
+	slg::SLG_SDLDebugHandler = ::SDLDebugHandler;
+
+    FreeImage_Initialise(TRUE);
+	FreeImage_SetOutputMessage(::FreeImageErrorHandler);
 }
 
 Doc::~Doc(void)
 {
-    if(m_pSession)
+    if(m_session)
     {
-        delete m_pSession;
-        m_pSession = NULL;
+        m_session.reset();
     }
 }
-
-bool
-Doc::loadScene(const std::string &path)
-{
-    std::string ext = boost::filesystem::gme_ext::get_extension(path);
-    if(boost::iequals(ext,".cfg"))
-    {
-        luxrays::Properties cmdLineProp;
-        slg::RenderConfig *config = new slg::RenderConfig(&path, &cmdLineProp);
-        m_pSession = new slg::RenderSession(config);
-        m_pSession->Start();
-        return true;
-    }
-    return false;
-}
-
-
 
 }
 

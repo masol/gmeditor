@@ -16,61 +16,29 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_MAINVIEW_H
-#define  GME_MAINVIEW_H
-
-#include <wx/wx.h>
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include "config.h"
+#include "dm/docio.h"
+#include "slg/slg.h"
+#include "luxrays/utils/properties.h"
+#include "utils/pathext.h"
+#include <boost/algorithm/string/predicate.hpp>
 
 namespace gme{
 
-class MainView : public wxScrolledWindow
+bool
+DocIO::loadScene(const std::string &path)
 {
-typedef wxScrolledWindow    inherited;
-protected:
-    boost::posix_time::ptime    m_micro_tick;
-    float    opt_RotateStep;
-    long     opt_MinEditInterval;
-    long     m_lastx;
-    long     m_lasty;
-    int      m_action;
-    enum{
-        ACTION_INVALID,
-        ACTION_CAM_ROTATE
-    };
-    void    rotateCam(wxMouseEvent& event);
-public:
-    MainView(wxFrame* parent);
-    virtual ~MainView();
-
-    void paintEvent(wxPaintEvent & evt);
-    void paintNow();
-    void render(wxDC& dc);
-
-    // some useful events
-    void mouseMoved(wxMouseEvent& event);
-    void mouseLeftDown(wxMouseEvent& event);
-    void mouseWheelMoved(wxMouseEvent& event);
-    void mouseLeftReleased(wxMouseEvent& event);
-    void rightClick(wxMouseEvent& event);
-    void mouseLeftWindow(wxMouseEvent& event);
-    void keyPressed(wxKeyEvent& event);
-    void keyReleased(wxKeyEvent& event);
-    void onIdle(wxIdleEvent &event);
-        
-    DECLARE_EVENT_TABLE()
-};
-
-} //end namespace gme
+    std::string ext = boost::filesystem::gme_ext::get_extension(path);
+    if(boost::iequals(ext,".cfg"))
+    {
+        luxrays::Properties cmdLineProp;
+        slg::RenderConfig *config = new slg::RenderConfig(&path, &cmdLineProp);
+        m_session.reset(new slg::RenderSession(config));
+        m_session->Start();
+        return true;
+    }
+    return false;
+}
 
 
-
-
-
-
-
-
-
-
-
-#endif //GME_MAINVIEW_H
+} //end namespace gme.

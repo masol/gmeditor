@@ -25,6 +25,9 @@
 
 set(DM_SRCS
     doc.cpp
+    docio.cpp
+    docimg.cpp
+    doccamera.cpp
    )
 
 

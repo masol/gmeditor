@@ -25,11 +25,48 @@
 namespace gme{
 
 class MainFrame : public wxFrame {
+    typedef  wxFrame   inherited;
 public:
     MainFrame(wxWindow* parent);
     virtual ~MainFrame();
+	void onClose(wxCloseEvent& event);
+public:
+    void onSize(wxSizeEvent& event);
+
+	/** Processes menu File|Open */
+	void onMenuFileOpen(wxCommandEvent &event);
+
+	/** Processes menu File|Save */
+	void onMenuFileSave(wxCommandEvent &event);
+
+	/** Processes menu File|Quit */
+	void onMenuFileQuit(wxCommandEvent &event);
+
+	/** Processes menu About|Info */
+	void onMenuHelpAbout(wxCommandEvent &event);
+	enum{
+		SFP_INFO = 0,
+		SFP_STAT = 1,
+		SFP_TIME_ELAPSE = 2,
+		SFP_PROG = 3,
+		SFP_TIME_TOTAL = 4,
+		SFP_TOTOAL = 5
+	};
 private:
+    inline void updateProgressbar(){
+        wxRect rect;
+        if(m_pStatusBar->GetFieldRect(SFP_PROG,rect))
+        {
+            m_pGauge->SetSize(rect.GetWidth(),rect.GetHeight());
+            m_pGauge->Move(rect.x,rect.y);
+        }
+    }
+    wxStatusBar	    *m_pStatusBar;
+    wxGauge         *m_pGauge;
+    void    createMenubar();
+    void    createStatusbar();
     wxAuiManager m_mgr;
+    DECLARE_EVENT_TABLE()
 };
 
 }

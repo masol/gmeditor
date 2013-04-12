@@ -22,6 +22,7 @@
 #include "utils/singleton.h"
 #include <boost/thread/recursive_mutex.hpp>
 #include "slg/rendersession.h"
+#include <boost/shared_ptr.hpp>
 
 namespace gme{
 
@@ -34,8 +35,11 @@ protected:
     Doc(void);
     boost::recursive_mutex      m_mutex;
 private:
-    slg::RenderSession          *m_pSession;
-protected:
+    //@FIXME: 这里不能直接暴露slg.需要使用DocImpl类来封装，以方便支持cycles,luxrender...
+    //@TODO: 需要一个材质转化专家系统来支持材质转化。
+	//
+    boost::shared_ptr<slg::RenderSession>     m_session;
+
     /** @brief 锁定文档。
     **/
     inline  void    lock(){
@@ -47,18 +51,23 @@ protected:
         m_mutex.unlock();
     }
 public:
-    bool    loadScene(const std::string &path);
     ~Doc(void);
 };
 
 class DocScopeLocker
 {
+protected:
+    boost::shared_ptr<slg::RenderSession>   &m_session;
 public:
-    DocScopeLocker(){
+    DocScopeLocker() : m_session(Doc::instance().m_session)
+    {
         Doc::instance().lock();
     }
     ~DocScopeLocker(){
         Doc::instance().unlock();
+    }
+    bool    isValid(void)const{
+        return Doc::instance().m_session.get() != NULL;
     }
 };
 

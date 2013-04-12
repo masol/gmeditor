@@ -21,7 +21,7 @@
 #include "mainframe.h"
 #include "utils/option.h"
 #include <boost/scope_exit.hpp>
-#include "dm/doc.h"
+#include "dm/docio.h"
 
 class MyApp : public wxApp
 {
@@ -48,17 +48,19 @@ public:
     	if(!gme::Option::instance().initFromArgs(argc,mb_args ))
 		    return false;
 
-	    std::string source("system.source");
+	    std::string source("document.source");
 	    if(gme::Option::instance().is_existed(source))
 	    {
+	        gme::DocIO docio;
 		    std::vector<std::string> srcset = gme::Option::instance().get<std::vector<std::string> >(source);
-		    if(srcset.size())
+		    std::vector<std::string>::iterator it = srcset.begin();
+		    while(it != srcset.end())
 		    {
-    		    std::vector<std::string>::iterator it = srcset.begin();
-		    	gme::Doc::instance().loadScene(*it);
+    		    if(docio.loadScene(*it))
+    		        break;
+		        it++;
             }
         }
-
 
         wxFrame* frame = new gme::MainFrame(NULL);
         SetTopWindow(frame);

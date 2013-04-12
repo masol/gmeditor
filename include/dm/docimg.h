@@ -16,61 +16,70 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_MAINVIEW_H
-#define  GME_MAINVIEW_H
+#ifndef  GME_DM_DOCIO_H
+#define  GME_DM_DOCIO_H
 
-#include <wx/wx.h>
-#include <boost/date_time/posix_time/posix_time.hpp>
+
+#include "dm/doc.h"
 
 namespace gme{
 
-class MainView : public wxScrolledWindow
-{
-typedef wxScrolledWindow    inherited;
-protected:
-    boost::posix_time::ptime    m_micro_tick;
-    float    opt_RotateStep;
-    long     opt_MinEditInterval;
-    long     m_lastx;
-    long     m_lasty;
-    int      m_action;
+struct  ImageDataBase{
     enum{
-        ACTION_INVALID,
-        ACTION_CAM_ROTATE
+        ID_INVALID,
+        ID_SCALE,
+        ID_SCROLL
     };
-    void    rotateCam(wxMouseEvent& event);
-public:
-    MainView(wxFrame* parent);
-    virtual ~MainView();
-
-    void paintEvent(wxPaintEvent & evt);
-    void paintNow();
-    void render(wxDC& dc);
-
-    // some useful events
-    void mouseMoved(wxMouseEvent& event);
-    void mouseLeftDown(wxMouseEvent& event);
-    void mouseWheelMoved(wxMouseEvent& event);
-    void mouseLeftReleased(wxMouseEvent& event);
-    void rightClick(wxMouseEvent& event);
-    void mouseLeftWindow(wxMouseEvent& event);
-    void keyPressed(wxKeyEvent& event);
-    void keyReleased(wxKeyEvent& event);
-    void onIdle(wxIdleEvent &event);
-        
-    DECLARE_EVENT_TABLE()
+    const   int     type;
+    unsigned char* data;
+    int     width;
+    int     height;
+    int     pitch;
+    ImageDataBase(int t) : type(t)
+    {
+    }
 };
 
-} //end namespace gme
+struct  ImageDataScale : public ImageDataBase
+{
+    typedef ImageDataBase   inherited;
+    /** @brief 返回有效区域。由getData设置。
+	 *
+	*/
+    int                 left;
+    int                 top;
+    int                 right;
+    int                 bottom;
+    unsigned    char    default_red;
+    unsigned    char    default_green;
+    unsigned    char    default_blue;
+    ImageDataScale() : inherited(ImageDataBase::ID_SCALE)
+    {
+    }
+};
 
+struct ImageDataScroll : public ImageDataBase
+{
+    typedef ImageDataBase   inherited;
+    int     left;
+    int     top;
+    int     right;
+    int     bottom;
+    ImageDataScroll() : inherited(ImageDataBase::ID_SCROLL)
+    {
+    }
+};
 
+class DocImg : public DocScopeLocker
+{
+protected:
+    bool    getData(ImageDataScale *pdata,int w, int h,const float* pixels);
+public:
+    bool    getSize(int &w,int &h);
+    bool    getData(ImageDataBase *pdata);
+};
 
+}
 
+#endif //GME_DM_DOCIO_H
 
-
-
-
-
-
-
-#endif //GME_MAINVIEW_H

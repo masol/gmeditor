@@ -19,19 +19,22 @@
 #include "config.h"
 #include "mainview.h"
 #include "utils/option.h"
+#include "dm/docimg.h"
+#include "dm/doccamera.h"
 
 namespace gme{
 
 BEGIN_EVENT_TABLE(MainView, inherited)
 
     EVT_MOTION(MainView::mouseMoved)
-    EVT_LEFT_DOWN(MainView::mouseDown)
-    EVT_LEFT_UP(MainView::mouseReleased)
+    EVT_LEFT_DOWN(MainView::mouseLeftDown)
+    EVT_LEFT_UP(MainView::mouseLeftReleased)
     EVT_RIGHT_DOWN(MainView::rightClick)
     EVT_LEAVE_WINDOW(MainView::mouseLeftWindow)
     EVT_KEY_DOWN(MainView::keyPressed)
     EVT_KEY_UP(MainView::keyReleased)
     EVT_MOUSEWHEEL(MainView::mouseWheelMoved)
+    EVT_IDLE(MainView::onIdle)
 
     // catch paint events
     EVT_PAINT(MainView::paintEvent)
@@ -43,12 +46,23 @@ MainView::MainView(wxFrame* parent) : inherited(parent)
 {
     //@TODO: connection from option.
     SetMinSize( wxSize(20, 20) );
+    m_action = ACTION_INVALID;
+    opt_RotateStep = 4.f;
+    m_micro_tick = boost::posix_time::microsec_clock::local_time();
+    //0.2 second.
+    opt_MinEditInterval = 200;
 }
 
 MainView::~MainView()
 {
 }
- 
+
+void
+MainView::onIdle(wxIdleEvent &event)
+{
+    this->Refresh(false);
+}
+
 /*
  * Called by the system of by wxWidgets when the panel needs
  * to be redrawn. You can also trigger this call by
@@ -83,20 +97,68 @@ void MainView::paintNow()
  */
 void MainView::render(wxDC&  dc)
 {
-    dc.SetBrush( *wxRED_BRUSH );
-
+    gme::DocImg docimg;
     int w,h;
     this->GetSize(&w,&h);
-    dc.DrawRectangle( 0, 0, w, h );
-}
- 
-void MainView::mouseDown(wxMouseEvent& event)
-{
+    bool    bDrawed = false;
+    if(docimg.isValid())
+    {
+        wxImage image(w,h);
+        ImageDataScale   idata;
+        idata.data = image.GetData();
+        idata.width = w;
+        idata.height = h;
+        idata.pitch = w * 3;
+        idata.default_red = 255;
+        idata.default_green = 0;
+        idata.default_blue = 0;
+        
+        docimg.getData(&idata);
+        
+        ///@TODO 添加卷滚处理。
+
+        wxBitmap bmp( image );
+        dc.DrawBitmap( bmp, 0, 0 );
+        bDrawed = true;
+    }
+    if(!bDrawed)
+    {
+        dc.SetBrush( *wxRED_BRUSH );
+        dc.DrawRectangle( 0, 0, w, h );
+    }
 }
 
-void MainView::mouseReleased(wxMouseEvent& event)
+void
+MainView::rotateCam(wxMouseEvent& event)
+{
+    boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
+    boost::posix_time::time_duration diff = now - m_micro_tick;
+    if(diff.total_milliseconds() > opt_MinEditInterval)
+    {
+        long x,y;
+        event.GetPosition(&x,&y);
+		if(x != m_lastx || y != m_lasty)
+		{
+			gme::DocCamera doccam;
+			doccam.rotate(m_lastx - x, m_lasty - y,opt_RotateStep);
+			m_lastx = x;
+			m_lasty = y;
+			m_micro_tick = now;
+		}
+    }
+}
+
+void MainView::mouseLeftDown(wxMouseEvent& event)
+{
+    event.GetPosition(&m_lastx,&m_lasty);
+    m_action = ACTION_CAM_ROTATE;
+}
+
+void MainView::mouseLeftReleased(wxMouseEvent& event)
 {
 //    wxMessageBox( wxT("You pressed a custom button") );
+    rotateCam(event);
+    m_action = ACTION_INVALID;
 }
 
 void MainView::mouseLeftWindow(wxMouseEvent& event)
@@ -105,6 +167,10 @@ void MainView::mouseLeftWindow(wxMouseEvent& event)
  
 void MainView::mouseMoved(wxMouseEvent& event)
 {
+    if(m_action == ACTION_CAM_ROTATE)
+    {
+        rotateCam(event);
+    }
 }
 
 void MainView::mouseWheelMoved(wxMouseEvent& event)

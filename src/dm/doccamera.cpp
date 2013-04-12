@@ -16,61 +16,30 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_MAINVIEW_H
-#define  GME_MAINVIEW_H
-
-#include <wx/wx.h>
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include "config.h"
+#include "dm/doccamera.h"
+#include "slg/slg.h"
 
 namespace gme{
 
-class MainView : public wxScrolledWindow
+bool
+DocCamera::rotate(int distX,int distY,float optRotateStep)
 {
-typedef wxScrolledWindow    inherited;
-protected:
-    boost::posix_time::ptime    m_micro_tick;
-    float    opt_RotateStep;
-    long     opt_MinEditInterval;
-    long     m_lastx;
-    long     m_lasty;
-    int      m_action;
-    enum{
-        ACTION_INVALID,
-        ACTION_CAM_ROTATE
-    };
-    void    rotateCam(wxMouseEvent& event);
-public:
-    MainView(wxFrame* parent);
-    virtual ~MainView();
+    if(m_session && m_session->film)
+    {
+	    m_session->BeginEdit();
 
-    void paintEvent(wxPaintEvent & evt);
-    void paintNow();
-    void render(wxDC& dc);
-
-    // some useful events
-    void mouseMoved(wxMouseEvent& event);
-    void mouseLeftDown(wxMouseEvent& event);
-    void mouseWheelMoved(wxMouseEvent& event);
-    void mouseLeftReleased(wxMouseEvent& event);
-    void rightClick(wxMouseEvent& event);
-    void mouseLeftWindow(wxMouseEvent& event);
-    void keyPressed(wxKeyEvent& event);
-    void keyReleased(wxKeyEvent& event);
-    void onIdle(wxIdleEvent &event);
-        
-    DECLARE_EVENT_TABLE()
-};
-
-} //end namespace gme
+	    m_session->renderConfig->scene->camera->RotateUp(0.04f * distY * optRotateStep);
+	    m_session->renderConfig->scene->camera->RotateLeft(0.04f * distX * optRotateStep);
 
 
+	    m_session->renderConfig->scene->camera->Update(m_session->film->GetWidth(), m_session->film->GetHeight());
+	    m_session->editActions.AddAction(slg::CAMERA_EDIT);
+	    m_session->EndEdit();
+	    return true;
+	}
+	return false;
+}
 
 
-
-
-
-
-
-
-
-#endif //GME_MAINVIEW_H
+} //end namespace gme.

@@ -23,10 +23,22 @@
 
 namespace gme{
 
+BEGIN_EVENT_TABLE(MainFrame, inherited)
+	EVT_MENU(wxID_OPEN, MainFrame::onMenuFileOpen)
+	EVT_MENU(wxID_SAVE, MainFrame::onMenuFileSave)
+	EVT_MENU(wxID_EXIT, MainFrame::onMenuFileQuit)
+	EVT_MENU(wxID_ABOUT, MainFrame::onMenuHelpAbout)
+	EVT_SIZE(MainFrame::onSize)
+	EVT_CLOSE(MainFrame::onClose)
+END_EVENT_TABLE()
+
 MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
                   wxDefaultPosition, wxSize(800,600),
-                  wxDEFAULT_FRAME_STYLE)                              
+                  wxDEFAULT_FRAME_STYLE)
 {
+    createMenubar();
+    createStatusbar();
+
     // notify wxAUI which frame to use
     m_mgr.SetManagedWindow(this);
 
@@ -34,18 +46,19 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
     wxTextCtrl* text1 = new wxTextCtrl(this, -1, _("Pane 1 - sample text"),
                   wxDefaultPosition, wxSize(200,150),
                   wxNO_BORDER | wxTE_MULTILINE);
-                            
+
     MainView* text3 = new MainView(this);
-     
+
     wxTextCtrl* text2 = new wxTextCtrl(this, -1, _("Pane 2 - sample text"),
                   wxDefaultPosition, wxSize(200,150),
                   wxNO_BORDER | wxTE_MULTILINE);
-                                    
+
     // add the panes to the manager
     m_mgr.AddPane(text1, wxLEFT, wxT("Pane Number One"));
     m_mgr.AddPane(text2, wxBOTTOM, wxT("Pane Number Two"));
+    //m_mgr.AddPane(m_pMenuBar, wxTOP);
     m_mgr.AddPane(text3, wxCENTER);
-                           
+
     // tell the manager to "commit" all the changes just made
     m_mgr.Update();
 }
@@ -55,6 +68,79 @@ MainFrame::~MainFrame()
     // deinitialize the frame manager
     m_mgr.UnInit();
 }
- 
+
+void
+MainFrame::createMenubar()
+{
+    wxMenuBar *pMenuBar = new wxMenuBar();
+    wxMenu *pFileMenu = new wxMenu();
+    pFileMenu->Append(wxID_OPEN, __(wxT("打开(&O)")), __(wxT("打开已有场景")));
+    pFileMenu->AppendSeparator();
+    pFileMenu->Append(wxID_EXIT, __(wxT("退出(&X)")), __(wxT("退出gmeditor")));
+    pMenuBar->Append(pFileMenu, __(wxT("文件(&F)")));
+	SetMenuBar(pMenuBar);
+}
+
+void
+MainFrame::createStatusbar()
+{
+    m_pStatusBar = CreateStatusBar(SFP_TOTOAL);
+    int w[SFP_TOTOAL] = {-10,-7,-1,-1,-1};
+    m_pStatusBar->SetStatusWidths(SFP_TOTOAL,w);
+    m_pGauge = new wxGauge(m_pStatusBar, wxID_ANY, 100);
+    m_pGauge->SetValue(50);
+    updateProgressbar();
+	SetStatusText(wxT("就绪"), 0);
+}
+
+
+/** @brief 这里是真正的退出实现。所有清理工作在这里执行。
+**/
+void
+MainFrame::onClose(wxCloseEvent& event)
+{
+	Destroy();
+	event.Skip(false);
+}
+
+void
+MainFrame::onSize(wxSizeEvent& event)
+{
+    //adjust status bar size.
+    updateProgressbar();
+}
+
+
+void
+MainFrame::onMenuFileOpen(wxCommandEvent &event)
+{
+	wxFileDialog *OpenDialog= new wxFileDialog(this, _T("Choose a file"), _(""), _(""), _("*.*"), wxFD_OPEN);
+	if ( OpenDialog->ShowModal() == wxID_OK )
+	{
+	}
+	OpenDialog->Close(); // Or OpenDialog->Destroy() ?
+}
+
+void
+MainFrame::onMenuFileSave(wxCommandEvent &event)
+{
+	wxFileDialog *SaveDialog= new wxFileDialog(this, _T("Choose a file"), _(""), _(""), _("*.*"), wxFD_SAVE);
+	if ( SaveDialog->ShowModal() == wxID_OK )
+	{
+	}
+	SaveDialog->Close();
+}
+
+void
+MainFrame::onMenuFileQuit(wxCommandEvent &event)
+{
+	Close(false);
+}
+
+void
+MainFrame::onMenuHelpAbout(wxCommandEvent &event)
+{
+}
+
 } //namespace gme
 
