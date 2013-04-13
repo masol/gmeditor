@@ -16,19 +16,19 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef GME_CONFIG_H
-#define GME_CONFIG_H
+#ifndef  GME_STRINGUTIL_H
+#define  GME_STRINGUTIL_H
 
-// The configured options and settings for gme
+#ifdef  WIN32
 
-#define GME_VERSION_MAJOR "@GME_VERSION_MAJOR@"
-#define GME_VERSION_MINOR "@GME_VERSION_MINOR@"
+#define DECLARE_WXCONVERT           wxMBConvUTF8	gme_wx_utf8_conv
+#define gmeWXT(s)                   wxString(__(s),gme_wx_utf8_conv)
 
-// for i18n. use ibm icu to support it. do it later.
-// follow function(GME_GETTEXT) return UTF-8 string in the futher.
-//#include "utils/i18n"
-#define GME_GETTEXT(str)       str
-#define __(str)	GME_GETTEXT(str)
+#else
 
+#define DECLARE_WXCONVERT
+#define gmeWXT(s)                   __(s)
 
-#endif	/* GME_CONFIG_H */
+#endif
+
+#endif  //GME_STRINGUTIL_H

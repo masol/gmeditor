@@ -19,7 +19,8 @@
 #include "config.h"
 #include "mainframe.h"
 #include "mainview.h"
-
+#include "stringutil.h"
+#include <wx/treelist.h>
 
 namespace gme{
 
@@ -36,28 +37,30 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
                   wxDefaultPosition, wxSize(800,600),
                   wxDEFAULT_FRAME_STYLE)
 {
+    m_pGauge = NULL;
     createMenubar();
     createStatusbar();
+
+    DECLARE_WXCONVERT;
 
     // notify wxAUI which frame to use
     m_mgr.SetManagedWindow(this);
 
+    wxTreeListCtrl* text1 = new wxTreeListCtrl(this,-1,wxDefaultPosition,wxSize(200,450));
     // create several text controls
-    wxTextCtrl* text1 = new wxTextCtrl(this, -1, _("Pane 1 - sample text"),
-                  wxDefaultPosition, wxSize(200,150),
-                  wxNO_BORDER | wxTE_MULTILINE);
+    //wxTextCtrl *text1 = new wxTextCtrl(this, -1, _("Pane 1 - sample text"),wxDefaultPosition, wxSize(200,150),wxNO_BORDER | wxTE_MULTILINE);
 
-    MainView* text3 = new MainView(this);
-
-    wxTextCtrl* text2 = new wxTextCtrl(this, -1, _("Pane 2 - sample text"),
+    wxTextCtrl *text2 = new wxTextCtrl(this, -1, gmeWXT("Pane 2 - sample text"),
                   wxDefaultPosition, wxSize(200,150),
                   wxNO_BORDER | wxTE_MULTILINE);
 
     // add the panes to the manager
-    m_mgr.AddPane(text1, wxLEFT, wxT("Pane Number One"));
-    m_mgr.AddPane(text2, wxBOTTOM, wxT("Pane Number Two"));
-    //m_mgr.AddPane(m_pMenuBar, wxTOP);
-    m_mgr.AddPane(text3, wxCENTER);
+	wxMBConvUTF8	conv;
+    m_mgr.AddPane(text1, wxLEFT, gmeWXT("æ¨¡å‹ä¸€è§ˆ"));
+    m_mgr.AddPane(text2, wxBOTTOM, gmeWXT("Pane Number Two"));
+
+    MainView        *mainView = new MainView(this);
+    m_mgr.AddPane(mainView, wxCENTER);
 
     // tell the manager to "commit" all the changes just made
     m_mgr.Update();
@@ -65,40 +68,44 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
 
 MainFrame::~MainFrame()
 {
-    // deinitialize the frame manager
-    m_mgr.UnInit();
 }
 
 void
 MainFrame::createMenubar()
 {
+    DECLARE_WXCONVERT;
+
     wxMenuBar *pMenuBar = new wxMenuBar();
     wxMenu *pFileMenu = new wxMenu();
-    pFileMenu->Append(wxID_OPEN, __(wxT("´ò¿ª(&O)")), __(wxT("´ò¿ªÒÑÓĞ³¡¾°")));
+	wxMBConvUTF8	conv;
+    pFileMenu->Append(wxID_OPEN, gmeWXT("æ‰“å¼€(&O)"), gmeWXT("æ‰“å¼€å·²æœ‰åœºæ™¯"));
     pFileMenu->AppendSeparator();
-    pFileMenu->Append(wxID_EXIT, __(wxT("ÍË³ö(&X)")), __(wxT("ÍË³ögmeditor")));
-    pMenuBar->Append(pFileMenu, __(wxT("ÎÄ¼ş(&F)")));
+    pFileMenu->Append(wxID_EXIT, gmeWXT("é€€å‡º(&X)"), gmeWXT("é€€å‡ºgmeditor"));
+    pMenuBar->Append(pFileMenu, gmeWXT("æ–‡ä»¶(&F)"));
 	SetMenuBar(pMenuBar);
 }
 
 void
 MainFrame::createStatusbar()
 {
-    m_pStatusBar = CreateStatusBar(SFP_TOTOAL);
+    DECLARE_WXCONVERT;
+    wxStatusBar *pStatusBar = CreateStatusBar(SFP_TOTOAL);
     int w[SFP_TOTOAL] = {-10,-7,-1,-1,-1};
-    m_pStatusBar->SetStatusWidths(SFP_TOTOAL,w);
-    m_pGauge = new wxGauge(m_pStatusBar, wxID_ANY, 100);
+    pStatusBar->SetStatusWidths(SFP_TOTOAL,w);
+    m_pGauge = new wxGauge(pStatusBar, wxID_ANY, 100);
     m_pGauge->SetValue(50);
     updateProgressbar();
-	SetStatusText(wxT("¾ÍĞ÷"), 0);
+	SetStatusText(gmeWXT("å°±ç»ª"), 0);
 }
 
 
-/** @brief ÕâÀïÊÇÕæÕıµÄÍË³öÊµÏÖ¡£ËùÓĞÇåÀí¹¤×÷ÔÚÕâÀïÖ´ĞĞ¡£
+/** @brief è¿™é‡Œæ˜¯çœŸæ­£çš„é€€å‡ºå®ç°ã€‚æ‰€æœ‰æ¸…ç†å·¥ä½œåœ¨è¿™é‡Œæ‰§è¡Œã€‚
 **/
 void
 MainFrame::onClose(wxCloseEvent& event)
 {
+    // deinitialize the frame manager
+    m_mgr.UnInit();
 	Destroy();
 	event.Skip(false);
 }

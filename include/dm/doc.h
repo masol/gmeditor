@@ -34,6 +34,10 @@ protected:
     typedef Singleton<Doc>   inherited;
     Doc(void);
     boost::recursive_mutex      m_mutex;
+    ///@fixme: slg的started为保护成员。
+    bool            m_started;
+    void            start();
+    void            stop();
 private:
     //@FIXME: 这里不能直接暴露slg.需要使用DocImpl类来封装，以方便支持cycles,luxrender...
     //@TODO: 需要一个材质转化专家系统来支持材质转化。

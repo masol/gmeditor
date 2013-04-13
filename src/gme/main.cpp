@@ -25,7 +25,15 @@
 
 class MyApp : public wxApp
 {
+protected:
+    gme::MainFrame      *m_mainFrame;
 public:
+    MyApp() : m_mainFrame(NULL)
+    {
+    }
+    ~MyApp()
+    {
+    }
     bool OnInit()
     {
         //initionlize config.
@@ -62,10 +70,10 @@ public:
             }
         }
 
-        wxFrame* frame = new gme::MainFrame(NULL);
-        SetTopWindow(frame);
-        frame->Maximize();
-        frame->Show();
+        m_mainFrame = new gme::MainFrame(NULL);
+        SetTopWindow(m_mainFrame);
+        m_mainFrame->Maximize();
+        m_mainFrame->Show();
         return true;
     }
 };

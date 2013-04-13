@@ -16,19 +16,24 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef GME_CONFIG_H
-#define GME_CONFIG_H
-
-// The configured options and settings for gme
-
-#define GME_VERSION_MAJOR "@GME_VERSION_MAJOR@"
-#define GME_VERSION_MINOR "@GME_VERSION_MINOR@"
-
-// for i18n. use ibm icu to support it. do it later.
-// follow function(GME_GETTEXT) return UTF-8 string in the futher.
-//#include "utils/i18n"
-#define GME_GETTEXT(str)       str
-#define __(str)	GME_GETTEXT(str)
+#ifndef  GME_DM_DOCIO_H
+#define  GME_DM_DOCIO_H
 
 
-#endif	/* GME_CONFIG_H */
+#include "dm/doc.h"
+
+namespace gme{
+
+class DocCtl : public DocScopeLocker
+{
+public:
+    bool    isRuning();
+    void    start();
+    void    stop();
+    void    pause();
+};
+
+}
+
+#endif //GME_DM_DOCIO_H
+

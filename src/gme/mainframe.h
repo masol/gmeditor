@@ -24,6 +24,8 @@
 
 namespace gme{
 
+class MainView;
+
 class MainFrame : public wxFrame {
     typedef  wxFrame   inherited;
 public:
@@ -55,17 +57,18 @@ public:
 private:
     inline void updateProgressbar(){
         wxRect rect;
-        if(m_pStatusBar->GetFieldRect(SFP_PROG,rect))
+        wxStatusBar *pSB = this->GetStatusBar();
+        if(pSB && pSB->GetFieldRect(SFP_PROG,rect))
         {
             m_pGauge->SetSize(rect.GetWidth(),rect.GetHeight());
             m_pGauge->Move(rect.x,rect.y);
         }
     }
-    wxStatusBar	    *m_pStatusBar;
     wxGauge         *m_pGauge;
     void    createMenubar();
     void    createStatusbar();
-    wxAuiManager m_mgr;
+    //@TODO meory leak detected by valgrind, caused by wxAuiManager loading paninfo using expat xmlparser.
+    wxAuiManager    m_mgr;
     DECLARE_EVENT_TABLE()
 };
 
