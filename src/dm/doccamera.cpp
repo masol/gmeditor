@@ -19,23 +19,25 @@
 #include "config.h"
 #include "dm/doccamera.h"
 #include "slg/slg.h"
+#include "docprivate.h"
 
 namespace gme{
 
 bool
 DocCamera::rotate(int distX,int distY,float optRotateStep)
 {
-    if(m_session && m_session->film)
+    slg::RenderSession* session = pDocData->getSession();
+    if(session && session->film)
     {
-	    m_session->BeginEdit();
+	    session->BeginEdit();
 
-	    m_session->renderConfig->scene->camera->RotateUp(0.04f * distY * optRotateStep);
-	    m_session->renderConfig->scene->camera->RotateLeft(0.04f * distX * optRotateStep);
+	    session->renderConfig->scene->camera->RotateUp(0.04f * distY * optRotateStep);
+	    session->renderConfig->scene->camera->RotateLeft(0.04f * distX * optRotateStep);
 
 
-	    m_session->renderConfig->scene->camera->Update(m_session->film->GetWidth(), m_session->film->GetHeight());
-	    m_session->editActions.AddAction(slg::CAMERA_EDIT);
-	    m_session->EndEdit();
+	    session->renderConfig->scene->camera->Update(session->film->GetWidth(), session->film->GetHeight());
+	    session->editActions.AddAction(slg::CAMERA_EDIT);
+	    session->EndEdit();
 	    return true;
 	}
 	return false;

@@ -20,16 +20,17 @@
 #include "dm/docimg.h"
 #include "slg/slg.h"
 #include "luxrays/utils/properties.h"
+#include "docprivate.h"
 
 namespace gme{
 
 bool
 DocImg::getSize(int &w,int &h)
 {
-    if(m_session && m_session->film)
+    if(pDocData->m_session && pDocData->m_session->film)
     {
-        w = m_session->film->GetWidth ();
-        h = m_session->film->GetHeight ();
+        w = pDocData->m_session->film->GetWidth ();
+        h = pDocData->m_session->film->GetHeight ();
         return true;
     }
     return false;
@@ -124,22 +125,24 @@ DocImg::getData(ImageDataScale *pdata,int w, int h,const float* pixels)
 bool
 DocImg::getData(ImageDataBase *pdata)
 {
-    if(m_session && m_session->film)
+    slg::RenderSession* session = pDocData->getSession();
+
+    if(session && session->film)
     {
         char    captionBuffer[1024];
     	sprintf(captionBuffer, "[Pass %3d][Avg. samples/sec % 3.2fM][Avg. rays/sec % 4dK on %.1fK tris]",
-		    m_session->renderEngine->GetPass(),
-		    m_session->renderEngine->GetTotalSamplesSec() / 1000000.0,
-		    int(m_session->renderEngine->GetTotalRaysSec() / 1000.0),
-		    m_session->renderConfig->scene->dataSet->GetTotalTriangleCount() / 1000.f);
+		    session->renderEngine->GetPass(),
+		    session->renderEngine->GetTotalSamplesSec() / 1000000.0,
+		    int(session->renderEngine->GetTotalRaysSec() / 1000.0),
+		    session->renderConfig->scene->dataSet->GetTotalTriangleCount() / 1000.f);
 		std::cerr << captionBuffer << std::endl;
     
-        m_session->renderEngine->UpdateFilm();
-	    m_session->film->UpdateScreenBuffer();
-	    const float *pixels = m_session->film->GetScreenBuffer();
+        session->renderEngine->UpdateFilm();
+	    session->film->UpdateScreenBuffer();
+	    const float *pixels = session->film->GetScreenBuffer();
 	    if(pdata->type == ImageDataBase::ID_SCALE)
 	    {
-	        return getData(reinterpret_cast<ImageDataScale*>(pdata),m_session->film->GetWidth(), m_session->film->GetHeight(),pixels);
+	        return getData(reinterpret_cast<ImageDataScale*>(pdata),session->film->GetWidth(), session->film->GetHeight(),pixels);
         }
     }
     return false;

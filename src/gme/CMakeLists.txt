@@ -27,7 +27,8 @@
 #@FIXME: wxWidgets_LIBRARIES will been overwrite by some instruction.
 set(wxWidgets_LIBRARIES_Cache ${wxWidgets_LIBRARIES})
 set(GME_SRCS
-    mainview.cpp
+    renderview.cpp
+    objectview.cpp
     mainframe.cpp
 	main.cpp
    )
@@ -42,14 +43,14 @@ add_executable(gmeditor ${GME_SRCS})
 IF (WIN32)
 TARGET_LINK_LIBRARIES(gmeditor
  dm
- utils 
+ utils
  ${FreeImage_LIBRARIES}
  ${SLG_LIBRARY}
  ${LUXRAYS_LIBRARY}
  ${OPENGL_LIBRARY}
  ${OPENCL_LIBRARIES}
 )
-set_target_properties(gmeditor PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS") 
+set_target_properties(gmeditor PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
 ELSE(WIN32)
 #Message(STATUS "OPENCL_LIBRARIES : ${OPENCL_INCLUDE_DIR}")
 TARGET_LINK_LIBRARIES(gmeditor

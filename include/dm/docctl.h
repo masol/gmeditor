@@ -28,9 +28,9 @@ class DocCtl : public DocScopeLocker
 {
 public:
     bool    isRuning();
-    void    start();
-    void    stop();
-    void    pause();
+    bool    start();
+    bool    stop();
+    bool    pause();
 };
 
 }

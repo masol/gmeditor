@@ -16,59 +16,24 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_DM_DOC_H
-#define  GME_DM_DOC_H
+#ifndef  GME_DM_DOCDATA_H
+#define  GME_DM_DOCDATA_H
 
-#include "utils/singleton.h"
-#include <boost/thread/recursive_mutex.hpp>
+
+#include "dm/doc.h"
+#include "dm/objectnode.h"
 
 namespace gme{
 
-class DocPrivate;
-class Doc : public Singleton<Doc>
+class DocData : public DocScopeLocker
 {
-protected:
-    friend class DocScopeLocker;
-    friend class Singleton<Doc>;
-    typedef Singleton<Doc>   inherited;
-    Doc(void);
-    boost::recursive_mutex      m_mutex;
-    DocPrivate                  *pDocData;
-private:
-    /** @brief 锁定文档。
-    **/
-    inline  void    lock(){
-        m_mutex.lock();
-    }
-    /** @brief 解锁文档。
-    **/
-    inline  void    unlock(){
-        m_mutex.unlock();
-    }
-    bool    isValid(void);
 public:
-    ~Doc(void);
-};
-
-class DocScopeLocker
-{
-protected:
-    DocPrivate   *pDocData;
-public:
-    DocScopeLocker() : pDocData(Doc::instance().pDocData)
-    {
-        Doc::instance().lock();
-    }
-    ~DocScopeLocker(){
-        Doc::instance().unlock();
-    }
-    inline bool    isValid(void)const{
-        return Doc::instance().isValid();
-    }
+    const ObjectNode&   getRootObject();
+    std::string         getObjectName(const ObjectNode& obj);
+    std::string         getMatName(const ObjectNode& obj);
 };
 
 }
 
+#endif //GME_DM_DOCDATA_H
 
-
-#endif  //GME_DM_DOC_H

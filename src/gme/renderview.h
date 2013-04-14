@@ -16,59 +16,51 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_DM_DOC_H
-#define  GME_DM_DOC_H
+#ifndef  GME_RENDERVIEW_H
+#define  GME_RENDERVIEW_H
 
-#include "utils/singleton.h"
-#include <boost/thread/recursive_mutex.hpp>
+#include <wx/wx.h>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace gme{
 
-class DocPrivate;
-class Doc : public Singleton<Doc>
+class RenderView : public wxScrolledWindow
 {
+typedef wxScrolledWindow    inherited;
 protected:
-    friend class DocScopeLocker;
-    friend class Singleton<Doc>;
-    typedef Singleton<Doc>   inherited;
-    Doc(void);
-    boost::recursive_mutex      m_mutex;
-    DocPrivate                  *pDocData;
-private:
-    /** @brief 锁定文档。
-    **/
-    inline  void    lock(){
-        m_mutex.lock();
-    }
-    /** @brief 解锁文档。
-    **/
-    inline  void    unlock(){
-        m_mutex.unlock();
-    }
-    bool    isValid(void);
+    boost::posix_time::ptime    m_micro_tick;
+    float    opt_RotateStep;
+    long     opt_MinEditInterval;
+    long     m_lastx;
+    long     m_lasty;
+    int      m_action;
+    enum{
+        ACTION_INVALID,
+        ACTION_CAM_ROTATE
+    };
+    void    rotateCam(wxMouseEvent& event);
 public:
-    ~Doc(void);
+    RenderView(wxFrame* parent);
+    virtual ~RenderView();
+
+    void paintEvent(wxPaintEvent & evt);
+    void paintNow();
+    void render(wxDC& dc);
+
+    // some useful events
+    void mouseMoved(wxMouseEvent& event);
+    void mouseLeftDown(wxMouseEvent& event);
+    void mouseWheelMoved(wxMouseEvent& event);
+    void mouseLeftReleased(wxMouseEvent& event);
+    void rightClick(wxMouseEvent& event);
+    void mouseLeftWindow(wxMouseEvent& event);
+    void keyPressed(wxKeyEvent& event);
+    void keyReleased(wxKeyEvent& event);
+    void onIdle(wxIdleEvent &event);
+
+    DECLARE_EVENT_TABLE()
 };
 
-class DocScopeLocker
-{
-protected:
-    DocPrivate   *pDocData;
-public:
-    DocScopeLocker() : pDocData(Doc::instance().pDocData)
-    {
-        Doc::instance().lock();
-    }
-    ~DocScopeLocker(){
-        Doc::instance().unlock();
-    }
-    inline bool    isValid(void)const{
-        return Doc::instance().isValid();
-    }
-};
+} //end namespace gme
 
-}
-
-
-
-#endif  //GME_DM_DOC_H
+#endif //GME_RENDERVIEW_H

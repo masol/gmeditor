@@ -16,61 +16,43 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_MAINVIEW_H
-#define  GME_MAINVIEW_H
+#ifndef  GME_OBJECTVIEW_H
+#define  GME_OBJECTVIEW_H
 
 #include <wx/wx.h>
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <wx/treelist.h>
+
+class wxTreeListCtrl;
+class wxSizer;
 
 namespace gme{
 
-class MainView : public wxScrolledWindow
+class ObjectNode;
+class DocObj;
+
+class ObjectView : public wxPanel
 {
-typedef wxScrolledWindow    inherited;
+    typedef wxPanel inherited;
 protected:
-    boost::posix_time::ptime    m_micro_tick;
-    float    opt_RotateStep;
-    long     opt_MinEditInterval;
-    long     m_lastx;
-    long     m_lasty;
-    int      m_action;
-    enum{
-        ACTION_INVALID,
-        ACTION_CAM_ROTATE
-    };
-    void    rotateCam(wxMouseEvent& event);
+    wxTreeListCtrl      *m_treelist;
+    wxSizer             *m_sizer;
+    wxTreeListCtrl*     CreateTreeListCtrl(long style);
+
+    void OnSelectionChanged(wxTreeListEvent& event);
+    void OnItemExpanding(wxTreeListEvent& event);
+    void OnItemExpanded(wxTreeListEvent& event);
+    void OnItemChecked(wxTreeListEvent& event);
+    void OnItemActivated(wxTreeListEvent& event);
+    void OnItemContextMenu(wxTreeListEvent& event);
+    void addChild(wxTreeListItem& parent,const ObjectNode* pNode,DocObj *pobjop);
+    void refresh(void);
 public:
-    MainView(wxFrame* parent);
-    virtual ~MainView();
-
-    void paintEvent(wxPaintEvent & evt);
-    void paintNow();
-    void render(wxDC& dc);
-
-    // some useful events
-    void mouseMoved(wxMouseEvent& event);
-    void mouseLeftDown(wxMouseEvent& event);
-    void mouseWheelMoved(wxMouseEvent& event);
-    void mouseLeftReleased(wxMouseEvent& event);
-    void rightClick(wxMouseEvent& event);
-    void mouseLeftWindow(wxMouseEvent& event);
-    void keyPressed(wxKeyEvent& event);
-    void keyReleased(wxKeyEvent& event);
-    void onIdle(wxIdleEvent &event);
-        
-    DECLARE_EVENT_TABLE()
+    ObjectView(wxWindow* parent, wxWindowID id,const wxPoint& pos, const wxSize& size);
+    ~ObjectView();
+private:
+    wxDECLARE_EVENT_TABLE();
 };
 
-} //end namespace gme
+}
 
-
-
-
-
-
-
-
-
-
-
-#endif //GME_MAINVIEW_H
+#endif //GME_OBJECTVIEW_H

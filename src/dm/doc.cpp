@@ -19,6 +19,7 @@
 #include "config.h"
 #include "dm/doc.h"
 #include <iostream>
+#include "docprivate.h"
 
 #include "luxrays/luxrays.h"
 #include "slg/slg.h"
@@ -60,14 +61,22 @@ Doc::Doc(void)
 
     FreeImage_Initialise(TRUE);
 	FreeImage_SetOutputMessage(::FreeImageErrorHandler);
+	
+    pDocData = new DocPrivate();
 }
 
 Doc::~Doc(void)
 {
-    if(m_session)
+    if(pDocData)
     {
-        m_session.reset();
+        delete pDocData;
     }
+}
+
+bool
+Doc::isValid(void)
+{
+    return Doc::instance().pDocData->m_session.get() != NULL;
 }
 
 }

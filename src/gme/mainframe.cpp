@@ -18,9 +18,9 @@
 
 #include "config.h"
 #include "mainframe.h"
-#include "mainview.h"
+#include "renderview.h"
+#include "objectview.h"
 #include "stringutil.h"
-#include <wx/treelist.h>
 
 namespace gme{
 
@@ -46,7 +46,6 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
     // notify wxAUI which frame to use
     m_mgr.SetManagedWindow(this);
 
-    wxTreeListCtrl* text1 = new wxTreeListCtrl(this,-1,wxDefaultPosition,wxSize(200,450));
     // create several text controls
     //wxTextCtrl *text1 = new wxTextCtrl(this, -1, _("Pane 1 - sample text"),wxDefaultPosition, wxSize(200,150),wxNO_BORDER | wxTE_MULTILINE);
 
@@ -54,12 +53,14 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
                   wxDefaultPosition, wxSize(200,150),
                   wxNO_BORDER | wxTE_MULTILINE);
 
+    ObjectView *objView = new ObjectView(this,wxID_ANY,wxDefaultPosition,wxSize(200,450));
+
     // add the panes to the manager
 	wxMBConvUTF8	conv;
-    m_mgr.AddPane(text1, wxLEFT, gmeWXT("模型一览"));
+    m_mgr.AddPane(objView, wxLEFT, gmeWXT("模型一览"));
     m_mgr.AddPane(text2, wxBOTTOM, gmeWXT("Pane Number Two"));
 
-    MainView        *mainView = new MainView(this);
+    RenderView        *mainView = new RenderView(this);
     m_mgr.AddPane(mainView, wxCENTER);
 
     // tell the manager to "commit" all the changes just made

@@ -18,12 +18,43 @@
 
 #include "config.h"
 #include "dm/docio.h"
-#include "slg/slg.h"
-#include "luxrays/utils/properties.h"
 #include "utils/pathext.h"
+#include <slg/slg.h>
+#include <luxrays/utils/properties.h>
 #include <boost/algorithm/string/predicate.hpp>
+#include "docprivate.h"
 
 namespace gme{
+
+void
+DocIO::loadObjectFromScene(void)
+{
+    slg::Scene  *scene = pDocData->getSession()->renderConfig->scene;
+    std::vector<std::string> names = scene->meshDefs.GetExtMeshNames();
+    u_int i = 0;
+    for(std::vector<std::string>::const_iterator iter = names.begin(); iter < names.end(); ++iter,++i)
+    {
+        luxrays::ExtMesh * extmesh = scene->meshDefs.GetExtMesh((*iter));
+        BOOST_ASSERT_MSG(extmesh != NULL,"Mesh Array Panic?");
+        ObjectNode  obj;
+        obj.m_id = boost::uuids::random_generator()();
+        obj.m_name = (*iter);
+        pDocData->m_object_map[obj.m_id] = obj.m_name;
+        
+        obj.m_matid = boost::uuids::random_generator()();
+        pDocData->m_material_map[obj.m_matid] = scene->objectMaterials[i]->GetName();
+        
+        obj.m_useplynormals = extmesh->HasNormals();
+        luxrays::ExtInstanceTriangleMesh* pinst = dynamic_cast<luxrays::ExtInstanceTriangleMesh*>(extmesh);
+        if(pinst)
+        {
+            obj.m_transformation = pinst->GetTransformation().m;
+        }
+
+		pDocData->m_objectGroup.m_children.push_back(obj);
+    }
+}
+
 
 bool
 DocIO::loadScene(const std::string &path)
@@ -33,8 +64,14 @@ DocIO::loadScene(const std::string &path)
     {
         luxrays::Properties cmdLineProp;
         slg::RenderConfig *config = new slg::RenderConfig(&path, &cmdLineProp);
-        m_session.reset(new slg::RenderSession(config));
-        m_session->Start();
+        if(pDocData->m_session)
+        {
+            pDocData->m_session->Stop();
+        }
+        pDocData->m_session.reset(new slg::RenderSession(config));
+        loadObjectFromScene();
+        pDocData->m_session->Start();
+        pDocData->m_started = true;
         return true;
     }
     return false;

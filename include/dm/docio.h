@@ -26,6 +26,8 @@ namespace gme{
 
 class DocIO : public DocScopeLocker
 {
+protected:
+    void    loadObjectFromScene(void);
 public:
     bool    loadScene(const std::string &path);
     //bool  saveScene(const std::string &path);

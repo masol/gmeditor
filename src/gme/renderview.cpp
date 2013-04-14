@@ -17,32 +17,32 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "config.h"
-#include "mainview.h"
+#include "renderview.h"
 #include "utils/option.h"
 #include "dm/docimg.h"
 #include "dm/doccamera.h"
 
 namespace gme{
 
-BEGIN_EVENT_TABLE(MainView, inherited)
+BEGIN_EVENT_TABLE(RenderView, inherited)
 
-    EVT_MOTION(MainView::mouseMoved)
-    EVT_LEFT_DOWN(MainView::mouseLeftDown)
-    EVT_LEFT_UP(MainView::mouseLeftReleased)
-    EVT_RIGHT_DOWN(MainView::rightClick)
-    EVT_LEAVE_WINDOW(MainView::mouseLeftWindow)
-    EVT_KEY_DOWN(MainView::keyPressed)
-    EVT_KEY_UP(MainView::keyReleased)
-    EVT_MOUSEWHEEL(MainView::mouseWheelMoved)
-    EVT_IDLE(MainView::onIdle)
+    EVT_MOTION(RenderView::mouseMoved)
+    EVT_LEFT_DOWN(RenderView::mouseLeftDown)
+    EVT_LEFT_UP(RenderView::mouseLeftReleased)
+    EVT_RIGHT_DOWN(RenderView::rightClick)
+    EVT_LEAVE_WINDOW(RenderView::mouseLeftWindow)
+    EVT_KEY_DOWN(RenderView::keyPressed)
+    EVT_KEY_UP(RenderView::keyReleased)
+    EVT_MOUSEWHEEL(RenderView::mouseWheelMoved)
+    EVT_IDLE(RenderView::onIdle)
 
     // catch paint events
-    EVT_PAINT(MainView::paintEvent)
+    EVT_PAINT(RenderView::paintEvent)
 END_EVENT_TABLE()
 
 
 
-MainView::MainView(wxFrame* parent) : inherited(parent)
+RenderView::RenderView(wxFrame* parent) : inherited(parent)
 {
     //@TODO: connection from option.
     SetMinSize( wxSize(20, 20) );
@@ -53,12 +53,12 @@ MainView::MainView(wxFrame* parent) : inherited(parent)
     opt_MinEditInterval = 200;
 }
 
-MainView::~MainView()
+RenderView::~RenderView()
 {
 }
 
 void
-MainView::onIdle(wxIdleEvent &event)
+RenderView::onIdle(wxIdleEvent &event)
 {
     this->Refresh(false);
 }
@@ -68,13 +68,13 @@ MainView::onIdle(wxIdleEvent &event)
  * to be redrawn. You can also trigger this call by
  * calling Refresh()/Update().
  */
-void MainView::paintEvent(wxPaintEvent & evt)
+void RenderView::paintEvent(wxPaintEvent & evt)
 {
     // depending on your system you may need to look at double-buffered dcs
     wxPaintDC dc(this);
     render(dc);
 }
- 
+
 /*
  * Alternatively, you can use a clientDC to paint on the panel
  * at any time. Using this generally does not free you from
@@ -83,19 +83,19 @@ void MainView::paintEvent(wxPaintEvent & evt)
  * background, and expects you will redraw it when the window comes
  * back (by sending a paint event).
  */
-void MainView::paintNow()
+void RenderView::paintNow()
 {
     // depending on your system you may need to look at double-buffered dcs
     wxClientDC dc(this);
     render(dc);
 }
- 
+
 /*
  * Here we do the actual rendering. I put it in a separate
  * method so that it can work no matter what type of DC
  * (e.g. wxPaintDC or wxClientDC) is used.
  */
-void MainView::render(wxDC&  dc)
+void RenderView::render(wxDC&  dc)
 {
     gme::DocImg docimg;
     int w,h;
@@ -112,9 +112,9 @@ void MainView::render(wxDC&  dc)
         idata.default_red = 255;
         idata.default_green = 0;
         idata.default_blue = 0;
-        
+
         docimg.getData(&idata);
-        
+
         ///@TODO 添加卷滚处理。
 
         wxBitmap bmp( image );
@@ -129,7 +129,7 @@ void MainView::render(wxDC&  dc)
 }
 
 void
-MainView::rotateCam(wxMouseEvent& event)
+RenderView::rotateCam(wxMouseEvent& event)
 {
     boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
     boost::posix_time::time_duration diff = now - m_micro_tick;
@@ -148,24 +148,24 @@ MainView::rotateCam(wxMouseEvent& event)
     }
 }
 
-void MainView::mouseLeftDown(wxMouseEvent& event)
+void RenderView::mouseLeftDown(wxMouseEvent& event)
 {
     event.GetPosition(&m_lastx,&m_lasty);
     m_action = ACTION_CAM_ROTATE;
 }
 
-void MainView::mouseLeftReleased(wxMouseEvent& event)
+void RenderView::mouseLeftReleased(wxMouseEvent& event)
 {
 //    wxMessageBox( wxT("You pressed a custom button") );
     rotateCam(event);
     m_action = ACTION_INVALID;
 }
 
-void MainView::mouseLeftWindow(wxMouseEvent& event)
+void RenderView::mouseLeftWindow(wxMouseEvent& event)
 {
 }
- 
-void MainView::mouseMoved(wxMouseEvent& event)
+
+void RenderView::mouseMoved(wxMouseEvent& event)
 {
     if(m_action == ACTION_CAM_ROTATE)
     {
@@ -173,19 +173,19 @@ void MainView::mouseMoved(wxMouseEvent& event)
     }
 }
 
-void MainView::mouseWheelMoved(wxMouseEvent& event)
+void RenderView::mouseWheelMoved(wxMouseEvent& event)
 {
 }
 
-void MainView::rightClick(wxMouseEvent& event)
+void RenderView::rightClick(wxMouseEvent& event)
 {
 }
 
-void MainView::keyPressed(wxKeyEvent& event)
+void RenderView::keyPressed(wxKeyEvent& event)
 {
 }
 
-void MainView::keyReleased(wxKeyEvent& event)
+void RenderView::keyReleased(wxKeyEvent& event)
 {
 }
 

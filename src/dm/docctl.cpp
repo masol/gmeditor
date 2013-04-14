@@ -19,28 +19,46 @@
 #include "config.h"
 #include "dm/docctl.h"
 #include "slg/slg.h"
+#include "docprivate.h"
+#include <boost/assert.hpp>
 
 namespace gme{
 
 bool
 DocCtl::isRuning()
 {
+    return pDocData->m_started;
+}
+
+bool
+DocCtl::start()
+{
+    if(pDocData->m_session)
+    {
+        pDocData->m_session->Start();
+        pDocData->m_started = true;
+        return true;
+    }
     return false;
 }
 
-void
-DocCtl::start()
-{
-}
-
-void
+bool
 DocCtl::stop()
 {
+    if(pDocData->m_session)
+    {
+        pDocData->m_session->Stop();
+        pDocData->m_started = false;
+        return true;
+    }
+    return false;
 }
 
-void
+bool
 DocCtl::pause()
 {
+    BOOST_ASSERT_MSG(false,"NOT IMPLEMNT");
+    return false;
 }
 
 } //end namespace gme.
