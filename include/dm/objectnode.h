@@ -21,15 +21,42 @@
 
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/unordered_map.hpp>
+#include <boost/filesystem.hpp>
 #include <string>
 #include <vector>
 #include "luxrays/core/geometry/matrix4x4.h"
+#include <fstream>
+
+//forward declare.
+namespace luxrays{
+class ExtMesh;
+}
 
 namespace gme{
 
+struct  ObjectWriteContext{
+    ObjectWriteContext(bool bExportRes,const boost::filesystem::path& p)
+        : m_bSaveRes(bExportRes),
+          m_dest_path(p)
+    {}
+    ~ObjectWriteContext(){}
+protected:
+    friend  class ObjectNode;
+    typedef   boost::unordered_map<std::string, std::string>    type_filepath2savepath;
+    /** @brief 保存了文件名到本地文件名的映射。这可以判断是否是相同文件，以决定是否引用相同mesh.
+    **/
+    type_filepath2savepath  m_filepath2savepath;
+    const boost::filesystem::path m_dest_path;
+    const bool   m_bSaveRes;
+};
+
+
 class ObjectNode
 {
-public:
+private:
+    friend class DocIO;
+protected:
     boost::uuids::uuid      m_id;
     std::string             m_name;
     std::string             m_mesh_name;
@@ -53,7 +80,34 @@ public:
         m_useplynormals = ref.m_useplynormals;
         m_transformation = ref.m_transformation;
     }
+    void    write(std::ofstream &o,ObjectWriteContext& ctx);
+    luxrays::ExtMesh*   getExtMesh(void)const;
 public:
+    typedef std::vector<ObjectNode> type_child_container;
+    inline type_child_container::iterator  begin(){
+        return m_children.begin();
+    }
+    inline type_child_container::iterator  end(){
+        return m_children.end();
+    }
+    inline type_child_container::const_iterator  begin()const{
+        return m_children.begin();
+    }
+    inline type_child_container::const_iterator  end()const{
+        return m_children.end();
+    }
+    inline  const boost::uuids::uuid&     id(void)const{
+        return m_id;
+    }
+    inline  const boost::uuids::uuid&     mat_id(void)const{
+        return m_matid;
+    }
+	inline	const std::string&		name(void)const{
+		return m_name;
+	}
+	inline  void    name(const std::string &n){
+	    m_name = n;
+	}
     static  std::string     idto_string(const boost::uuids::uuid &id);
     ObjectNode()
     {

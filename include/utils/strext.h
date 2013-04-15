@@ -16,24 +16,34 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "config.h"
-#include "dm/docdata.h"
-#include "slg/slg.h"
-#include "docprivate.h"
-#include <boost/assert.hpp>
+#ifndef GME_UTILS_STREXT_H
+#define GME_UTILS_STREXT_H
+
+/**
+ * @file        strext.h
+ * @brief       str的扩展函数。
+ **/
+ 
+#include <boost/locale.hpp>
 
 namespace gme{
 
-const ObjectNode&
-DocData::getRootObject()
+namespace string{
+
+//@FIXME: Boost.Locale provides to_utf, from_utf and utf_to_utf functions in the boost::locale::conv namespace, so this file is useless.
+
+inline std::wstring from_utf8( const std::string& str )
 {
-    return pDocData->m_objectGroup;
+    return boost::locale::conv::utf_to_utf<wchar_t>(str);
 }
 
-std::string
-DocData::getMatName(const ObjectNode& obj)
+inline std::string to_utf8( const std::wstring& str )
 {
-    return pDocData->getMaterialName(obj.mat_id());
+    return boost::locale::conv::utf_to_utf<char>(str);
 }
 
-} //end namespace gme.
+} //end namespace string
+} //end namespace gme
+
+
+#endif //GME_UTILS_STREXT_H

@@ -37,25 +37,27 @@ public:
     bool OnInit()
     {
         //initionlize config.
-        typedef const char*   str_point;
-        str_point*   mb_args = new str_point[argc];
-        for(int i = 0; i < argc;i++)
+        ///@FIXME: 根据valgrind报告，如果使用wx提供的argv自动转化，其数据在进程销毁时才会清理。因此下文自行处理utf8转化。
         {
-            wxString string(argv[i]);
-            mb_args[i] = strdup(string.mb_str());
-        }
-	    BOOST_SCOPE_EXIT( (&mb_args) (&argc))
-	    {
-	        for(int i = 0; i < argc; i++)
-	        {
-	            free(const_cast<char*>(mb_args[i]));
+            typedef const char*   str_point;
+            str_point*   mb_args = new str_point[argc];
+            for(int i = 0; i < argc;i++)
+            {
+                wxString string(argv[i]);
+                mb_args[i] = strdup(string.mb_str());
             }
-            delete[] mb_args;
-	    }BOOST_SCOPE_EXIT_END
-        
-    	if(!gme::Option::instance().initFromArgs(argc,mb_args ))
-		    return false;
-
+	        BOOST_SCOPE_EXIT( (&mb_args) (&argc))
+	        {
+	            for(int i = 0; i < argc; i++)
+	            {
+	                free(const_cast<char*>(mb_args[i]));
+                }
+                delete[] mb_args;
+	        }BOOST_SCOPE_EXIT_END
+            
+        	if(!gme::Option::instance().initFromArgs(argc,mb_args ))
+		        return false;
+        }
 	    std::string source("document.source");
 	    if(gme::Option::instance().is_existed(source))
 	    {

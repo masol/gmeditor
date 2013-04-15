@@ -29,7 +29,6 @@ class DocData : public DocScopeLocker
 {
 public:
     const ObjectNode&   getRootObject();
-    std::string         getObjectName(const ObjectNode& obj);
     std::string         getMatName(const ObjectNode& obj);
 };
 

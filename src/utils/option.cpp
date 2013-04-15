@@ -195,6 +195,13 @@ static inline bool loadConfigFile(const std::string &cfgFile,parser_context &ctx
 }
 
 bool
+Option::initFromArgs(int argc,const wchar_t* argv[])
+{
+    return false;
+}
+
+
+bool
 Option::initFromArgs(int argc,const char* argv[])
 {
 	boost::program_options::options_description		cmdline;

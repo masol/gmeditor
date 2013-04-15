@@ -41,6 +41,9 @@ public:
 	/** Processes menu File|Save */
 	void onMenuFileSave(wxCommandEvent &event);
 
+	/** Processes menu File|Export */
+	void onMenuFileExport(wxCommandEvent &event);
+
 	/** Processes menu File|Quit */
 	void onMenuFileQuit(wxCommandEvent &event);
 

@@ -21,12 +21,16 @@
 #include "renderview.h"
 #include "objectview.h"
 #include "stringutil.h"
+#include "cmdids.h"
+#include "dm/docio.h"
+#include <boost/locale.hpp>
 
 namespace gme{
 
 BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_MENU(wxID_OPEN, MainFrame::onMenuFileOpen)
 	EVT_MENU(wxID_SAVE, MainFrame::onMenuFileSave)
+	EVT_MENU(cmd::GID_EXPORT, MainFrame::onMenuFileExport)
 	EVT_MENU(wxID_EXIT, MainFrame::onMenuFileQuit)
 	EVT_MENU(wxID_ABOUT, MainFrame::onMenuHelpAbout)
 	EVT_SIZE(MainFrame::onSize)
@@ -80,6 +84,8 @@ MainFrame::createMenubar()
     wxMenu *pFileMenu = new wxMenu();
 	wxMBConvUTF8	conv;
     pFileMenu->Append(wxID_OPEN, gmeWXT("打开(&O)"), gmeWXT("打开已有场景"));
+    pFileMenu->Append(wxID_SAVE, gmeWXT("保存(&S)"), gmeWXT("保存现有场景"));
+    pFileMenu->Append(cmd::GID_EXPORT, gmeWXT("导出(&E)"), gmeWXT("导出现有场景"));
     pFileMenu->AppendSeparator();
     pFileMenu->Append(wxID_EXIT, gmeWXT("退出(&X)"), gmeWXT("退出gmeditor"));
     pMenuBar->Append(pFileMenu, gmeWXT("文件(&F)"));
@@ -128,6 +134,21 @@ MainFrame::onMenuFileOpen(wxCommandEvent &event)
 	}
 	OpenDialog->Close(); // Or OpenDialog->Destroy() ?
 }
+
+void
+MainFrame::onMenuFileExport(wxCommandEvent &event)
+{
+    DECLARE_WXCONVERT;
+
+	wxFileDialog *SaveDialog= new wxFileDialog(this, gmeWXT("选择导出文件"), _(""), _(""), _("*.*"), wxFD_SAVE);
+	if ( SaveDialog->ShowModal() == wxID_OK )
+	{
+	    gme::DocIO  dio;
+	    dio.exportScene(boost::locale::conv::utf_to_utf<char>(SaveDialog->GetPath().ToStdWstring()));
+	}
+	SaveDialog->Close();
+}
+
 
 void
 MainFrame::onMenuFileSave(wxCommandEvent &event)

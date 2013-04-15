@@ -28,9 +28,11 @@ class DocIO : public DocScopeLocker
 {
 protected:
     void    loadObjectFromScene(void);
+    void    loadSlgSceneFile(const std::string pathstring);
+    bool    exportSpoloScene(const std::string &pathstring,bool bExportRes);
 public:
     bool    loadScene(const std::string &path);
-    //bool  saveScene(const std::string &path);
+    bool    exportScene(const std::string &path);
 };
 
 }

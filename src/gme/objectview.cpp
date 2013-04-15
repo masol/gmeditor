@@ -50,10 +50,11 @@ ObjectView::refresh(void)
 {
     gme::DocObj dobj;
     const gme::ObjectNode &root = dobj.getRootObject();
-    std::vector<ObjectNode>::const_iterator it = root.m_children.begin();
-    while(it != root.m_children.end())
+    std::vector<ObjectNode>::const_iterator it = root.begin();
+    wxTreeListItem  rootItem = m_treelist->GetRootItem();
+    while(it != root.end())
     {
-        addChild(m_treelist->GetRootItem(),&(*it),&dobj);
+        addChild(rootItem,&(*it),&dobj);
         it++;
     }
 }
@@ -61,11 +62,11 @@ ObjectView::refresh(void)
 void
 ObjectView::addChild(wxTreeListItem& parent,const ObjectNode* pNode,DocObj *pobjop)
 {
-    wxTreeListItem item = m_treelist->AppendItem(parent,pobjop->getObjectName(*pNode));
+	wxTreeListItem item = m_treelist->AppendItem(parent,pNode->name());
     m_treelist->SetItemText(item, 1, pobjop->getMatName(*pNode));
     m_treelist->SetItemText(item, 2, "");
-    std::vector<ObjectNode>::const_iterator it = pNode->m_children.begin();
-    while(it != pNode->m_children.end())
+    std::vector<ObjectNode>::const_iterator it = pNode->begin();
+    while(it != pNode->end())
     {
         addChild(item,&(*it),pobjop);
         it++;

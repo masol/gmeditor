@@ -91,6 +91,7 @@ namespace gme{
 		 * @exception  NULL.
 		**/
 		bool	initFromArgs(int argc,const char* argv[]);
+		bool    initFromArgs(int argc,const wchar_t* argv[]);
 
         /**
          * @brief           获取属性的值。

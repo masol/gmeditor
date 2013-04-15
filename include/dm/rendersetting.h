@@ -16,24 +16,51 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "config.h"
-#include "dm/docdata.h"
-#include "slg/slg.h"
-#include "docprivate.h"
-#include <boost/assert.hpp>
+#ifndef  GME_DM_RENDERSETTING_H
+#define  GME_DM_RENDERSETTING_H
+
+#include <slg/slg.h>
 
 namespace gme{
 
-const ObjectNode&
-DocData::getRootObject()
+class RenderSetting
 {
-    return pDocData->m_objectGroup;
+public:
+    static  const   int     ACCEL_DEFAULT = -1;
+    static  const   int     ACCEL_BVH = 0;
+    static  const   int     ACCEL_QBVH = 2;
+    static  const   int     ACCEL_MQBVH = 3;
+private:
+    friend class DocIO;
+    
+protected:
+    int                     m_accelType;
+    slg::RenderEngineType   m_renderEngineType;
+    int                     m_screenRefreshInterval;
+    //@ in pathocl.cpp. import opencl,path and sampler setting.
+    inline void    assignFrom(const RenderSetting& ref)
+    {
+        m_accelType = ref.m_accelType;
+        m_renderEngineType = ref.m_renderEngineType;
+        m_screenRefreshInterval = ref.m_screenRefreshInterval;
+    }
+public:
+    RenderSetting()
+    {
+        m_accelType = ACCEL_DEFAULT;
+        m_renderEngineType =  slg::RenderEngineType::PATHOCL;
+        m_screenRefreshInterval = 100;
+    }
+    RenderSetting(const RenderSetting& ref){
+        assignFrom(ref);
+    }
+    ~RenderSetting(){}
+    RenderSetting& operator=(const RenderSetting& ref){
+        assignFrom(ref);
+        return *this;
+    }
+};
+
 }
 
-std::string
-DocData::getMatName(const ObjectNode& obj)
-{
-    return pDocData->getMaterialName(obj.mat_id());
-}
-
-} //end namespace gme.
+#endif //GME_DM_RENDERSETTING_H
