@@ -18,16 +18,76 @@
 
 #include "config.h"
 #include "dm/docio.h"
+#include "dm/objectnode.h"
 #include "utils/pathext.h"
 #include <slg/slg.h>
 #include <luxrays/utils/properties.h>
 #include <boost/algorithm/string/predicate.hpp>
-#include "docprivate.h"
 #include <fstream>
 #include <boost/scope_exit.hpp>
+#include "eigenutil.h"
+#include "docprivate.h"
+#include "slgobjectnode.h"
 
 
 namespace gme{
+
+
+static
+std::string TexTypeToString(slg::TextureType t)
+{
+    switch(t)
+    {
+    case slg::CONST_FLOAT:
+        return "constfloat1";
+    case slg::CONST_FLOAT3:
+        return "constfloat3";
+    case slg::IMAGEMAP:
+        return "imagemap";
+    case slg::SCALE_TEX:
+        return "scale";
+    case slg::FRESNEL_APPROX_N:
+        return "fresnelapproxn";
+    case slg::FRESNEL_APPROX_K:
+        return "fresnelapproxk";
+    case slg::MIX_TEX:
+        return "mix";
+    case slg::ADD_TEX:
+        return "add";
+    case slg::CHECKERBOARD2D:
+        return "checkerboard2d";
+    case slg::CHECKERBOARD3D:
+        return "checkerboard3d";
+    case slg::FBM_TEX:
+        return "fbm";
+    case slg::MARBLE:
+        return "marble";
+    case slg::DOTS:
+        return "dots";
+    case slg::BRICK:
+        return "brick";
+    case slg::WINDY:
+        return "windy";
+    case slg::WRINKLED:
+        return "wrinkled";
+    case slg::UV_TEX:
+        return "uv";
+    case slg::BAND_TEX:
+        return "band";
+    default:
+        BOOST_ASSERT_MSG(false,"invalid texture type");
+    }
+    return "";
+}
+
+static
+void WriteTexture(std::ofstream& o,slg::Texture  *tex,const std::string &name)
+{
+    o << "<texture name='" << name << "' type='" << TexTypeToString(tex->GetType()) << "'";
+    
+    o << ">" << std::endl;
+    o << "</texture>" << std::endl;
+}
 
 void
 DocIO::loadSlgSceneFile(const std::string pathstring)
@@ -58,7 +118,7 @@ DocIO::loadObjectFromScene(void)
         luxrays::ExtInstanceTriangleMesh* pinst = dynamic_cast<luxrays::ExtInstanceTriangleMesh*>(extmesh);
         if(pinst)
         {
-            obj.m_transformation = pinst->GetTransformation().m;
+            EigenUtil::AssignFromSlgMatrix(obj.m_transformation,pinst->GetTransformation().m);
         }
 
 		pDocData->m_objectGroup.m_children.push_back(obj);
@@ -108,6 +168,11 @@ DocIO::exportSpoloScene(const std::string &pathstring,bool bExportRes)
 		{
 			ofstream.close();
 		}BOOST_SCOPE_EXIT_END
+    
+        slg::Scene  *scene = pDocData->getSession()->renderConfig->scene;
+        u_int idx;
+		
+		
         ofstream << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
 
         ofstream << "<scene>" << std::endl;
@@ -121,13 +186,24 @@ DocIO::exportSpoloScene(const std::string &pathstring,bool bExportRes)
         //write light.
         //write material.
         //write texture.
+        ofstream << "<textures>" << std::endl;
+        u_int size = scene->texDefs.GetSize();
+        std::vector< std::string >  texNames = scene->texDefs.GetTextureNames();
+        for(idx = 0; idx < size; idx++)
+        {
+            slg::Texture  *tex = scene->texDefs.GetTexture(idx);
+            BOOST_ASSERT_MSG(tex != NULL,"scene.texDefs panic");
+            WriteTexture(ofstream,tex,texNames[idx]);
+        }
+        ofstream << "</textures>" << std::endl;
+        
         //write object.
         ofstream << "<objects>" << std::endl;
         ObjectWriteContext  context(bExportRes,root_path);
         ObjectNode::type_child_container::iterator  it = pDocData->m_objectGroup.begin();
         while(it != pDocData->m_objectGroup.end())
         {
-            it->write(ofstream,context);
+            SlgObjectNode::write(*it,ofstream,context);
             it++;
         }
         ofstream << "</objects>" << std::endl;

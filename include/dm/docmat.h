@@ -16,20 +16,31 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_DM_DOCOBJ_H
-#define  GME_DM_DOCOBJ_H
+#ifndef  GME_DM_DOCMAT_H
+#define  GME_DM_DOCMAT_H
 
 
-#include "dm/docdata.h"
+#include "dm/doc.h"
+#include <boost/property_tree/ptree.hpp>
+#include <boost/any.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <string>
 
 namespace gme{
 
-class DocObj : public DocData
+class DocMat : public DocScopeLocker
 {
 public:
+    typedef    boost::property_tree::basic_ptree<std::string, boost::any>       type_material_def;
+    std::string getMatName(const boost::uuids::uuid& id);
+    int         getMatType(const boost::uuids::uuid& id);
+    boost::any  getMatProperty(const boost::uuids::uuid& id,const std::string &prop);
+    bool        setMatProperty(const boost::uuids::uuid& id,const std::string &prop,boost::any &value);
+    void        setMaterial(const boost::uuids::uuid& id,type_material_def &matdef);
+    boost::uuids::uuid  addMaterial(type_material_def &matdef);
 };
 
 }
 
-#endif //GME_DM_DOCOBJ_H
+#endif //GME_DM_DOCMAT_H
 

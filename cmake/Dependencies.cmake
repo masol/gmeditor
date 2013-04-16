@@ -89,6 +89,12 @@ if (FreeImage_FOUND)
 	include_directories(SYSTEM ${FreeImage_INCLUDE_DIRS})
 endif ()
 
+find_package(Eigen)
+
+if (EIGEN_FOUND)
+	include_directories(${EIGEN_INCLUDE_DIR})
+endif ()
+
 find_package(OpenGL)
 
 if (OPENGL_FOUND)

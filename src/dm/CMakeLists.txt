@@ -29,11 +29,11 @@ set(DM_SRCS
     docimg.cpp
     doccamera.cpp
     docctl.cpp
-    docdata.cpp
     docobj.cpp
     docmat.cpp
     docprivate.cpp
     objectnode.cpp
+    slgobjectnode.cpp
    )
 
 

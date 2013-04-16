@@ -24,6 +24,41 @@
 
 namespace gme{
 
+std::string
+DocMat::getMatName(const boost::uuids::uuid& id)
+{
+    return pDocData->getMaterialNameInSlg(id);
+}
+
+int
+DocMat::getMatType(const boost::uuids::uuid& id)
+{
+    return 0;
+}
+
+boost::any
+DocMat::getMatProperty(const boost::uuids::uuid& id,const std::string &prop)
+{
+    return boost::any();
+}
+
+bool
+DocMat::setMatProperty(const boost::uuids::uuid& id,const std::string &prop,boost::any &value)
+{
+    return false;
+}
+
+void
+DocMat::setMaterial(const boost::uuids::uuid& id,type_material_def &matdef)
+{
+}
+
+boost::uuids::uuid
+DocMat::addMaterial(type_material_def &matdef)
+{
+    return boost::uuids::uuid();
+}
+
 
 
 } //end namespace gme.

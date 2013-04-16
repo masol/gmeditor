@@ -93,12 +93,17 @@ if (NOT FreeImage_FOUND)
 endif()
 
 if (NOT OPENCL_FOUND)
-	MESSAGE(FATAL_ERROR "--> Could not locate required OpenCL files, disabling OpenCL support - Please check ${OPENCL_SEARCH_PATH}")
+	MESSAGE(FATAL_ERROR "--> Could not locate required OpenCL files, Please check ${OPENCL_SEARCH_PATH}")
 endif()
 
 if (NOT OPENGL_FOUND)
-	MESSAGE(FATAL_ERROR "--> Could not locate required OpenGL files, disabling OpenCL support, disabling samples build")
+	MESSAGE(FATAL_ERROR "--> Could not locate required OpenGL files, Please check ${OPENGL_SEARCH_PATH} ")
 endif()
+
+if (NOT EIGEN_FOUND)
+	MESSAGE(FATAL_ERROR "--> Could not locate required Eigen files, Please check ${EIGEN_INCLUDE_DIR} ")
+endif()
+
 
 
 set(GME_VERSION_MAJOR 0)

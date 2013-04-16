@@ -28,7 +28,7 @@ class DocPrivate;
 class Doc : public Singleton<Doc>
 {
 protected:
-    friend class ObjectNode;
+    friend class SlgObjectNode;
     friend class DocScopeLocker;
     friend class Singleton<Doc>;
     typedef Singleton<Doc>   inherited;

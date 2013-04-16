@@ -22,7 +22,7 @@
 #include "slg/rendersession.h"
 #include <boost/shared_ptr.hpp>
 #include <boost/unordered_map.hpp>
-#include "dm/objectnode.h"
+#include "slgobjectnode.h"
 
 namespace gme{
 
@@ -50,20 +50,20 @@ public:
     **/
     ObjectNode                              m_objectGroup;
 public:
-    inline std::string     getObjectName(const boost::uuids::uuid &objid)
+    inline std::string     getObjectNameInSlg(const boost::uuids::uuid &objid)
     {
-        return getNameFromID(objid,m_object_map);
+        return getNameInSlgFromID(objid,m_object_map);
     }
-    inline std::string     getMaterialName(const boost::uuids::uuid &matid)
+    inline std::string     getMaterialNameInSlg(const boost::uuids::uuid &matid)
     {
-        return getNameFromID(matid,m_material_map);
+        return getNameInSlgFromID(matid,m_material_map);
     }
 
     inline slg::RenderSession*  getSession(void){
         return m_session.get();
     }
 protected:
-    inline std::string     getNameFromID(const boost::uuids::uuid &id,const type_id2name_map &mapper)
+    inline std::string     getNameInSlgFromID(const boost::uuids::uuid &id,const type_id2name_map &mapper)
     {
         type_id2name_map::const_iterator it = mapper.find(id);
         if(it == mapper.end())

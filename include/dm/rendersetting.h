@@ -21,6 +21,8 @@
 
 #include <slg/slg.h>
 
+//@FIXME: 与slg解耦。
+
 namespace gme{
 
 class RenderSetting

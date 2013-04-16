@@ -25,37 +25,16 @@
 #include <boost/filesystem.hpp>
 #include <string>
 #include <vector>
-#include "luxrays/core/geometry/matrix4x4.h"
+#include <Eigen/Core>
 #include <fstream>
 
-//forward declare.
-namespace luxrays{
-class ExtMesh;
-}
-
 namespace gme{
-
-struct  ObjectWriteContext{
-    ObjectWriteContext(bool bExportRes,const boost::filesystem::path& p)
-        : m_bSaveRes(bExportRes),
-          m_dest_path(p)
-    {}
-    ~ObjectWriteContext(){}
-protected:
-    friend  class ObjectNode;
-    typedef   boost::unordered_map<std::string, std::string>    type_filepath2savepath;
-    /** @brief 保存了文件名到本地文件名的映射。这可以判断是否是相同文件，以决定是否引用相同mesh.
-    **/
-    type_filepath2savepath  m_filepath2savepath;
-    const boost::filesystem::path m_dest_path;
-    const bool   m_bSaveRes;
-};
-
 
 class ObjectNode
 {
 private:
     friend class DocIO;
+    friend class SlgObjectNode;
 protected:
     boost::uuids::uuid      m_id;
     std::string             m_name;
@@ -68,7 +47,7 @@ protected:
     boost::uuids::uuid      m_matid;
     std::vector<ObjectNode> m_children;
     bool                    m_useplynormals;
-    luxrays::Matrix4x4      m_transformation;
+    Eigen::Matrix4f         m_transformation;
     inline void    assignFrom(const ObjectNode& ref)
     {
         m_id = ref.m_id;
@@ -80,8 +59,6 @@ protected:
         m_useplynormals = ref.m_useplynormals;
         m_transformation = ref.m_transformation;
     }
-    void    write(std::ofstream &o,ObjectWriteContext& ctx);
-    luxrays::ExtMesh*   getExtMesh(void)const;
 public:
     typedef std::vector<ObjectNode> type_child_container;
     inline type_child_container::iterator  begin(){

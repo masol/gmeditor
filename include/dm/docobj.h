@@ -20,13 +20,15 @@
 #define  GME_DM_DOCOBJ_H
 
 
-#include "dm/docdata.h"
+#include "dm/doc.h"
+#include "dm/objectnode.h"
 
 namespace gme{
 
-class DocObj : public DocData
+class DocObj : public DocScopeLocker
 {
 public:
+    const ObjectNode&   getRootObject();
 };
 
 }

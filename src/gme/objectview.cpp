@@ -49,26 +49,27 @@ void
 ObjectView::refresh(void)
 {
     gme::DocObj dobj;
+    gme::DocMat dobjmat;
     const gme::ObjectNode &root = dobj.getRootObject();
-    std::vector<ObjectNode>::const_iterator it = root.begin();
+    ObjectNode::type_child_container::const_iterator it = root.begin();
     wxTreeListItem  rootItem = m_treelist->GetRootItem();
     while(it != root.end())
     {
-        addChild(rootItem,&(*it),&dobj);
+        addChild(rootItem,*it,dobjmat);
         it++;
     }
 }
 
 void
-ObjectView::addChild(wxTreeListItem& parent,const ObjectNode* pNode,DocObj *pobjop)
+ObjectView::addChild(wxTreeListItem& parent,const ObjectNode &node,DocMat &objop)
 {
-	wxTreeListItem item = m_treelist->AppendItem(parent,pNode->name());
-    m_treelist->SetItemText(item, 1, pobjop->getMatName(*pNode));
+	wxTreeListItem item = m_treelist->AppendItem(parent,node.name());
+    m_treelist->SetItemText(item, 1, objop.getMatName(node.mat_id()));
     m_treelist->SetItemText(item, 2, "");
-    std::vector<ObjectNode>::const_iterator it = pNode->begin();
-    while(it != pNode->end())
+    ObjectNode::type_child_container::const_iterator it = node.begin();
+    while(it != node.end())
     {
-        addChild(item,&(*it),pobjop);
+        addChild(item,*it,objop);
         it++;
     }
 }

@@ -24,4 +24,11 @@
 
 namespace gme{
 
+const ObjectNode&
+DocObj::getRootObject()
+{
+    return pDocData->m_objectGroup;
+}
+
+
 } //end namespace gme.

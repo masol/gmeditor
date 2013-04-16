@@ -21,6 +21,7 @@
 
 #include <wx/wx.h>
 #include <wx/treelist.h>
+#include "dm/docmat.h"
 
 class wxTreeListCtrl;
 class wxSizer;
@@ -44,7 +45,7 @@ protected:
     void OnItemChecked(wxTreeListEvent& event);
     void OnItemActivated(wxTreeListEvent& event);
     void OnItemContextMenu(wxTreeListEvent& event);
-    void addChild(wxTreeListItem& parent,const ObjectNode* pNode,DocObj *pobjop);
+    void addChild(wxTreeListItem& parent,const ObjectNode &pNode,DocMat &pobjop);
     void refresh(void);
 public:
     ObjectView(wxWindow* parent, wxWindowID id,const wxPoint& pos, const wxSize& size);

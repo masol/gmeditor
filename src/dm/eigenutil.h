@@ -16,24 +16,30 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "config.h"
-#include "dm/docdata.h"
-#include "slg/slg.h"
-#include "docprivate.h"
-#include <boost/assert.hpp>
+#ifndef  GME_DM_EIGENUTIL_H
+#define  GME_DM_EIGENUTIL_H
+
+#include <Eigen/Core>
+#include "slg/rendersession.h"
 
 namespace gme{
 
-const ObjectNode&
-DocData::getRootObject()
+class EigenUtil
 {
-    return pDocData->m_objectGroup;
+public:
+    static  inline  void    AssignFromSlgMatrix(Eigen::Matrix4f &mat,const luxrays::Matrix4x4 &luxmat)
+    {
+        for(int col = 0; col < 4; col++)
+        {
+            for(int row = 0; row < 4; row++)
+            {
+                mat(row,col) = luxmat.m[col][row];
+            }
+        }
+    }
+};
+
 }
 
-std::string
-DocData::getMatName(const ObjectNode& obj)
-{
-    return pDocData->getMaterialName(obj.mat_id());
-}
+#endif //GME_DM_EIGENUTIL_H
 
-} //end namespace gme.
