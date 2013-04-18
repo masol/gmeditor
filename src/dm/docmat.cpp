@@ -21,6 +21,7 @@
 #include "slg/slg.h"
 #include "slg/sdl/material.h"
 #include "docprivate.h"
+#include "slgmaterial.h"
 #include <boost/assert.hpp>
 
 namespace gme{
@@ -189,10 +190,10 @@ DocMat::getTypeFromTypeName(const std::string &name)
 std::string
 DocMat::getMatName(const boost::uuids::uuid& id)
 {
-    ExtraMaterialInfo*  pmatInfo = pDocData->queryMaterialInfo(id);
+    ExtraMaterial*  pmatInfo = ExtraMaterialManager::instance().query(id);
     if(pmatInfo)
     {
-        return pmatInfo->m_slgname;
+        return pmatInfo->slgname();
     }
     return ObjectNode::idto_string(id);
 }

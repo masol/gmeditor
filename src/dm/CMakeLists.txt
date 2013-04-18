@@ -33,7 +33,9 @@ set(DM_SRCS
     docmat.cpp
     docprivate.cpp
     objectnode.cpp
-    slgobjectnode.cpp
+    slgobject.cpp
+    slgmaterial.cpp
+    slgtexture.cpp
    )
 
 

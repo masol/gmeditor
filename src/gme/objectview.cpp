@@ -64,7 +64,7 @@ void
 ObjectView::addChild(wxTreeListItem& parent,const ObjectNode &node,DocMat &objop)
 {
 	wxTreeListItem item = m_treelist->AppendItem(parent,node.name());
-    m_treelist->SetItemText(item, 1, objop.getMatName(node.mat_id()));
+    m_treelist->SetItemText(item, 1, objop.getMatName(node.matid()));
     m_treelist->SetItemText(item, 2, "");
     ObjectNode::type_child_container::const_iterator it = node.begin();
     while(it != node.end())

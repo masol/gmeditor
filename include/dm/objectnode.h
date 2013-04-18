@@ -60,6 +60,13 @@ protected:
         m_transformation = ref.m_transformation;
     }
 public:
+    inline void addChild(const ObjectNode&  child)
+    {
+        m_children.push_back(child);
+    }
+    inline void clear(){
+        m_children.clear();
+    }
     typedef std::vector<ObjectNode> type_child_container;
     inline type_child_container::iterator  begin(){
         return m_children.begin();
@@ -76,7 +83,7 @@ public:
     inline  const boost::uuids::uuid&     id(void)const{
         return m_id;
     }
-    inline  const boost::uuids::uuid&     mat_id(void)const{
+    inline  const boost::uuids::uuid&     matid(void)const{
         return m_matid;
     }
 	inline	const std::string&		name(void)const{
@@ -85,6 +92,9 @@ public:
 	inline  void    name(const std::string &n){
 	    m_name = n;
 	}
+	inline  const std::string&  filepath(void){
+	    return m_filepath;
+    }
 	inline  bool    useplynormals()const{
 	    return m_useplynormals;
     }
@@ -96,7 +106,10 @@ public:
     ObjectNode(const ObjectNode& ref){
         assignFrom(ref);
     }
-    ~ObjectNode(){}
+    ~ObjectNode()
+    {
+        clear();
+    }
     ObjectNode& operator=(const ObjectNode& ref){
         assignFrom(ref);
         return *this;

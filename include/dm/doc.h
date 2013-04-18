@@ -28,8 +28,11 @@ class DocPrivate;
 class Doc : public Singleton<Doc>
 {
 protected:
-    friend class SlgObjectNode;
     friend class DocScopeLocker;
+    friend class ExtraObjectManager;
+    friend class ExtraMaterialManager;
+    friend class ExtraTextureManager;
+    friend class SlgMaterial2Name;
     friend class Singleton<Doc>;
     typedef Singleton<Doc>   inherited;
     Doc(void);

@@ -18,11 +18,10 @@
 
 #include "config.h"
 #include "dm/doc.h"
-#include "slgobjectnode.h"
+#include "slgobject.h"
 #include "docprivate.h"
 #include "slg/slg.h"
 #include "luxrays/luxrays.h"
-#include "luxrays/core/exttrianglemesh.h"
 #include "luxrays/core/exttrianglemesh.h"
 #include "openctm/openctm.h"
 #include "utils/MD5.h"
@@ -93,6 +92,7 @@ bool    SaveCtmFile(bool useplynormals,T *pMesh,const std::string &filename,std:
     return true;
 }
 
+static
 bool    SaveCtmFile(bool useplynormals,luxrays::ExtMesh* extMesh,const std::string &filename,std::string &ctxHashValue)
 {
     luxrays::ExtInstanceTriangleMesh*   pMesh = dynamic_cast<luxrays::ExtInstanceTriangleMesh*>(extMesh);
@@ -110,9 +110,9 @@ bool    SaveCtmFile(bool useplynormals,luxrays::ExtMesh* extMesh,const std::stri
 
 
 luxrays::ExtMesh*
-SlgObjectNode::getExtMesh(ObjectNode &pThis)
+ExtraObjectManager::getExtMesh(const boost::uuids::uuid &objid)
 {
-    std::string    name = Doc::instance().pDocData->getObjectNameInSlg(pThis.m_id);
+    std::string    name = this->getNameForSlg(objid);
     slg::RenderSession* session = Doc::instance().pDocData->getSession();
     if(session && session->renderConfig->scene)
     {
@@ -124,36 +124,37 @@ SlgObjectNode::getExtMesh(ObjectNode &pThis)
 
 //@TODO 添加基于文件内容md5码的meshid属性。用于检查mesh一致性。
 void
-SlgObjectNode::write(ObjectNode &pThis,std::ofstream &o,ObjectWriteContext& ctx)
+ExtraObjectManager::write(ObjectNode &pThis,ObjectWriteContext& ctx)
 {
-    o  << "<object id='" << ObjectNode::idto_string(pThis.m_id)
-        << "' name='" << pThis.m_name << "'";
+    std::ostream    &o = ctx.m_stream;
+    o  << "<object id='" << ObjectNode::idto_string(pThis.id())
+        << "' name='" << pThis.name() << "'";
 
-    luxrays::ExtMesh*   extMesh = getExtMesh(pThis);
+    luxrays::ExtMesh*   extMesh = getExtMesh(pThis.id());
     if(extMesh){
-        o << " material='" << idto_string(pThis.m_matid)
-            << "' useplynormals='" << (pThis.m_useplynormals ? "true" : "false")
+        o << " material='" << ObjectNode::idto_string(pThis.matid())
+            << "' useplynormals='" << (pThis.useplynormals() ? "true" : "false")
             << "'";
 
         std::string     write_file;
         std::string     ctxHashValue;
         //boost::filesystem::path target_model = ctx.m_dest_path / "mesh%%%%%%.ply";
         boost::filesystem::path target_model = ctx.m_dest_path / "mesh%%%%%%.ctm";
-        if(pThis.m_filepath.length())
+        if(pThis.filepath().length())
         {//获取映射的文件名。
             if(ctx.m_bSaveRes)
             {//保存资源。
                 boost::filesystem::path target = boost::filesystem::unique_path(target_model);
                 //extMesh->WritePly(target.string());
-                SaveCtmFile(pThis.m_useplynormals,extMesh,target.string(),ctxHashValue);
+                SaveCtmFile(pThis.useplynormals(),extMesh,target.string(),ctxHashValue);
                 write_file = target.filename().string();
             }else{//不保存资源，直接保存m_filepath.
-                write_file = pThis.m_filepath;
+                write_file = pThis.filepath();
             }
         }else{//没有定义文件名。此时直接保存资源。
             boost::filesystem::path target = boost::filesystem::unique_path(target_model);
             //extMesh->WritePly(target.string());
-            SaveCtmFile(pThis.m_useplynormals,extMesh,target.string(),ctxHashValue);
+            SaveCtmFile(pThis.useplynormals(),extMesh,target.string(),ctxHashValue);
             write_file = target.filename().string();
         }
         if(ctxHashValue.length())
@@ -172,10 +173,10 @@ SlgObjectNode::write(ObjectNode &pThis,std::ofstream &o,ObjectWriteContext& ctx)
         o << " file='" << write_file << "'";
     }
 	o << ">" << std::endl;
-    type_child_container::iterator  it = pThis.begin();
+    ObjectNode::type_child_container::iterator  it = pThis.begin();
     while(it != pThis.end())
     {
-        write((*it),o,ctx);
+        write((*it),ctx);
         it++;
     }
     o << "</object>" << std::endl;

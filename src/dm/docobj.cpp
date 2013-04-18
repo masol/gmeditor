@@ -20,6 +20,7 @@
 #include "dm/docobj.h"
 #include "slg/slg.h"
 #include "docprivate.h"
+#include "slgobject.h"
 #include <boost/assert.hpp>
 
 namespace gme{
@@ -27,7 +28,7 @@ namespace gme{
 const ObjectNode&
 DocObj::getRootObject()
 {
-    return pDocData->m_objectGroup;
+    return ExtraObjectManager::instance().getRoot();
 }
 
 
