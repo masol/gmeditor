@@ -36,10 +36,10 @@ struct  ObjectWriteContext{
     ~ObjectWriteContext(){}
 protected:
     friend  class SlgObjectNode;
-    typedef   boost::unordered_map<std::string, std::string>    type_filepath2savepath;
-    /** @brief 保存了文件名到本地文件名的映射。这可以判断是否是相同文件，以决定是否引用相同mesh.
+    typedef   boost::unordered_map<std::string, std::string>    type_file_ctxid2savename;
+    /** @brief 保存了文件内容md5字符串到本地文件名的映射。这可以判断是否是相同文件，以决定是否引用相同mesh.
     **/
-    type_filepath2savepath  m_filepath2savepath;
+    type_file_ctxid2savename  m_file_ctx2savename;
     const boost::filesystem::path m_dest_path;
     const bool   m_bSaveRes;
 };

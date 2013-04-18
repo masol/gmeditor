@@ -18,53 +18,24 @@
 
 #############################################################################
 #
-# GME binary
+# DocumentModel library
 #
 #############################################################################
 
-#Message(STATUS "wxWidgets_LIBRARY : ${wxWidgets_LIBRARIES}")
 
-#@FIXME: wxWidgets_LIBRARIES will been overwrite by some instruction.
-set(wxWidgets_LIBRARIES_Cache ${wxWidgets_LIBRARIES})
-set(GME_SRCS
-    renderview.cpp
-    objectview.cpp
-    mainframe.cpp
-	main.cpp
+set(OPENCTM_SRCS
+    compressMG1.c
+    compressMG2.c
+    compressRAW.c
+    openctm.c
+    stream.c
+    liblzma/Alloc.c
+    liblzma/LzFind.c
+    liblzma/LzmaDec.c
+    liblzma/LzmaEnc.c
+    liblzma/LzmaLib.c
    )
+   
+include_directories(${GME_SOURCE_DIR}/include/openctm ${GME_SOURCE_DIR}/src/openctm ${GME_SOURCE_DIR}/src/openctm/liblzma)
 
-if(wxWidgets_CXX_FLAGS)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${wxWidgets_CXX_FLAGS}")
-    Message(STATUS "wxWidgets_CXX_FLAGS=${wxWidgets_CXX_FLAGS}")
-endif(wxWidgets_CXX_FLAGS)
-
-add_executable(gmeditor ${GME_SRCS})
-
-IF (WIN32)
-TARGET_LINK_LIBRARIES(gmeditor
- dm
- utils
- openctm
- ${FreeImage_LIBRARIES}
- ${SLG_LIBRARY}
- ${LUXRAYS_LIBRARY}
- ${OPENGL_LIBRARY}
- ${OPENCL_LIBRARIES}
-)
-set_target_properties(gmeditor PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
-ELSE(WIN32)
-#Message(STATUS "OPENCL_LIBRARIES : ${OPENCL_INCLUDE_DIR}")
-TARGET_LINK_LIBRARIES(gmeditor
-  dm
-  utils
-  openctm
-  ${wxWidgets_LIBRARIES_Cache}
-  ${FreeImage_LIBRARIES}
-  ${SLG_LIBRARY}
-  ${LUXRAYS_LIBRARY}
-  ${Boost_LIBRARIES}
-  ${OPENCL_LIBRARIES}
-  ${OPENGL_gl_LIBRARY}
-)
-ENDIF(WIN32)
-
+add_library(openctm STATIC ${OPENCTM_SRCS})

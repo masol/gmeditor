@@ -118,6 +118,7 @@ configure_file(
 
 #Message(STATUS "wxWidgets_LIBRARY : ${wxWidgets_LIBRARIES}")
 
+add_subdirectory(src/openctm)
 add_subdirectory(src/utils)
 add_subdirectory(src/dm)
 add_subdirectory(src/gme)

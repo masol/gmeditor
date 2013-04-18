@@ -26,6 +26,31 @@
 
 namespace gme{
 
+/** @brief 本类保存了额外的材质信息。可以看作对slg material基类的信息添加。
+**/
+struct  ExtraMaterialInfo{
+public:
+    std::string     m_slgname;
+    std::string     m_name;
+    ExtraMaterialInfo(){
+    }
+    ExtraMaterialInfo(const ExtraMaterialInfo& ref){
+        AssignFrom(ref);
+    }
+    ~ExtraMaterialInfo(){
+    }
+    ExtraMaterialInfo&  operator=(const ExtraMaterialInfo& ref){
+        AssignFrom(ref);
+        return *this;
+    }
+private:
+    void    AssignFrom(const ExtraMaterialInfo& ref)
+    {
+        this->m_slgname = ref.m_slgname;
+        this->m_name = ref.m_name;
+    }
+};
+
 class DocPrivate
 {
 private:
@@ -43,35 +68,57 @@ public:
     /** @brief 保存了material的名称映射。如果键值不存在，则直接使用原始名称作为名称返回。
     **/
     typedef   boost::unordered_map<boost::uuids::uuid, std::string>        type_id2name_map;
-    type_id2name_map                        m_material_map;
-    type_id2name_map                        m_object_map;
-    
+    /** @brief 保存了从object id到slg object name的map.
+    **/
+    type_id2name_map                        m_oid2slgname_map;
+
     /** @brief  保存了mesh组。根节点只作为容器节点存在，数据无效。
     **/
     ObjectNode                              m_objectGroup;
+
+    typedef  boost::unordered_map<boost::uuids::uuid, ExtraMaterialInfo>        type_id2material_map;
+    /** @brief 保存了从material id 到material_map.
+    **/
+    type_id2material_map                    m_id2material_map;
+    
 public:
+    void    WriteMaterial(std::ofstream &o);
     inline std::string     getObjectNameInSlg(const boost::uuids::uuid &objid)
     {
-        return getNameInSlgFromID(objid,m_object_map);
+        type_id2name_map::const_iterator it = m_oid2slgname_map.find(objid);
+        if(it == m_oid2slgname_map.end())
+        {
+            return ObjectNode::idto_string(objid);
+        }
+        return it->second;
     }
-    inline std::string     getMaterialNameInSlg(const boost::uuids::uuid &matid)
+    
+    
+    /** @brief 本函数如果没有找到对应记录，会自动添加一个materialInfo记录。
+    **/
+    inline ExtraMaterialInfo&   getMaterialInfo(const boost::uuids::uuid &matid)
     {
-        return getNameInSlgFromID(matid,m_material_map);
+        return m_id2material_map[matid];
+    }
+    
+    /** @brief 本函数返回matid对应的materialInfo记录，如果没有，则返回空。
+    **/
+    inline ExtraMaterialInfo*   queryMaterialInfo(const boost::uuids::uuid &matid)
+    {
+        type_id2material_map::iterator it = m_id2material_map.find(matid);
+        if(it != m_id2material_map.end())
+        {
+            return &(it->second);
+        }
+        return NULL;
     }
 
     inline slg::RenderSession*  getSession(void){
         return m_session.get();
     }
 protected:
-    inline std::string     getNameInSlgFromID(const boost::uuids::uuid &id,const type_id2name_map &mapper)
-    {
-        type_id2name_map::const_iterator it = mapper.find(id);
-        if(it == mapper.end())
-        {
-            return ObjectNode::idto_string(id);
-        }
-        return it->second;
-    }
+    void    WriteMaterialImpl(std::ofstream &o,const std::string &slgname,type_id2material_map::iterator &it);
+
 };
 
 }

@@ -21,9 +21,93 @@
 #include "slgobjectnode.h"
 #include "docprivate.h"
 #include "slg/slg.h"
+#include "luxrays/luxrays.h"
+#include "luxrays/core/exttrianglemesh.h"
+#include "luxrays/core/exttrianglemesh.h"
+#include "openctm/openctm.h"
+#include "utils/MD5.h"
+#include <boost/filesystem.hpp>
 
 
 namespace gme{
+
+template<class T>
+bool    SaveCtmFile(bool useplynormals,T *pMesh,const std::string &filename,std::string &ctxHashValue)
+{
+    CTMcontext context = NULL;
+    CTMuint    vertCount, triCount, * indices;
+    CTMfloat   *vertices;
+    CTMfloat   *aNormals = NULL;
+    CTMfloat   *aUVCoords = NULL;
+    
+    vertCount = pMesh->GetTotalVertexCount ();
+    triCount = pMesh->GetTotalTriangleCount ();
+    vertices  = (CTMfloat*)(void*)pMesh->GetVertices();
+    indices  = (CTMuint*)(void*)pMesh->GetTriangles();
+    
+    MD5     md5;
+    
+    md5.update((const unsigned char *)(void*)vertices,vertCount * 3 * sizeof(CTMfloat));
+    md5.update((const unsigned char *)(void*)indices,triCount * 3 * sizeof(CTMuint));
+    
+    if(useplynormals) //pMesh->HasNormals())
+    {
+        std::cerr << "has normals ... " << std::endl;
+        aNormals = new CTMfloat[vertCount * 3];
+        for(unsigned int idx = 0 ; idx < vertCount; idx++)
+        {
+            luxrays::Normal n = pMesh->GetShadeNormal(idx);
+            aNormals[idx * 3] = n.x;
+            aNormals[idx * 3 + 1] = n.y;
+            aNormals[idx * 3 + 2] = n.z;
+        }
+        md5.update((const unsigned char *)(void*)aNormals,vertCount * 3 * sizeof(CTMfloat));
+    }
+    
+    context = ctmNewContext(CTM_EXPORT);
+    ctmDefineMesh(context, vertices, vertCount, indices, triCount, aNormals);
+    if(pMesh->HasUVs())
+    {
+        aUVCoords = new CTMfloat[vertCount * 2];
+        for(unsigned int idx = 0 ; idx < vertCount; idx++)
+        {
+            luxrays::UV uv = pMesh->GetUV(idx);
+            aUVCoords[idx * 2] = uv.u;
+            aUVCoords[idx * 2 + 1] = uv.v;
+        }
+        ctmAddUVMap(context,aUVCoords,"def",NULL);
+    }
+    
+    ctmSave(context, filename.c_str());
+    
+    ctxHashValue = md5.finalize().hexdigest();
+    
+    if(aNormals)
+        delete[] aNormals;
+    if(aUVCoords)
+        delete[] aUVCoords;
+    if(context)
+        ctmFreeContext(context);
+    
+    
+    return true;
+}
+
+bool    SaveCtmFile(bool useplynormals,luxrays::ExtMesh* extMesh,const std::string &filename,std::string &ctxHashValue)
+{
+    luxrays::ExtInstanceTriangleMesh*   pMesh = dynamic_cast<luxrays::ExtInstanceTriangleMesh*>(extMesh);
+    if(pMesh)
+    {
+        return SaveCtmFile<luxrays::ExtInstanceTriangleMesh>(useplynormals,pMesh,filename,ctxHashValue);
+    }
+    luxrays::ExtTriangleMesh*   pMesh2 = dynamic_cast<luxrays::ExtTriangleMesh*>(extMesh);
+    if(pMesh2)
+    {
+        return SaveCtmFile<luxrays::ExtTriangleMesh>(useplynormals,pMesh2,filename,ctxHashValue);
+    }
+    return false;
+}
+
 
 luxrays::ExtMesh*
 SlgObjectNode::getExtMesh(ObjectNode &pThis)
@@ -52,28 +136,38 @@ SlgObjectNode::write(ObjectNode &pThis,std::ofstream &o,ObjectWriteContext& ctx)
             << "'";
 
         std::string     write_file;
-        boost::filesystem::path target_model = ctx.m_dest_path / "mesh%%%%%%.ply";
+        std::string     ctxHashValue;
+        //boost::filesystem::path target_model = ctx.m_dest_path / "mesh%%%%%%.ply";
+        boost::filesystem::path target_model = ctx.m_dest_path / "mesh%%%%%%.ctm";
         if(pThis.m_filepath.length())
         {//获取映射的文件名。
             if(ctx.m_bSaveRes)
-            {//拷贝资源。
-                ObjectWriteContext::type_filepath2savepath::iterator it = ctx.m_filepath2savepath.find(pThis.m_filepath);
-                if(it == ctx.m_filepath2savepath.end())
-                {//文件没有映射。
-                    boost::filesystem::path target = boost::filesystem::unique_path(target_model);
-                    extMesh->WritePly(target.string());
-                    write_file = target.filename().string();
-                    ctx.m_filepath2savepath[pThis.m_filepath] = write_file;
-                }else{//不拷贝资源，文件已经映射，直接取出second。
-                    write_file = it->second;
-                }
-            }else{//不拷贝资源，直接保存m_filepath.
+            {//保存资源。
+                boost::filesystem::path target = boost::filesystem::unique_path(target_model);
+                //extMesh->WritePly(target.string());
+                SaveCtmFile(pThis.m_useplynormals,extMesh,target.string(),ctxHashValue);
+                write_file = target.filename().string();
+            }else{//不保存资源，直接保存m_filepath.
                 write_file = pThis.m_filepath;
             }
-        }else{//没有定义文件名。此时直接导出文件。
+        }else{//没有定义文件名。此时直接保存资源。
             boost::filesystem::path target = boost::filesystem::unique_path(target_model);
-            extMesh->WritePly(target.string());
+            //extMesh->WritePly(target.string());
+            SaveCtmFile(pThis.m_useplynormals,extMesh,target.string(),ctxHashValue);
             write_file = target.filename().string();
+        }
+        if(ctxHashValue.length())
+        {
+            o << " ctxmd5='" << ctxHashValue << "'";
+            ObjectWriteContext::type_file_ctxid2savename::iterator it = ctx.m_file_ctx2savename.find(ctxHashValue);
+            if(it == ctx.m_file_ctx2savename.end())
+            {
+                ctx.m_file_ctx2savename[ctxHashValue] = write_file;
+            }else{
+                write_file = it->second;
+                //由于内容重复，删除刚保存的模型文件。
+                boost::filesystem::remove(target_model);
+            }
         }
         o << " file='" << write_file << "'";
     }

@@ -85,6 +85,9 @@ public:
 	inline  void    name(const std::string &n){
 	    m_name = n;
 	}
+	inline  bool    useplynormals()const{
+	    return m_useplynormals;
+    }
     static  std::string     idto_string(const boost::uuids::uuid &id);
     ObjectNode()
     {
