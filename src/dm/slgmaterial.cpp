@@ -38,7 +38,7 @@ SlgMaterial2Name::SlgMaterial2Name()
 }
 
 const std::string&
-SlgMaterial2Name::getMaterialName(const slg::Material* pmat)
+SlgMaterial2Name::getMaterialName(const slg::Material* pmat)const
 {
     slg::Scene  *scene = Doc::instance().pDocData->getSession()->renderConfig->scene;
     u_int matNameIdx = m_matIdx2NameIdx[scene->matDefs.GetMaterialIndex(pmat)];
@@ -56,7 +56,7 @@ ExtraMaterialManager::WriteMaterialImpl(MaterialWriteContext &ctx,
 										MD5 *ppmd5)
 {
     std::ostream &o = ctx.stream();
-	ctx.outIndent(o);
+	ctx.outIndent();
     o << "<material";
     //没有给出pId参数。说明这是一个mix材质，没有id值，使用md5作为id值。
     std::string     idstring;
@@ -80,21 +80,21 @@ ExtraMaterialManager::WriteMaterialImpl(MaterialWriteContext &ctx,
 
     std::stringstream   ss;
 
-    TextureWriteContext context(ctx.m_bSaveRes,ctx.m_dest_path,ss,ctx.m_indent+1);
+    TextureWriteContextSetter   textCtxAssign(ctx.m_texCtx,ss,ctx.m_indent+1);
 
     if(pMat->IsLightSource())
     {
-        ExtraTextureManager::writeTexture(context,"emission",pMat->GetEmitTexture(),&md5);
+        ExtraTextureManager::writeTexture(ctx.m_texCtx,"emission",pMat->GetEmitTexture(),&md5);
     }
 
     if(pMat->HasBumpTex())
     {
-        ExtraTextureManager::writeTexture(context,"bumptex",pMat->GetBumpTexture(),&md5);
+        ExtraTextureManager::writeTexture(ctx.m_texCtx,"bumptex",pMat->GetBumpTexture(),&md5);
     }
 
     if(pMat->HasNormalTex())
     {
-        ExtraTextureManager::writeTexture(context,"normaltex",pMat->GetNormalTexture(),&md5);
+        ExtraTextureManager::writeTexture(ctx.m_texCtx,"normaltex",pMat->GetNormalTexture(),&md5);
     }
 
     switch(pMat->GetType())
@@ -104,7 +104,7 @@ ExtraMaterialManager::WriteMaterialImpl(MaterialWriteContext &ctx,
             const slg::Texture *pTex = dynamic_cast<const slg::MatteMaterial*>(pMat)->GetKd ();
             if(pTex)
             {
-                ExtraTextureManager::writeTexture(context,"kd",pTex,&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"kd",pTex,&md5);
             }
         }
         break;
@@ -113,7 +113,7 @@ ExtraMaterialManager::WriteMaterialImpl(MaterialWriteContext &ctx,
             const slg::Texture *pTex = dynamic_cast<const slg::MirrorMaterial*>(pMat)->GetKr();
             if(pTex)
             {
-                ExtraTextureManager::writeTexture(context,"kr",pTex,&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"kr",pTex,&md5);
             }
         }
         break;
@@ -122,19 +122,19 @@ ExtraMaterialManager::WriteMaterialImpl(MaterialWriteContext &ctx,
             const slg::GlassMaterial *pMaterial = dynamic_cast<const slg::GlassMaterial*>(pMat);
             if(pMaterial->GetKr())
             {
-                ExtraTextureManager::writeTexture(context,"kr",pMaterial->GetKr(),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"kr",pMaterial->GetKr(),&md5);
             }
             if(pMaterial->GetKt())
             {
-                ExtraTextureManager::writeTexture(context,"kt",pMaterial->GetKt(),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"kt",pMaterial->GetKt(),&md5);
             }
             if(pMaterial->GetOutsideIOR())
             {
-                ExtraTextureManager::writeTexture(context,"ioroutside",pMaterial->GetOutsideIOR(),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"ioroutside",pMaterial->GetOutsideIOR(),&md5);
             }
             if(pMaterial->GetIOR())
             {
-                ExtraTextureManager::writeTexture(context,"iorinside",pMaterial->GetIOR(),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"iorinside",pMaterial->GetIOR(),&md5);
             }
         }
         break;
@@ -143,11 +143,11 @@ ExtraMaterialManager::WriteMaterialImpl(MaterialWriteContext &ctx,
             const slg::MetalMaterial *pMaterial = dynamic_cast<const slg::MetalMaterial*>(pMat);
             if(pMaterial->GetKr())
             {
-                ExtraTextureManager::writeTexture(context,"kr",pMaterial->GetKr(),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"kr",pMaterial->GetKr(),&md5);
             }
             if(pMaterial->GetExp())
             {
-                ExtraTextureManager::writeTexture(context,"exp",pMaterial->GetExp(),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"exp",pMaterial->GetExp(),&md5);
             }
         }
         break;
@@ -156,19 +156,19 @@ ExtraMaterialManager::WriteMaterialImpl(MaterialWriteContext &ctx,
             const slg::ArchGlassMaterial *pMaterial = dynamic_cast<const slg::ArchGlassMaterial*>(pMat);
             if(pMaterial->GetKr())
             {
-                ExtraTextureManager::writeTexture(context,"kr",pMaterial->GetKr(),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"kr",pMaterial->GetKr(),&md5);
             }
             if(pMaterial->GetKt ())
             {
-                ExtraTextureManager::writeTexture(context,"kt",pMaterial->GetKt (),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"kt",pMaterial->GetKt (),&md5);
             }
             if(pMaterial->GetOutsideIOR())
             {
-                ExtraTextureManager::writeTexture(context,"ioroutside",pMaterial->GetOutsideIOR(),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"ioroutside",pMaterial->GetOutsideIOR(),&md5);
             }
             if(pMaterial->GetIOR())
             {
-                ExtraTextureManager::writeTexture(context,"iorinside",pMaterial->GetIOR(),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"iorinside",pMaterial->GetIOR(),&md5);
             }
         }
         break;
@@ -209,7 +209,7 @@ ExtraMaterialManager::WriteMaterialImpl(MaterialWriteContext &ctx,
 
             if(pMaterial->GetMixFactor())
             {
-                ExtraTextureManager::writeTexture(context,"amount",pMaterial->GetMixFactor(),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"amount",pMaterial->GetMixFactor(),&md5);
             }
         }
         break;
@@ -222,11 +222,11 @@ ExtraMaterialManager::WriteMaterialImpl(MaterialWriteContext &ctx,
             const slg::MatteTranslucentMaterial  *pMaterial = dynamic_cast<const slg::MatteTranslucentMaterial*>(pMat);
             if(pMaterial->GetKr())
             {
-                ExtraTextureManager::writeTexture(context,"kr",pMaterial->GetKr(),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"kr",pMaterial->GetKr(),&md5);
             }
             if(pMaterial->GetKt ())
             {
-                ExtraTextureManager::writeTexture(context,"kt",pMaterial->GetKt (),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"kt",pMaterial->GetKt (),&md5);
             }
         }
         break;
@@ -235,31 +235,31 @@ ExtraMaterialManager::WriteMaterialImpl(MaterialWriteContext &ctx,
             const slg::Glossy2Material  *pMaterial = dynamic_cast<const slg::Glossy2Material*>(pMat);
             if(pMaterial->GetKd())
             {
-                ExtraTextureManager::writeTexture(context,"kd",pMaterial->GetKd(),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"kd",pMaterial->GetKd(),&md5);
             }
             if(pMaterial->GetKs ())
             {
-                ExtraTextureManager::writeTexture(context,"ks",pMaterial->GetKs (),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"ks",pMaterial->GetKs (),&md5);
             }
             if(pMaterial->GetNu ())
             {
-                ExtraTextureManager::writeTexture(context,"uroughness",pMaterial->GetNu (),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"uroughness",pMaterial->GetNu (),&md5);
             }
             if(pMaterial->GetNv ())
             {
-                ExtraTextureManager::writeTexture(context,"vroughness",pMaterial->GetNv (),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"vroughness",pMaterial->GetNv (),&md5);
             }
             if(pMaterial->GetKa ())
             {
-                ExtraTextureManager::writeTexture(context,"ka",pMaterial->GetKa (),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"ka",pMaterial->GetKa (),&md5);
             }
             if(pMaterial->GetDepth ())
             {
-                ExtraTextureManager::writeTexture(context,"d",pMaterial->GetDepth (),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"d",pMaterial->GetDepth (),&md5);
             }
             if(pMaterial->GetIndex ())
             {
-                ExtraTextureManager::writeTexture(context,"index",pMaterial->GetIndex (),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"index",pMaterial->GetIndex (),&md5);
             }
 			o << " multibounce='" << (pMaterial->IsMultibounce() ? "true" : "false" ) << "'";
         }
@@ -269,19 +269,19 @@ ExtraMaterialManager::WriteMaterialImpl(MaterialWriteContext &ctx,
             const slg::Metal2Material  *pMaterial = dynamic_cast<const slg::Metal2Material*>(pMat);
             if(pMaterial->GetN())
             {
-                ExtraTextureManager::writeTexture(context,"n",pMaterial->GetN(),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"n",pMaterial->GetN(),&md5);
             }
             if(pMaterial->GetK())
             {
-                ExtraTextureManager::writeTexture(context,"k",pMaterial->GetK(),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"k",pMaterial->GetK(),&md5);
             }
             if(pMaterial->GetNu ())
             {
-                ExtraTextureManager::writeTexture(context,"uroughness",pMaterial->GetNu (),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"uroughness",pMaterial->GetNu (),&md5);
             }
             if(pMaterial->GetNv ())
             {
-                ExtraTextureManager::writeTexture(context,"vroughness",pMaterial->GetNv (),&md5);
+                ExtraTextureManager::writeTexture(ctx.m_texCtx,"vroughness",pMaterial->GetNv (),&md5);
             }
         }
         break;
@@ -305,7 +305,7 @@ ExtraMaterialManager::WriteMaterialImpl(MaterialWriteContext &ctx,
         o << " ctxmd5='" << md5value << "'>" << std::endl;
     }
     o << ss.str();
-	ctx.outIndent(o);
+	ctx.outIndent();
     o << "</material>" << std::endl;
 
     if(ppmd5)

@@ -39,6 +39,8 @@ public:
     **/
     bool                                    m_started;
 public:
+    //关闭当前打开场景。
+    void    closeScene(void);
     inline slg::RenderSession*  getSession(void){
         return m_session.get();
     }

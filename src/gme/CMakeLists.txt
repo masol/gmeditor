@@ -45,6 +45,7 @@ TARGET_LINK_LIBRARIES(gmeditor
  dm
  utils
  openctm
+ ${ASSIMP_LIBRARIES}
  ${FreeImage_LIBRARIES}
  ${SLG_LIBRARY}
  ${LUXRAYS_LIBRARY}
@@ -58,6 +59,7 @@ TARGET_LINK_LIBRARIES(gmeditor
   dm
   utils
   openctm
+  ${ASSIMP_LIBRARIES}
   ${wxWidgets_LIBRARIES_Cache}
   ${FreeImage_LIBRARIES}
   ${SLG_LIBRARY}

@@ -131,6 +131,8 @@ MainFrame::onMenuFileOpen(wxCommandEvent &event)
 	wxFileDialog *OpenDialog= new wxFileDialog(this, _T("Choose a file"), _(""), _(""), _("*.*"), wxFD_OPEN);
 	if ( OpenDialog->ShowModal() == wxID_OK )
 	{
+        gme::DocIO  dio;
+        dio.loadScene(boost::locale::conv::utf_to_utf<char>(OpenDialog->GetPath().ToStdWstring()));
 	}
 	OpenDialog->Close(); // Or OpenDialog->Destroy() ?
 }
@@ -144,7 +146,7 @@ MainFrame::onMenuFileExport(wxCommandEvent &event)
 	if ( SaveDialog->ShowModal() == wxID_OK )
 	{
 	    gme::DocIO  dio;
-	    dio.exportScene(boost::locale::conv::utf_to_utf<char>(SaveDialog->GetPath().ToStdWstring()));
+	    dio.exportScene(boost::locale::conv::utf_to_utf<char>(SaveDialog->GetPath().ToStdWstring()),true);
 	}
 	SaveDialog->Close();
 }
@@ -156,6 +158,8 @@ MainFrame::onMenuFileSave(wxCommandEvent &event)
 	wxFileDialog *SaveDialog= new wxFileDialog(this, _T("Choose a file"), _(""), _(""), _("*.*"), wxFD_SAVE);
 	if ( SaveDialog->ShowModal() == wxID_OK )
 	{
+	    gme::DocIO  dio;
+	    dio.exportScene(boost::locale::conv::utf_to_utf<char>(SaveDialog->GetPath().ToStdWstring()),false);
 	}
 	SaveDialog->Close();
 }

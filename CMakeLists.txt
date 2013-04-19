@@ -104,6 +104,9 @@ if (NOT EIGEN_FOUND)
 	MESSAGE(FATAL_ERROR "--> Could not locate required Eigen files, Please check ${EIGEN_INCLUDE_DIR} ")
 endif()
 
+if (NOT ASSIMP_FOUND)
+	MESSAGE(FATAL_ERROR "--> Could not locate required Assimp files, Please check ${ASSIMP_SEARCH_PATH} ")
+endif()
 
 
 set(GME_VERSION_MAJOR 0)

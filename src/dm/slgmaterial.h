@@ -23,7 +23,8 @@
 #include "slg/rendersession.h"
 #include <boost/shared_ptr.hpp>
 #include <boost/unordered_map.hpp>
-#include "slgobject.h"
+#include "slgtexture.h"
+#include "dm/objectnode.h"
 
 class MD5;
 
@@ -38,25 +39,23 @@ private:
     std::vector< std::string >  m_materialNameArray;
 public:
     SlgMaterial2Name(void);
-    const std::string&      getMaterialName(const slg::Material* pmat);
+    SlgMaterial2Name(const SlgMaterial2Name &ref)
+    {
+        this->m_materialNameArray = ref.m_materialNameArray;
+        this->m_matIdx2NameIdx = ref.m_matIdx2NameIdx;
+    }
+    const std::string&      getMaterialName(const slg::Material* pmat)const;
 };
 
 struct  MaterialWriteContext{
-    MaterialWriteContext(bool bExportRes,const boost::filesystem::path& p,std::ostream &o)
-        : m_dest_path(p),
-          m_bSaveRes(bExportRes),
-          m_pstream(&o)
-    {
-		m_indent = 1;
-    }
-    ~MaterialWriteContext(){}
 protected:
-	inline	void outIndent(std::ostream &o)
+	inline	void outIndent(void)
 	{
 		for(int indent = 0; indent < this->m_indent; indent++)
-			o << "  ";
+			stream() << "  ";
 	}
-    SlgMaterial2Name        m_mat2name;
+    TextureWriteContext m_texCtx;
+    const SlgMaterial2Name        m_mat2name;
     void    buildSlgMatidx2Nameidx();
     friend  class ExtraMaterialManager;
     /** @brief 保存了材质内容码到材质id的映射。这允许我们正确加入use属性。
@@ -64,13 +63,24 @@ protected:
     typedef   boost::unordered_map<std::string, std::string>    type_ctx2id;
     type_ctx2id             m_ctx2id;
 
-    const boost::filesystem::path m_dest_path;
-    const bool      m_bSaveRes;
+    const bool                      m_bSaveRes;
+    const boost::filesystem::path   &m_dest_path;
+	int				m_indent;
+    std::ostream	*m_pstream;
+
 	inline std::ostream&	stream(){
 		return *m_pstream;
 	}
-	int				m_indent;
-    std::ostream	*m_pstream;
+public:
+    MaterialWriteContext(bool bExportRes,const boost::filesystem::path &p,std::ostream &o,int indent = 1)
+        : m_texCtx(bExportRes,p,o,indent),
+          m_bSaveRes(bExportRes),
+          m_dest_path(p),
+          m_indent(indent)
+    {
+        m_pstream = &o;
+    }
+    ~MaterialWriteContext(){}
 };
 
 

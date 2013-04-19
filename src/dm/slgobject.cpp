@@ -30,6 +30,19 @@
 
 namespace gme{
 
+bool
+ExtraObjectManager::loadOpenCtm(const std::string &file,ObjectNode *pParent)
+{
+    if(!pParent)
+        pParent = this->m_objectGroup;
+
+    CTMcontext context;
+    CTMuint    vertCount, triCount, * indices;
+    CTMfloat   * vertices;
+
+    return false;
+}
+
 template<class T>
 bool    SaveCtmFile(bool useplynormals,T *pMesh,const std::string &filename,std::string &ctxHashValue)
 {
@@ -38,17 +51,17 @@ bool    SaveCtmFile(bool useplynormals,T *pMesh,const std::string &filename,std:
     CTMfloat   *vertices;
     CTMfloat   *aNormals = NULL;
     CTMfloat   *aUVCoords = NULL;
-    
+
     vertCount = pMesh->GetTotalVertexCount ();
     triCount = pMesh->GetTotalTriangleCount ();
     vertices  = (CTMfloat*)(void*)pMesh->GetVertices();
     indices  = (CTMuint*)(void*)pMesh->GetTriangles();
-    
+
     MD5     md5;
-    
+
     md5.update((const unsigned char *)(void*)vertices,vertCount * 3 * sizeof(CTMfloat));
     md5.update((const unsigned char *)(void*)indices,triCount * 3 * sizeof(CTMuint));
-    
+
     if(useplynormals) //pMesh->HasNormals())
     {
         std::cerr << "has normals ... " << std::endl;
@@ -62,7 +75,7 @@ bool    SaveCtmFile(bool useplynormals,T *pMesh,const std::string &filename,std:
         }
         md5.update((const unsigned char *)(void*)aNormals,vertCount * 3 * sizeof(CTMfloat));
     }
-    
+
     context = ctmNewContext(CTM_EXPORT);
     ctmDefineMesh(context, vertices, vertCount, indices, triCount, aNormals);
     if(pMesh->HasUVs())
@@ -76,19 +89,19 @@ bool    SaveCtmFile(bool useplynormals,T *pMesh,const std::string &filename,std:
         }
         ctmAddUVMap(context,aUVCoords,"def",NULL);
     }
-    
+
     ctmSave(context, filename.c_str());
-    
+
     ctxHashValue = md5.finalize().hexdigest();
-    
+
     if(aNormals)
         delete[] aNormals;
     if(aUVCoords)
         delete[] aUVCoords;
     if(context)
         ctmFreeContext(context);
-    
-    
+
+
     return true;
 }
 
@@ -127,6 +140,7 @@ void
 ExtraObjectManager::write(ObjectNode &pThis,ObjectWriteContext& ctx)
 {
     std::ostream    &o = ctx.m_stream;
+    ctx.outIndent();
     o  << "<object id='" << ObjectNode::idto_string(pThis.id())
         << "' name='" << pThis.name() << "'";
 
@@ -174,13 +188,37 @@ ExtraObjectManager::write(ObjectNode &pThis,ObjectWriteContext& ctx)
     }
 	o << ">" << std::endl;
     ObjectNode::type_child_container::iterator  it = pThis.begin();
+    ctx.m_indent++;
     while(it != pThis.end())
     {
         write((*it),ctx);
         it++;
     }
+    ctx.m_indent--;
+
+    ctx.outIndent();
     o << "</object>" << std::endl;
 }
+
+void
+ExtraObjectManager::loadExtraFromProps(ObjectNode& node,luxrays::Properties &props)
+{
+    std::string     slgname = getNameForSlg(node.id());
+    std::string path = props.GetString("scene.objects." + slgname + ".ply","");
+    if(path.length())
+    {
+        boost::filesystem::path   filepath = boost::filesystem::canonical(path);
+        node.m_filepath = filepath.string();
+    }
+
+    ObjectNode::type_child_container::iterator it = node.begin();
+    while(it != node.end())
+    {
+        loadExtraFromProps(*it,props);
+        it++;
+    }
+}
+
 
 
 }

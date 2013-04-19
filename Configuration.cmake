@@ -63,6 +63,7 @@ IF (NOT GME_NO_DEFAULT_CONFIG)
         SET(FreeImage_INC_SEARCH_PATH 		"${GME_DEP_DIRS}/FreeImage/Dist")
         SET(FreeImage_LIB_SEARCH_PATH 		"${GME_DEP_DIRS}/FreeImage/Dist")
         SET(EIGEN_INCLUDE_DIR               "${GME_DEP_DIRS}/Eigen")
+        SET(ASSIMP_SEARCH_PATH               "${GME_DEP_DIRS}/Assimp/include")
     ENDIF(DEFINED ENV{GMEDITOR_DEP_DIRS})
 
   ELSE(WIN32)

@@ -116,4 +116,11 @@ if (SLG_FOUND)
     include_directories(${SLG_INCLUDE_DIR})
 endif()
 
+set(ASSIMP_HOME                "${ASSIMP_SEARCH_PATH}")
+find_package(Assimp)
+
+if (ASSIMP_FOUND)
+    include_directories(${ASSIMP_INCLUDE_DIRS})
+endif()
+
 

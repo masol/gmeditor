@@ -19,7 +19,10 @@
 #include "config.h"
 #include "docprivate.h"
 #include "dm/docmat.h"
-#include "utils/MD5.h"
+#include "slgobject.h"
+#include "slgtexture.h"
+#include "slgmaterial.h"
+
 
 
 namespace gme{
@@ -29,13 +32,28 @@ DocPrivate::DocPrivate(void)
     m_started = false;
 }
 
-
-DocPrivate::~DocPrivate(void)
+void
+DocPrivate::closeScene(void)
 {
     if(m_session)
     {
+        if(m_started)
+        {
+            m_session->Stop();
+        }
         m_session.reset();
     }
+    m_started = false;
+    ExtraObjectManager::instance().clear();
+    ExtraMaterialManager::instance().clear();
+    ExtraTextureManager::instance().clear();
+}
+
+
+
+DocPrivate::~DocPrivate(void)
+{
+    closeScene();
 }
 
 }

@@ -22,6 +22,7 @@
 #include "dm/objectnode.h"
 #include "utils/singleton.h"
 #include <boost/unordered_map.hpp>
+#include "luxrays/utils/properties.h"
 
 //forward declare.
 namespace luxrays{
@@ -31,21 +32,28 @@ class ExtMesh;
 namespace gme{
 
 struct  ObjectWriteContext{
-    ObjectWriteContext(bool bExportRes,const boost::filesystem::path& p,std::ostream &o)
+    ObjectWriteContext(bool bExportRes,const boost::filesystem::path& p,std::ostream &o,int indent = 1)
         : m_dest_path(p),
           m_bSaveRes(bExportRes),
-          m_stream(o)
+          m_stream(o),
+          m_indent(indent)
     {}
     ~ObjectWriteContext(){}
 protected:
+	inline	void outIndent(void)
+	{
+		for(int indent = 0; indent < this->m_indent; indent++)
+			m_stream << "  ";
+	}
     friend  class ExtraObjectManager;
     typedef   boost::unordered_map<std::string, std::string>    type_file_ctxid2savename;
     /** @brief 保存了文件内容md5字符串到本地文件名的映射。这可以判断是否是相同文件，以决定是否引用相同mesh.
     **/
     type_file_ctxid2savename  m_file_ctx2savename;
-    const boost::filesystem::path m_dest_path;
+    const boost::filesystem::path &m_dest_path;
     const bool      m_bSaveRes;
     std::ostream   &m_stream;
+    int             m_indent;
 };
 
 
@@ -95,6 +103,19 @@ public:
     }
     luxrays::ExtMesh*   getExtMesh(const boost::uuids::uuid &objid);
     void    write(ObjectNode &pThis,ObjectWriteContext& ctx);
+    void    loadExtraFromProps(luxrays::Properties &props)
+    {//不加载根节点:
+         ObjectNode::type_child_container::iterator it = m_objectGroup.begin();
+         while(it != m_objectGroup.end())
+         {
+            loadExtraFromProps(*it,props);
+            it++;
+         }
+    }
+    bool    loadOpenCtm(const std::string &file,ObjectNode *pParent);
+private:
+    ///@brief 从props中加载原始文件信息。
+    void    loadExtraFromProps(ObjectNode& node,luxrays::Properties &props);
 };
 
 }

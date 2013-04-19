@@ -30,16 +30,18 @@
 
 namespace gme{
 
+/** @brief 保存了对象的额外信息。
+**/
 class ObjectNode
 {
 private:
     friend class DocIO;
-    friend class SlgObjectNode;
+    friend class ExtraObjectManager;
 protected:
     boost::uuids::uuid      m_id;
     std::string             m_name;
-    std::string             m_mesh_name;
-    /** @brief 模型文件。m_mesh_name从模型文件中索引mesh.
+    /** @brief 模型文件。m_filepath保存了本mesh的原始文件。
+      * @details 这个原始文件可能保存了若干模型.将会被展开为子模型节点。
     **/
     std::string             m_filepath;
     /** @brief 这里以string类型保存material id.如果从cfg打开，则matID不能转化为uuid.在保存时自动更新。
@@ -52,7 +54,6 @@ protected:
     {
         m_id = ref.m_id;
         m_name = ref.m_name;
-        m_mesh_name = ref.m_mesh_name;
         m_filepath = ref.m_filepath;
         m_matid = ref.m_matid;
         m_children = ref.m_children;
@@ -102,6 +103,9 @@ public:
     ObjectNode()
     {
         m_useplynormals = false;
+        //创建者需要自行维护nil.
+//        m_id = boost::uuids::nil_generator()();
+//        m_matid = boost::uuids::nil_generator()();
     }
     ObjectNode(const ObjectNode& ref){
         assignFrom(ref);

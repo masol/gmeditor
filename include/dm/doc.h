@@ -33,6 +33,7 @@ protected:
     friend class ExtraMaterialManager;
     friend class ExtraTextureManager;
     friend class SlgMaterial2Name;
+    friend class SlgTexture2Name;
     friend class Singleton<Doc>;
     typedef Singleton<Doc>   inherited;
     Doc(void);
