@@ -26,14 +26,11 @@
 #include <fstream>
 #include <boost/scope_exit.hpp>
 #include "eigenutil.h"
+#include "slgutils.h"
 #include "docprivate.h"
 #include "slgobject.h"
 #include "slgmaterial.h"
 #include "slgtexture.h"
-
-#include <assimp/Importer.hpp>      // C++ importer interface
-#include <assimp/scene.h>           // Output data structure
-#include <assimp/postprocess.h>     // Post processing flags
 
 #define __CL_ENABLE_EXCEPTIONS 1
 #if defined(__APPLE__) || defined(__MACOSX)
@@ -177,21 +174,23 @@ DocIO::exportSpoloScene(const std::string &pathstring,bool bExportRes)
         //write camera.
         //write tone-mapping.
         //write light.
-        //write material.
-        ofstream << "<materials>" << std::endl;
-        {
-            MaterialWriteContext    context(bExportRes,root_path,ofstream);
-            ExtraMaterialManager::instance().write(context);
-        }
-        ofstream << "</materials>" << std::endl;
-
         //write object.
-        ofstream << "<objects>" << std::endl;
         {
-            ObjectWriteContext  context(bExportRes,root_path,ofstream);
-            ExtraObjectManager::instance().write(context);
+            ObjectWriteContext  objctx(bExportRes,root_path,ofstream);
+            ofstream << "<objects>" << std::endl;
+            {
+                ExtraObjectManager::instance().write(objctx);
+            }
+            ofstream << "</objects>" << std::endl;
+
+            //write material.
+            ofstream << "<materials>" << std::endl;
+            {
+                MaterialWriteContext    context(bExportRes,root_path,ofstream);
+                ExtraMaterialManager::instance().write(context,objctx.refMaterials());
+            }
+            ofstream << "</materials>" << std::endl;
         }
-        ofstream << "</objects>" << std::endl;
 
         ofstream << "</scene>" << std::endl;
         return true;
@@ -233,52 +232,16 @@ DocIO::exportScene(const std::string &pathstring,bool bExportResource)
 bool
 DocIO::importScene(const std::string &path,ObjectNode *pParent)
 {
-    struct   SessionEditor{
-    protected:
-        slg::RenderSession      *m_session;
-    public:
-        inline SessionEditor(slg::RenderSession *session)
-        {
-            m_session = session;
-            m_session->BeginEdit();
-        }
-        inline ~SessionEditor()
-        {
-            m_session->EndEdit();
-        }
-    };
-    std::string ext = boost::filesystem::gme_ext::get_extension(path);
-    if(boost::iequals(ext,".ctm"))
-    {//加载openctm.
-        SessionEditor   editor;
-        ExtraObjectManager::instance().loadOpenCtm(path,pParent);
-    }else{
-    //使用assimp加载其它数据。
-        Assimp::Importer importer;
-
-        const aiScene* scene = importer.ReadFile( path,
-                aiProcess_MakeLeftHanded         |
-                aiProcess_ValidateDataStructure  |
-                aiProcess_GenSmoothNormals       |
-                aiProcess_CalcTangentSpace       |
-                aiProcess_Triangulate            |
-                aiProcess_JoinIdenticalVertices  |
-                aiProcess_ImproveCacheLocality   |
-                aiProcess_FixInfacingNormals     |
-                aiProcess_FindDegenerates        |
-                aiProcess_FindInvalidData        |
-                aiProcess_GenUVCoords            |
-                aiProcess_OptimizeMeshes         |
-                aiProcess_Debone                 |
-                aiProcess_SortByPType);
-        if(scene)
-        {//process data.
-        }
-    }
-    return false;
+    SlgUtil::Editor      editor(pDocData->m_session.get());
+    return ExtraObjectManager::instance().loadObjectsFromFile(path,pParent,editor);
 }
 
 
+bool
+DocIO::deleteModel(const boost::uuids::uuid &id)
+{
+    return ExtraObjectManager::instance().removeMesh(id);
+}
 
 
 } //end namespace gme.

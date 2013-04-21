@@ -31,7 +31,9 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_MENU(wxID_OPEN, MainFrame::onMenuFileOpen)
 	EVT_MENU(wxID_SAVE, MainFrame::onMenuFileSave)
 	EVT_MENU(cmd::GID_EXPORT, MainFrame::onMenuFileExport)
+	EVT_MENU(cmd::GID_IMPORT, MainFrame::onMenuFileImport)
 	EVT_MENU(wxID_EXIT, MainFrame::onMenuFileQuit)
+	EVT_MENU(wxID_DELETE, MainFrame::onMenuEditDelete)
 	EVT_MENU(wxID_ABOUT, MainFrame::onMenuHelpAbout)
 	EVT_SIZE(MainFrame::onSize)
 	EVT_CLOSE(MainFrame::onClose)
@@ -81,14 +83,27 @@ MainFrame::createMenubar()
     DECLARE_WXCONVERT;
 
     wxMenuBar *pMenuBar = new wxMenuBar();
-    wxMenu *pFileMenu = new wxMenu();
-	wxMBConvUTF8	conv;
-    pFileMenu->Append(wxID_OPEN, gmeWXT("打开(&O)"), gmeWXT("打开已有场景"));
-    pFileMenu->Append(wxID_SAVE, gmeWXT("保存(&S)"), gmeWXT("保存现有场景"));
-    pFileMenu->Append(cmd::GID_EXPORT, gmeWXT("导出(&E)"), gmeWXT("导出现有场景"));
-    pFileMenu->AppendSeparator();
-    pFileMenu->Append(wxID_EXIT, gmeWXT("退出(&X)"), gmeWXT("退出gmeditor"));
-    pMenuBar->Append(pFileMenu, gmeWXT("文件(&F)"));
+
+    {//File
+        wxMenu *pFileMenu = new wxMenu();
+        pFileMenu->Append(wxID_OPEN, gmeWXT("打开(&O)"), gmeWXT("打开已有场景"));
+        pFileMenu->Append(cmd::GID_IMPORT, gmeWXT("导入(&I)"), gmeWXT("从文件中导入模型到当前场景"));
+        pFileMenu->AppendSeparator();
+        pFileMenu->Append(wxID_SAVE, gmeWXT("保存(&S)"), gmeWXT("保存现有场景"));
+        pFileMenu->Append(cmd::GID_EXPORT, gmeWXT("导出(&E)"), gmeWXT("导出现有场景"));
+        pFileMenu->AppendSeparator();
+        pFileMenu->Append(wxID_EXIT, gmeWXT("退出(&X)"), gmeWXT("退出gmeditor"));
+
+        pMenuBar->Append(pFileMenu, gmeWXT("文件(&F)"));
+    }
+
+    {//Edit
+        wxMenu *pEditMenu = new wxMenu();
+        pEditMenu->Append(wxID_DELETE, gmeWXT("删除(&D)"), gmeWXT("删除选中模型"));
+
+        pMenuBar->Append(pEditMenu, gmeWXT("编辑(&E)"));
+    }
+
 	SetMenuBar(pMenuBar);
 }
 
@@ -122,6 +137,18 @@ MainFrame::onSize(wxSizeEvent& event)
 {
     //adjust status bar size.
     updateProgressbar();
+}
+
+void
+MainFrame::onMenuFileImport(wxCommandEvent &event)
+{
+	wxFileDialog *OpenDialog= new wxFileDialog(this, _T("Choose a file"), _(""), _(""), _("*.*"), wxFD_OPEN);
+	if ( OpenDialog->ShowModal() == wxID_OK )
+	{
+        gme::DocIO  dio;
+        dio.importScene(boost::locale::conv::utf_to_utf<char>(OpenDialog->GetPath().ToStdWstring()),NULL);
+	}
+	OpenDialog->Close(); // Or OpenDialog->Destroy() ?
 }
 
 
@@ -169,6 +196,15 @@ MainFrame::onMenuFileQuit(wxCommandEvent &event)
 {
 	Close(false);
 }
+
+void
+MainFrame::onMenuEditDelete(wxCommandEvent &event)
+{
+    DocIO   dio;
+    boost::uuids::uuid id;
+    dio.deleteModel(id);
+}
+
 
 void
 MainFrame::onMenuHelpAbout(wxCommandEvent &event)

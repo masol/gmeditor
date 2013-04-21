@@ -37,18 +37,21 @@ public:
 
 	/** Processes menu File|Open */
 	void onMenuFileOpen(wxCommandEvent &event);
-
+	/** Processes menu File|Import */
+	void onMenuFileImport(wxCommandEvent &event);
 	/** Processes menu File|Save */
 	void onMenuFileSave(wxCommandEvent &event);
-
 	/** Processes menu File|Export */
 	void onMenuFileExport(wxCommandEvent &event);
-
 	/** Processes menu File|Quit */
 	void onMenuFileQuit(wxCommandEvent &event);
 
+	/** Processes menu Edit|Delete */
+	void onMenuEditDelete(wxCommandEvent &event);
+
 	/** Processes menu About|Info */
 	void onMenuHelpAbout(wxCommandEvent &event);
+
 	enum{
 		SFP_INFO = 0,
 		SFP_STAT = 1,

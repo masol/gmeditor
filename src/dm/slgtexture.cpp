@@ -177,9 +177,6 @@ ExtraTextureManager::writeTexture(TextureWriteContext &ctx,const std::string &ta
     std::string texTypeName = DocMat::texGetTypeNameFromType(pTex->GetType());
     o << " type='" << texTypeName << "'";
 
-    const std::string &TextureName = ctx.m_tex2name.getTextureName(pTex);
-    o << " name='" << TextureName <<"'";
-
     /// 在写入过程中，有些texture会有子节点，其子节点的内容输出到cache_stream.
     std::stringstream   cache_stream;
     md5.update(texTypeName.c_str(),texTypeName.length());
@@ -187,7 +184,7 @@ ExtraTextureManager::writeTexture(TextureWriteContext &ctx,const std::string &ta
     {
     case slg::CONST_FLOAT3:
         {
-            slg::Spectrum color = dynamic_cast<const slg::ConstFloat3Texture*>(pTex)->GetColor();
+            luxrays::Spectrum color = dynamic_cast<const slg::ConstFloat3Texture*>(pTex)->GetColor();
             o << " r='" << boost::lexical_cast<std::string>( color.r ) << "'";
             o << " g='" << boost::lexical_cast<std::string>( color.g ) << "'";
             o << " b='" << boost::lexical_cast<std::string>( color.b ) << "'";
@@ -203,6 +200,10 @@ ExtraTextureManager::writeTexture(TextureWriteContext &ctx,const std::string &ta
         break;
     case slg::IMAGEMAP:
         {
+            // 只有imageTexture才需要name.
+            const std::string &TextureName = ctx.m_tex2name.getTextureName(pTex);
+            o << " name='" << TextureName <<"'";
+
             const slg::ImageMapTexture*   pImageMap = dynamic_cast<const slg::ImageMapTexture*>(pTex);
             BOOST_ASSERT_MSG(pImageMap,"Texture Type Panic!");
             float gain = pImageMap->GetGain();
@@ -403,7 +404,7 @@ ExtraTextureManager::writeTexture(TextureWriteContext &ctx,const std::string &ta
         {
             const slg::BandTexture*   pRealTex = dynamic_cast<const slg::BandTexture*>(pTex);
             const std::vector< float > &offsets =pRealTex->GetOffsets();
-            const std::vector< slg::Spectrum > &values = pRealTex->GetValues();
+            const std::vector< luxrays::Spectrum > &values = pRealTex->GetValues();
             for(size_t idx = 0; idx < offsets.size(); idx++)
             {
                 o << " offset" << idx << "='" << offsets[idx] << "'";

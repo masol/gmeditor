@@ -25,8 +25,11 @@
 #include <boost/unordered_map.hpp>
 #include "slgtexture.h"
 #include "dm/objectnode.h"
+#include "slgutils.h"
 
+//forward declare.
 class MD5;
+class aiMaterial;
 
 namespace gme{
 
@@ -191,7 +194,9 @@ public:
         return m_id2matinfo_map[id];
     }
 
-    void    write(MaterialWriteContext &ctx);
+    void    write(MaterialWriteContext &ctx,const std::vector<boost::uuids::uuid> &outset);
+    boost::uuids::uuid  createAssimpMaterial(aiMaterial *paiMat,SlgUtil::Editor &editor);
+    boost::uuids::uuid  createGrayMaterial(const std::string &name = "");
 private:
     /** @brief 实际写入一个材质到ostream.
      * @param ppmd5 父md5标识，可以传入空。

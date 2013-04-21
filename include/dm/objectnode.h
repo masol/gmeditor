@@ -61,6 +61,7 @@ protected:
         m_transformation = ref.m_transformation;
     }
 public:
+    ObjectNode*     findObject(const boost::uuids::uuid &id);
     inline void addChild(const ObjectNode&  child)
     {
         m_children.push_back(child);

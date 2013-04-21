@@ -26,6 +26,25 @@ namespace gme{
 class SlgUtil
 {
 public:
+    struct   Editor{
+    protected:
+        slg::RenderSession      *m_session;
+    public:
+        inline Editor(slg::RenderSession *session)
+        {
+            m_session = session;
+            m_session->BeginEdit();
+        }
+        inline ~Editor()
+        {
+            m_session->EndEdit();
+        }
+        inline void addAction(const slg::EditAction a)
+        {
+            m_session->editActions.AddAction(a);
+        }
+    };
+
     static  inline  void    OutputSlgmat(std::ostream &o,const luxrays::Matrix4x4 &luxmat)
     {
         for(int col = 0; col < 4; col++)

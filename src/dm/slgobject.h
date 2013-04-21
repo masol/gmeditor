@@ -21,8 +21,14 @@
 
 #include "dm/objectnode.h"
 #include "utils/singleton.h"
+#include "utils/pathext.h"
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/unordered_map.hpp>
 #include "luxrays/utils/properties.h"
+#include "slg/slg.h"
+#include "slg/editaction.h"
+#include "slg/rendersession.h"
+#include "slgutils.h"
 
 //forward declare.
 namespace luxrays{
@@ -39,6 +45,10 @@ struct  ObjectWriteContext{
           m_indent(indent)
     {}
     ~ObjectWriteContext(){}
+    inline  const std::vector<boost::uuids::uuid>&  refMaterials()const
+    {
+        return m_refMaterials;
+    }
 protected:
 	inline	void outIndent(void)
 	{
@@ -54,6 +64,9 @@ protected:
     const bool      m_bSaveRes;
     std::ostream   &m_stream;
     int             m_indent;
+    /** 每个被引用的material被保存在这里。
+    **/
+    std::vector<boost::uuids::uuid>     m_refMaterials;
 };
 
 
@@ -73,6 +86,10 @@ private:
     **/
     ObjectNode                              m_objectGroup;
 public:
+    inline  ObjectNode*     findObject(const boost::uuids::uuid &id)
+    {
+        return m_objectGroup.findObject(id);
+    }
     void    clear(){
         m_objectGroup.clear();
         m_oid2slgname_map.clear();
@@ -112,7 +129,13 @@ public:
             it++;
          }
     }
-    bool    loadOpenCtm(const std::string &file,ObjectNode *pParent);
+public:
+    /** @brief 删除指定模型.
+    **/
+    bool    removeMesh(const boost::uuids::uuid &id);
+    /** @brief 从模型文件中加载对象组。
+    **/
+    bool    loadObjectsFromFile(const std::string &file,ObjectNode *pParent,SlgUtil::Editor &editor);
 private:
     ///@brief 从props中加载原始文件信息。
     void    loadExtraFromProps(ObjectNode& node,luxrays::Properties &props);

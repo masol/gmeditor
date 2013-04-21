@@ -41,5 +41,22 @@ ObjectNode::idto_string(const boost::uuids::uuid &u)
     return result;
 }
 
+ObjectNode*
+ObjectNode::findObject(const boost::uuids::uuid &id)
+{
+    if(this->id() == id)
+        return this;
+    ObjectNode* result = NULL;
+    type_child_container::iterator  it = this->begin();
+    while(it != this->end())
+    {
+        result = it->findObject(id);
+        if(result)
+            break;
+        it++;
+    }
+    return result;
+}
+
 
 }

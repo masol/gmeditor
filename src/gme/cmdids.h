@@ -27,6 +27,7 @@ enum{
     GID_BEGIN = wxID_HIGHEST+1,
     GID_REFRESH_OBJVIEW,
     GID_EXPORT,
+    GID_IMPORT,
     GID_MAX
 };
 

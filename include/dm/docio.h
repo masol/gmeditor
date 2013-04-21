@@ -21,6 +21,7 @@
 
 
 #include "dm/doc.h"
+#include <boost/uuid/uuid.hpp>
 
 namespace gme{
 
@@ -41,6 +42,11 @@ public:
     **/
     bool    importScene(const std::string &path,ObjectNode *pParent = NULL);
     bool    exportScene(const std::string &path,bool bExportResource = true);
+
+    /** @brief 删除指定模型.
+     *  @param id 指定模型的id.
+    **/
+    bool    deleteModel(const boost::uuids::uuid &id);
 };
 
 }

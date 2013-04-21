@@ -317,19 +317,54 @@ ExtraMaterialManager::WriteMaterialImpl(MaterialWriteContext &ctx,
 
 
 void
-ExtraMaterialManager::write(MaterialWriteContext &ctx)
+ExtraMaterialManager::write(MaterialWriteContext &ctx,const std::vector<boost::uuids::uuid> &outset)
 {
-    ///@TODO 我们顺着对象列表来输出全部引用到的材质。这样，我们只输出使用到的材质。
-	///未来m_id2matinfo_map不仅仅维护直接被对象引用的材质(无此假设)。
-    type_id2matinfo_map::iterator  it = m_id2matinfo_map.begin();
-
-    while(it != m_id2matinfo_map.end())
+    ///我们顺着对象列表来输出全部引用到的材质。这样，我们只输出使用到的材质。
+	///m_id2matinfo_map不仅仅维护直接被对象引用的材质(无此假设)。
+    std::vector<boost::uuids::uuid>::const_iterator   outit = outset.begin();
+    while(outit != outset.end())
     {
-		slg::Material *pMat = Doc::instance().pDocData->m_session->renderConfig->scene->matDefs.GetMaterial(it->second.getNameForSlg(it->first));
-        WriteMaterialImpl(ctx,pMat,&(it->first),it->second.name(),it->second.slgname(),NULL);
-        it++;
+        type_id2matinfo_map::iterator  it = m_id2matinfo_map.find(*outit);
+        if(it != m_id2matinfo_map.end())
+        {
+            slg::Material *pMat = Doc::instance().pDocData->m_session->renderConfig->scene->matDefs.GetMaterial(it->second.getNameForSlg(it->first));
+            WriteMaterialImpl(ctx,pMat,&(it->first),it->second.name(),it->second.slgname(),NULL);
+        }else{//slg的名称为uuid.
+            std::string     slgname = ObjectNode::idto_string(*outit);
+            slg::Material *pMat = Doc::instance().pDocData->m_session->renderConfig->scene->matDefs.GetMaterial(slgname);
+            BOOST_ASSERT_MSG(pMat != NULL,"panic material?");
+            WriteMaterialImpl(ctx,pMat,&(*outit),"",slgname,NULL);
+        }
+        outit++;
     }
 }
+
+boost::uuids::uuid
+ExtraMaterialManager::createAssimpMaterial(aiMaterial *paiMat,SlgUtil::Editor &editor)
+{
+    boost::uuids::uuid  matid = boost::uuids::random_generator()();
+    return matid;
+}
+
+boost::uuids::uuid
+ExtraMaterialManager::createGrayMaterial(const std::string &name)
+{
+    boost::uuids::uuid  matid = boost::uuids::random_generator()();
+    std::string     matidStr = ObjectNode::idto_string(matid);
+    slg::Scene  *scene = Doc::instance().pDocData->getSession()->renderConfig->scene;
+    std::stringstream   ss;
+    ss << "scene.materials." << matidStr << ".type = matte" << std::endl;
+    ss << "scene.materials." << matidStr << ".kd = 0.75 0.75 0.75" << std::endl;
+    scene->DefineMaterials(ss.str());
+    if(name.length())
+    {
+        ExtraMaterial   em(matidStr);
+        em.m_name = name;
+        this->m_id2matinfo_map[matid] = em;
+    }
+    return matid;
+}
+
 
 
 }
