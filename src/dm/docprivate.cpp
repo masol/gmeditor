@@ -44,9 +44,9 @@ DocPrivate::closeScene(void)
         m_session.reset();
     }
     m_started = false;
-    ExtraObjectManager::instance().clear();
-    ExtraMaterialManager::instance().clear();
-    ExtraTextureManager::instance().clear();
+    objManager.clear();
+    matManager.clear();
+    texManager.clear();
 }
 
 

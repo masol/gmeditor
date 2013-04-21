@@ -37,7 +37,7 @@ class  SlgTexture2Name
 {
 private:
     ///@brief 用于从material出发反向查找name的变量。
-    ///@TODO: 是否有必要在ExtraMaterialManager中建立长期缓冲？
+    ///@todo: 是否有必要在ExtraMaterialManager中建立长期缓冲？
     std::vector<u_int>      m_texIdx2NameIdx;
     std::vector< std::string >  m_textureNameArray;
 public:
@@ -144,20 +144,18 @@ private:
     }
 };
 
-class ExtraTextureManager : public Singleton<ExtraTextureManager>
+class ExtraTextureManager
 {
 private:
-    friend class Singleton<ExtraTextureManager>;
-    typedef Singleton<ExtraTextureManager>   inherited;
+    friend class DocPrivate;
     ExtraTextureManager(){}
+    ~ExtraTextureManager(){}
 
     typedef   boost::unordered_map<std::string, std::string>        type_slgname2filepath;
     /** @brief 保存了imagetype类型的Texture从slgname到全路径的映射。
     **/
     type_slgname2filepath               m_slgname2filepath_map;
-
 public:
-    ~ExtraTextureManager(){}
     ///@brief 清空全部数据，用于场景重置(例如加载)。
     void    clear(){
     }

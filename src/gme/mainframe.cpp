@@ -59,11 +59,11 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
                   wxDefaultPosition, wxSize(200,150),
                   wxNO_BORDER | wxTE_MULTILINE);
 
-    ObjectView *objView = new ObjectView(this,wxID_ANY,wxDefaultPosition,wxSize(200,450));
+    m_objectView = new ObjectView(this,wxID_ANY,wxDefaultPosition,wxSize(200,450));
 
     // add the panes to the manager
 	wxMBConvUTF8	conv;
-    m_mgr.AddPane(objView, wxLEFT, gmeWXT("模型一览"));
+    m_mgr.AddPane(m_objectView, wxLEFT, gmeWXT("模型一览"));
     m_mgr.AddPane(text2, wxBOTTOM, gmeWXT("Pane Number Two"));
 
     RenderView        *mainView = new RenderView(this);
@@ -202,7 +202,10 @@ MainFrame::onMenuEditDelete(wxCommandEvent &event)
 {
     DocIO   dio;
     boost::uuids::uuid id;
-    dio.deleteModel(id);
+    if(this->m_objectView->getSelection(id))
+    {
+        dio.deleteModel(id);
+    }
 }
 
 

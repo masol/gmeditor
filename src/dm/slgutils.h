@@ -37,6 +37,10 @@ public:
         }
         inline ~Editor()
         {
+			if (m_session->editActions.Has(slg::MATERIALS_EDIT)) {
+				m_session->renderConfig->scene->RemoveUnusedMaterials();
+				m_session->renderConfig->scene->RemoveUnusedTextures();
+			}
             m_session->EndEdit();
         }
         inline void addAction(const slg::EditAction a)

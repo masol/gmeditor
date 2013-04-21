@@ -230,7 +230,7 @@ ExtraTextureManager::writeTexture(TextureWriteContext &ctx,const std::string &ta
                 write_file = *pSameCtxPath;
             }else{
                 //获取原始文件地址。
-                const std::string *porigPath = ExtraTextureManager::instance().queryPath(TextureName);
+                const std::string *porigPath = Doc::instance().pDocData->texManager.queryPath(TextureName);
                 if(porigPath && porigPath->length())
                 {//原始文件被记录。
                     if(ctx.m_bSaveRes)

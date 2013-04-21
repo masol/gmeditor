@@ -37,7 +37,7 @@ class  SlgMaterial2Name
 {
 private:
     ///@brief 用于从material出发反向查找name的变量。
-    ///@TODO: 是否有必要在ExtraMaterialManager中建立长期缓冲？
+    ///@todo: 是否有必要在ExtraMaterialManager中建立长期缓冲？
     std::vector<u_int>      m_matIdx2NameIdx;
     std::vector< std::string >  m_materialNameArray;
 public:
@@ -134,19 +134,18 @@ private:
     }
 };
 
-class ExtraMaterialManager : public Singleton<ExtraMaterialManager>
+class ExtraMaterialManager
 {
 private:
-    friend class Singleton<ExtraMaterialManager>;
-    typedef Singleton<ExtraMaterialManager>   inherited;
+    friend class DocPrivate;
     ExtraMaterialManager(){}
+    ~ExtraMaterialManager(){}
 
     typedef  boost::unordered_map<boost::uuids::uuid, ExtraMaterial>        type_id2matinfo_map;
     /** @brief 保存了从material id 到material_map.
     **/
     type_id2matinfo_map                    m_id2matinfo_map;
 public:
-    ~ExtraMaterialManager(){}
     ///@brief 清空全部数据，用于场景重置(例如加载)。
     void    clear(){
         m_id2matinfo_map.clear();
@@ -159,6 +158,11 @@ public:
             return &(it->second);
         }
         return NULL;
+    }
+    inline  void       eraseMaterialInfo(const boost::uuids::uuid &id)
+    {
+        ///@fixme 需要继续清理掉引用的ExtraTexture信息。
+        m_id2matinfo_map.erase(id);
     }
     type_id2matinfo_map::iterator  queryFromSlgname(const std::string &slgname){
         type_id2matinfo_map::iterator it = m_id2matinfo_map.begin();
@@ -196,7 +200,10 @@ public:
 
     void    write(MaterialWriteContext &ctx,const std::vector<boost::uuids::uuid> &outset);
     boost::uuids::uuid  createAssimpMaterial(aiMaterial *paiMat,SlgUtil::Editor &editor);
-    boost::uuids::uuid  createGrayMaterial(const std::string &name = "");
+    static  boost::uuids::uuid  createGrayMaterial(void);
+    boost::uuids::uuid  createGrayMaterial(const std::string &name);
+    ///@brief 改进slg缺陷，递归检查一个材质是否是光源。
+    static  bool    materialIsLight(const slg::Material *pmat);
 private:
     /** @brief 实际写入一个材质到ostream.
      * @param ppmd5 父md5标识，可以传入空。

@@ -42,8 +42,10 @@ ObjectNode::idto_string(const boost::uuids::uuid &u)
 }
 
 ObjectNode*
-ObjectNode::findObject(const boost::uuids::uuid &id)
+ObjectNode::findObject(const boost::uuids::uuid &id,ObjectNode **ppparent)
 {
+    if(ppparent)
+        *ppparent = NULL;
     if(this->id() == id)
         return this;
     ObjectNode* result = NULL;
@@ -52,7 +54,13 @@ ObjectNode::findObject(const boost::uuids::uuid &id)
     {
         result = it->findObject(id);
         if(result)
+        {
+            if(ppparent && (*ppparent) == NULL )
+            {
+                *ppparent = this;
+            }
             break;
+        }
         it++;
     }
     return result;

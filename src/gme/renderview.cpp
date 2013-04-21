@@ -44,7 +44,7 @@ END_EVENT_TABLE()
 
 RenderView::RenderView(wxFrame* parent) : inherited(parent)
 {
-    //@TODO: connection from option.
+    ///@todo: connection from option.
     SetMinSize( wxSize(20, 20) );
     m_action = ACTION_INVALID;
     opt_RotateStep = 4.f;
@@ -115,7 +115,7 @@ void RenderView::render(wxDC&  dc)
 
         docimg.getData(&idata);
 
-        ///@TODO 添加卷滚处理。
+        ///@todo 添加卷滚处理。
 
         wxBitmap bmp( image );
         dc.DrawBitmap( bmp, 0, 0 );

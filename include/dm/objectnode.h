@@ -61,10 +61,30 @@ protected:
         m_transformation = ref.m_transformation;
     }
 public:
-    ObjectNode*     findObject(const boost::uuids::uuid &id);
+    /** @brief 搜索值为id的节点对象。
+     *  @param parent 如果给出此参数，将把父对象写入这里。
+    **/
+    ObjectNode*     findObject(const boost::uuids::uuid &id,ObjectNode **ppparent=NULL);
     inline void addChild(const ObjectNode&  child)
     {
         m_children.push_back(child);
+    }
+    inline  bool    removeChild(const boost::uuids::uuid &id)
+    {
+        std::vector<ObjectNode>::iterator it = m_children.begin();
+        while(it != m_children.end())
+        {
+            if(it->m_id == id)
+            {
+                m_children.erase(it);
+                return true;
+            }else if(it->removeChild(id))
+            {
+                    return true;
+            }
+            it++;
+        }
+        return false;
     }
     inline void clear(){
         m_children.clear();

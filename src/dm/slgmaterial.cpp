@@ -347,7 +347,7 @@ ExtraMaterialManager::createAssimpMaterial(aiMaterial *paiMat,SlgUtil::Editor &e
 }
 
 boost::uuids::uuid
-ExtraMaterialManager::createGrayMaterial(const std::string &name)
+ExtraMaterialManager::createGrayMaterial(void)
 {
     boost::uuids::uuid  matid = boost::uuids::random_generator()();
     std::string     matidStr = ObjectNode::idto_string(matid);
@@ -356,13 +356,39 @@ ExtraMaterialManager::createGrayMaterial(const std::string &name)
     ss << "scene.materials." << matidStr << ".type = matte" << std::endl;
     ss << "scene.materials." << matidStr << ".kd = 0.75 0.75 0.75" << std::endl;
     scene->DefineMaterials(ss.str());
+    return matid;
+}
+
+boost::uuids::uuid
+ExtraMaterialManager::createGrayMaterial(const std::string &name)
+{
+    boost::uuids::uuid  matid = createGrayMaterial();
     if(name.length())
     {
-        ExtraMaterial   em(matidStr);
+        ExtraMaterial   em(ObjectNode::idto_string(matid));
         em.m_name = name;
         this->m_id2matinfo_map[matid] = em;
     }
     return matid;
+}
+
+
+bool
+ExtraMaterialManager::materialIsLight(const slg::Material *pmat)
+{
+    if(!pmat)
+        return false;
+    if(pmat->IsLightSource())
+        return true;
+    const slg::MixMaterial *pMix = dynamic_cast<const slg::MixMaterial*>(pmat);
+    if(pMix)
+    {
+        if(materialIsLight(pMix->GetMaterialA()))
+            return true;
+        if(materialIsLight(pMix->GetMaterialB()))
+            return true;
+    }
+    return false;
 }
 
 

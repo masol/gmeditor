@@ -121,6 +121,16 @@ configure_file(
 
 #Message(STATUS "wxWidgets_LIBRARY : ${wxWidgets_LIBRARIES}")
 
+IF (NOT WIN32)
+    STRING(REGEX MATCH "Release" _build_release ${CMAKE_BUILD_TYPE})
+    if(_build_release)
+        add_definitions( -DNDEBUG )
+    else()
+        add_definitions( -D_DEBUG )
+    endif()
+endif(NOT WIN32)
+
+
 add_subdirectory(src/openctm)
 add_subdirectory(src/utils)
 add_subdirectory(src/dm)

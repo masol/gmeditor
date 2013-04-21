@@ -37,68 +37,192 @@
 #include "luxrays/core/exttrianglemesh.h"
 namespace gme{
 
+int
+ExtraObjectManager::deleteFromExtMeshCache(luxrays::ExtMeshCache &ec,luxrays::ExtMesh *pObject)
+{
+    //获取对应的geometry对象。
+    luxrays::ExtTriangleMesh *pGeometry = NULL;
+    {
+        luxrays::ExtInstanceTriangleMesh    *pInstance = dynamic_cast<luxrays::ExtInstanceTriangleMesh*>(pObject);
+        if(pInstance)
+        {
+            pGeometry = pInstance->GetExtTriangleMesh();
+        }else{
+            pGeometry = dynamic_cast<luxrays::ExtTriangleMesh*>(pObject);
+        }
+    }
+
+    int reference_count = 0;
+    {//如果pObject是一个mesh，则引用技术应该是0.
+        std::vector< luxrays::ExtMesh * >::iterator  it = ec.meshes.begin();
+        while(it != ec.meshes.end())
+        {
+            if(pGeometry == *it)
+            {
+                reference_count++;
+            }else{
+                luxrays::ExtInstanceTriangleMesh    *pInstance = dynamic_cast<luxrays::ExtInstanceTriangleMesh*>(*it);
+                if(pInstance && pInstance->GetExtTriangleMesh() == pGeometry)
+                {
+                    reference_count++;
+                }
+            }
+            //如果mesh是指定mesh,删除之。
+            if(pObject == *it)
+            {
+                it = ec.meshes.erase(it);
+                GME_TRACE("remove object...done");
+            }else{
+                it++;
+            }
+        }
+    }
+    //引用计数为0的情况说明没有使用instance信息，直接使用mesh作为object.可以安全删除。
+    if(reference_count <= 1)
+    {
+        if(pGeometry)
+        {
+            std::map<std::string, luxrays::ExtTriangleMesh *>::iterator it = ec.maps.begin();
+            while(it != ec.maps.end())
+            {
+                if(it->second == pGeometry)
+                {
+                    ec.maps.erase(it);
+                    GME_TRACE("remove mesh...done");
+                    break;
+                }
+                it++;
+            }
+        }
+    }
+
+    return reference_count;
+}
+
 bool
 ExtraObjectManager::removeMesh(const boost::uuids::uuid &id)
 {
-//    ObjectNode* pNode = this->m_objectGroup.findObject(id);
-//    if(pNode)
-//    {
-//    }
+    ObjectNode  *parent = NULL;
+    ObjectNode *pNode = this->m_objectGroup.findObject(id);
+    if(!pNode)
+    {
+        return false;
+    }
+
+    if(!parent)
+        parent = &this->m_objectGroup;
+
     slg::RenderSession* session = Doc::instance().pDocData->getSession();
     slg::Scene       *scene = session->renderConfig->scene;
-    luxrays::ExtMesh *pMesh = scene->meshDefs.GetExtMesh("luxshell");
+    luxrays::ExtMesh *pMesh = this->getExtMesh(id);//scene->meshDefs.GetExtMesh("luxshell");
     if(!pMesh)
     {
-        std::cerr << "can not found luxshell" << std::endl;
+        return false;
     }
+
     SlgUtil::Editor      editor(session);
 
-    std::cerr << "remove mesh id " << scene->extMeshCache.GetExtMeshIndex(pMesh) << std::endl;
-    std::cerr << "extMeshCache size : " << scene->extMeshCache.GetMeshes().size() << std::endl;
-    //std::cerr << "scene->extMeshCache.RemoveExtMesh = " << scene->extMeshCache.RemoveExtMesh(pMesh) <<std::endl;
+    //清理extMeshCache.
+    int ref_count = deleteFromExtMeshCache(scene->extMeshCache,pMesh);
 
-  	std::map<std::string, luxrays::ExtTriangleMesh *>::iterator it = scene->extMeshCache.maps.begin();
-  	while(it != scene->extMeshCache.maps.end())
-  	{
-        if(it->second == pMesh)
+    //清理meshDefs.
+    //triangleLights_begin保存了对象对应光源三角形数组的开始位置。
+    int triangleLights_begin = 0;
+    slg::Material   *pRefMaterial = NULL;
+    {
+        u_int idx = 0;
+        std::vector< luxrays::ExtMesh * >::iterator  it = scene->meshDefs.meshs.begin();
+        while(it != scene->meshDefs.meshs.end())
         {
-            std::cerr << "found removed :" << it->first;
-            scene->extMeshCache.maps.erase(it);
-            break;
+            if(pMesh != *it)
+            {
+                triangleLights_begin += pMesh->GetTotalTriangleCount();
+            }else{
+                scene->meshDefs.meshs.erase(it);
+                break;
+            }
+            it++;
+            idx++;
         }
-        std::cerr << "pair : " << it->first << std::endl;
-        it++;
-  	}
-
-    u_int idx = scene->meshDefs.GetExtMeshIndex(pMesh);
-    std::cerr << "idx = " << idx << std::endl;
-    {
-        std::vector< luxrays::ExtMesh * >::iterator  it = std::find(scene->meshDefs.meshs.begin(),scene->meshDefs.meshs.end(),pMesh);
-        scene->meshDefs.meshs.erase(it);
-        std::vector< slg::Material * >::iterator matit = scene->objectMaterials.begin();
-        for(u_int i = 0; i < idx; i++)
-            matit++;
+        GME_TRACE("erase mesh at idx = ",idx);
+        std::vector< slg::Material * >::iterator matit = scene->objectMaterials.begin() + idx;
+        pRefMaterial = *matit;
         scene->objectMaterials.erase(matit);
+        GME_TRACE("erase mesh material.");
     }
-    {
+    {//删除mesh的name define.
         std::map< std::string, luxrays::ExtMesh * >::iterator it = scene->meshDefs.meshsByName.begin();
         while(it != scene->meshDefs.meshsByName.end())
         {
             if(it->second == pMesh)
             {
                 scene->meshDefs.meshsByName.erase(it);
+                GME_TRACE("erase mesh name define.");
+                break;
             }
             it++;
         }
     }
+
+#if 0
+    //清理triangleLights.这里我们不能删除。只能设置为NULL,否则会引发其它灯光的逻辑关系错位。
+    {
+        GME_TRACE("triangleLights_begin = ",triangleLights_begin,";scene->triangleLights.size=",scene->triangleLights.size());
+        GME_TRACE("pMesh->GetTotalTriangleCount()=",pMesh->GetTotalTriangleCount());
+        std::vector<slg::TriangleLight *>::iterator it = scene->triangleLights.begin() + triangleLights_begin;
+        BOOST_ASSERT_MSG( (  ( (*it) == NULL) || ( (*it)->GetMesh() == pMesh && (*it)->GetTriIndex() == 0 ) ),"panic light position!");
+        scene->triangleLights.erase(it,it+pMesh->GetTotalTriangleCount()-1);
+    }
+#endif
+
+    //检查材质是否是光源.如果是，继续清理triLightDefs
+    if(ExtraMaterialManager::materialIsLight(pRefMaterial))
+    {//开始寻找mesh对应的光源。
+        std::vector< slg::TriangleLight * >::iterator    it = scene->triLightDefs.begin();
+        while(it != scene->triLightDefs.end())
+        {
+            if( (*it)->GetMesh () == pMesh)
+            {
+                slg::TriangleLight *pTriLight = *it;
+                GME_TRACE("erase light triangle : ",pTriLight->GetTriIndex());
+                ///@fixme: 设置全局三角形数组为空。
+                //scene->triangleLights[scene->triangleLights.begin() + pTriLight->] = NULL;
+
+                it = scene->triLightDefs.erase(it);
+                delete  pTriLight;
+            }else{
+                it++;
+            }
+        }
+        editor.addAction(slg::AREALIGHTS_EDIT);
+    }
+//#endif
+
+    if(ref_count <= 1)
+    {//需要删除本体,如果有的话。
+        luxrays::ExtInstanceTriangleMesh    *pInstance = dynamic_cast<luxrays::ExtInstanceTriangleMesh*>(pMesh);
+        if(pInstance)
+        {
+            pInstance->GetExtTriangleMesh()->Delete();
+            delete pInstance->GetExtTriangleMesh();
+        }
+    }
+
+    ///@todo: 我们是否需要对象缓冲？现在删了下次就必须重新加载。
+    //最后删除对象。
     pMesh->Delete();
     delete pMesh;
 
     editor.addAction(slg::GEOMETRY_EDIT);
-    //editor.addAction(slg::INSTANCE_TRANS_EDIT);
+    editor.addAction(slg::INSTANCE_TRANS_EDIT);
     editor.addAction(slg::MATERIALS_EDIT);
     editor.addAction(slg::MATERIAL_TYPES_EDIT);
-    return false;
+
+    //最后，清理extra信息。
+    Doc::instance().pDocData->matManager.eraseMaterialInfo(pNode->matid());
+    parent->removeChild(id);
+
+    return true;
 }
 
 bool
@@ -138,7 +262,7 @@ ExtraObjectManager::loadObjectsFromFile(const std::string &path,ObjectNode *pPar
             boost::uuids::random_generator  gen;
             obj.m_id = gen();
 
-            obj.m_matid = ExtraMaterialManager::instance().createGrayMaterial();
+            obj.m_matid = Doc::instance().pDocData->matManager.createGrayMaterial();
             //we use ctm as comporessed geometry data. so no name information here.
             //obj.m_name = ctmGetString(context, CTM_NAME);
             obj.m_filepath = path;
@@ -198,7 +322,7 @@ ExtraObjectManager::loadObjectsFromFile(const std::string &path,ObjectNode *pPar
                     ObjectNode  obj;
                     boost::uuids::random_generator  gen;
                     obj.m_id = gen();
-                    obj.m_matid = ExtraMaterialManager::instance().createGrayMaterial();
+                    obj.m_matid = ExtraMaterialManager::createGrayMaterial();
                     obj.m_name = pMesh->mName.C_Str();
                     //这里只有第一个被加载的
                     if(idx == 0)
@@ -214,7 +338,7 @@ ExtraObjectManager::loadObjectsFromFile(const std::string &path,ObjectNode *pPar
                     memcpy(pPoint,pMesh->mVertices,sizeof(luxrays::Point) * pMesh->mNumVertices);
                     luxrays::Triangle   *pTri = new luxrays::Triangle[pMesh->mNumFaces];
                     luxrays::UV *uv = NULL;
-                    //@TODO: support normal.
+                    //@fixme: support normal.
                     luxrays::Normal *normal = NULL;
 
 //                    BOOST_SCOPE_EXIT( (&pTri)(&uv) )
@@ -305,7 +429,7 @@ bool    SaveCtmFile(bool useplynormals,T *pMesh,const std::string &filename,std:
 
     if(false)//useplynormals) //pMesh->HasNormals())
     {
-        std::cerr << "has normals ... " << std::endl;
+        GME_TRACE("has normals ... ");
         aNormals = new CTMfloat[vertCount * 3];
         for(unsigned int idx = 0 ; idx < vertCount; idx++)
         {
@@ -376,7 +500,7 @@ ExtraObjectManager::getExtMesh(const boost::uuids::uuid &objid)
 }
 
 
-//@TODO 添加基于文件内容md5码的meshid属性。用于检查mesh一致性。
+//基于文件内容md5码的ctxmd5属性。用于检查mesh一致性。
 void
 ExtraObjectManager::write(ObjectNode &pThis,ObjectWriteContext& ctx)
 {

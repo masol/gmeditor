@@ -70,12 +70,12 @@ protected:
 };
 
 
-class ExtraObjectManager : public Singleton<ExtraObjectManager>
+class ExtraObjectManager
 {
 private:
-    friend class Singleton<ExtraObjectManager>;
-    typedef Singleton<ExtraObjectManager>   inherited;
+    friend class DocPrivate;
     ExtraObjectManager(){}
+    ~ExtraObjectManager(){}
 
     typedef   boost::unordered_map<boost::uuids::uuid, std::string>        type_id2name_map;
     /** @brief 保存了从object id到slg object name的map.
@@ -139,6 +139,13 @@ public:
 private:
     ///@brief 从props中加载原始文件信息。
     void    loadExtraFromProps(ObjectNode& node,luxrays::Properties &props);
+    /**@brief 清理extMeshCache信息。
+      *@details 本函数并不删除pMesh.
+      *@return 返回pMesh的引用计数。(0通常说明pMesh自身就是一个mesh而不是object)
+    **/
+    static  int    deleteFromExtMeshCache(luxrays::ExtMeshCache &extMeshCache,luxrays::ExtMesh *pObject);
+    ///@brief 检查有多少个对象引用了指定的造型对象。
+    static  int     getReferenceCount(luxrays::ExtMeshCache &extMeshCache,luxrays::ExtTriangleMesh *pGeometry);
 };
 
 }

@@ -68,6 +68,7 @@ static	bool	parser_Option(boost::program_options::parsed_options &option,parser_
 	bool bNeedQuit = false;
 	std::vector< boost::program_options::option>::iterator	it = option.options.begin();
 	std::string	 window_tag("window.");
+	std::string	 system_tag("system.");
 
 	std::vector<std::string>	configFile;
 	while(it != option.options.end())
@@ -83,7 +84,14 @@ static	bool	parser_Option(boost::program_options::parsed_options &option,parser_
 					ctx.option.put(it->string_key,*value_it);
 					value_it++;
 				}
-			}else{
+			}else if(it->string_key.compare(0, system_tag.length(), system_tag) == 0){
+				std::vector< std::string>::iterator	value_it = it->value.begin();
+				while(value_it != it->value.end() )
+				{
+					ctx.option.put(it->string_key.substr(system_tag.length()),*value_it);
+					value_it++;
+				}
+            }else{
 				outCopyRights();
 				std::cout << __("invalid parameter ") << it->string_key << std::endl;
 				outUsage();

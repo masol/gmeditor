@@ -30,5 +30,43 @@
 #define GME_GETTEXT(str)       str
 #define __(str)	GME_GETTEXT(str)
 
+#ifdef  _DEBUG
+
+    #include <iostream>
+    
+    template<class T>
+    inline  void    GME_TRACE(T a){
+        std::cerr << a << std::endl;
+    }
+    
+    template<class T1,class T2>
+    inline  void    GME_TRACE(T1 a,T2 b){
+        std::cerr << a << b << std::endl;
+    }
+    
+    template<class T1,class T2,class T3>
+    inline  void    GME_TRACE(T1 a, T2 b,T3 c){
+        std::cerr << a << b << c << std::endl;
+    }
+    template<class T1,class T2,class T3,class T4>
+    inline  void    GME_TRACE(T1 a, T2 b,T3 c,T4 d){
+        std::cerr << a << b << c << d << std::endl;
+    }
+    template<class T1,class T2,class T3,class T4,class T5>
+    inline  void    GME_TRACE(T1 a, T2 b,T3 c,T4 d,T5 e){
+        std::cerr << a << b << c << d << e << std::endl;
+    }
+    template<class T1,class T2,class T3,class T4,class T5,class T6>
+    inline  void    GME_TRACE(T1 a, T2 b,T3 c,T4 d,T5 e,T6 f){
+        std::cerr << a << b << c << d << e << f << std::endl;
+    }
+    template<class T1,class T2,class T3,class T4,class T5,class T6,class T7>
+    inline  void    GME_TRACE(T1 a, T2 b,T3 c,T4 d,T5 e,T6 f,T7 g){
+        std::cerr << a << b << c << d << e << f << g << std::endl;
+    }
+#else
+    #define GME_TRACE(s)    
+#endif
+
 
 #endif	/* GME_CONFIG_H */

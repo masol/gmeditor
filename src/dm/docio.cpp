@@ -20,6 +20,7 @@
 #include "dm/docio.h"
 #include "dm/objectnode.h"
 #include "utils/pathext.h"
+#include "utils/option.h"
 #include <slg/slg.h>
 #include <luxrays/utils/properties.h>
 #include <boost/algorithm/string/predicate.hpp>
@@ -31,6 +32,7 @@
 #include "slgobject.h"
 #include "slgmaterial.h"
 #include "slgtexture.h"
+#include "dm/setting.h"
 
 #define __CL_ENABLE_EXCEPTIONS 1
 #if defined(__APPLE__) || defined(__MACOSX)
@@ -60,10 +62,10 @@ DocIO::loadExtraFromSlgSceneFile(const std::string pathstring)
         props.Load(file);
 
         //获取每个模型对象的原始文件信息。
-        ExtraObjectManager::instance().loadExtraFromProps(props);
+        pDocData->objManager.loadExtraFromProps(props);
 
         //保存每个贴图对应的原始文件信息。
-        ExtraTextureManager::instance().loadExtraFromProps(props);
+        pDocData->texManager.loadExtraFromProps(props);
 
     }
 }
@@ -85,7 +87,7 @@ DocIO::loadExtraFromScene(void)
 
         obj.m_matid = boost::uuids::random_generator()();
 
-        ExtraMaterial  &materialInfo = ExtraMaterialManager::instance().get(obj.m_matid);
+        ExtraMaterial  &materialInfo = pDocData->matManager.get(obj.m_matid);
 
         u_int meshIdx = scene->meshDefs.GetExtMeshIndex(extmesh);
         materialInfo.m_slgname = mat2name.getMaterialName(scene->objectMaterials[meshIdx]);
@@ -101,8 +103,8 @@ DocIO::loadExtraFromScene(void)
             EigenUtil::AssignFromSlgMatrix(obj.m_transformation,pinst->GetTransformation().m);
         }
 
-        ExtraObjectManager::instance().getRoot().addChild(obj);
-        ExtraObjectManager::instance().updateSlgMap(obj.m_id,obj.m_name);
+        pDocData->objManager.getRoot().addChild(obj);
+        pDocData->objManager.updateSlgMap(obj.m_id,obj.m_name);
     }
 }
 
@@ -117,6 +119,24 @@ DocIO::loadScene(const std::string &path)
         {
             pDocData->closeScene();
             luxrays::Properties cmdLineProp;
+            //我们需要自动应用本地的渲染配置(例如平台选择以及设备选择,未指定的话采用本地配置文件，未配置的自动使用最大集合)。
+			{
+				int	platformId = 0;
+				if(Option::instance().is_existed(Setting::OPT_PLATFORMID))
+				{
+					platformId = boost::lexical_cast<int>(Option::instance().get<std::string>(Setting::OPT_PLATFORMID));
+				}
+				cmdLineProp.SetString(Setting::OPT_PLATFORMID,boost::lexical_cast<std::string>(platformId));
+
+				if(Option::instance().is_existed(Setting::OPT_DEVICESTR))
+				{
+					cmdLineProp.SetString(Setting::OPT_DEVICESTR,Option::instance().get<std::string>(Setting::OPT_DEVICESTR));
+				}else{
+					std::string	full = clHardwareInfo::instance().getFullSelectString(platformId);
+					cmdLineProp.SetString(Setting::OPT_DEVICESTR,full);
+				}
+			}
+
             slg::RenderConfig *config = new slg::RenderConfig(&path, &cmdLineProp);
             pDocData->m_session.reset(new slg::RenderSession(config));
             loadExtraFromScene();
@@ -179,7 +199,7 @@ DocIO::exportSpoloScene(const std::string &pathstring,bool bExportRes)
             ObjectWriteContext  objctx(bExportRes,root_path,ofstream);
             ofstream << "<objects>" << std::endl;
             {
-                ExtraObjectManager::instance().write(objctx);
+                pDocData->objManager.write(objctx);
             }
             ofstream << "</objects>" << std::endl;
 
@@ -187,7 +207,7 @@ DocIO::exportSpoloScene(const std::string &pathstring,bool bExportRes)
             ofstream << "<materials>" << std::endl;
             {
                 MaterialWriteContext    context(bExportRes,root_path,ofstream);
-                ExtraMaterialManager::instance().write(context,objctx.refMaterials());
+                pDocData->matManager.write(context,objctx.refMaterials());
             }
             ofstream << "</materials>" << std::endl;
         }
@@ -233,14 +253,14 @@ bool
 DocIO::importScene(const std::string &path,ObjectNode *pParent)
 {
     SlgUtil::Editor      editor(pDocData->m_session.get());
-    return ExtraObjectManager::instance().loadObjectsFromFile(path,pParent,editor);
+    return pDocData->objManager.loadObjectsFromFile(path,pParent,editor);
 }
 
 
 bool
 DocIO::deleteModel(const boost::uuids::uuid &id)
 {
-    return ExtraObjectManager::instance().removeMesh(id);
+    return pDocData->objManager.removeMesh(id);
 }
 
 

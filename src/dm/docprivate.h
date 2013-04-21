@@ -20,6 +20,9 @@
 #define  GME_DM_DOCPRIVATE_H
 
 #include "slg/rendersession.h"
+#include "slgtexture.h"
+#include "slgmaterial.h"
+#include "slgobject.h"
 #include <boost/shared_ptr.hpp>
 
 namespace gme{
@@ -31,13 +34,16 @@ private:
     DocPrivate(void);
     ~DocPrivate(void);
 public:
-    //@FIXME: 这里不能直接暴露slg.需要使用DocImpl类来封装，以方便支持cycles,luxrender...
-    //@TODO: 需要一个材质转化专家系统来支持材质转化。
+    ///@todo: 需要一个材质转化专家系统来支持材质转化。
 	//
     boost::shared_ptr<slg::RenderSession>   m_session;
     /** @fixme: slg的started为保护成员。
     **/
     bool                                    m_started;
+
+	ExtraTextureManager               texManager;
+	ExtraMaterialManager              matManager;
+	ExtraObjectManager                objManager;
 public:
     //关闭当前打开场景。
     void    closeScene(void);

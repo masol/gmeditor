@@ -28,7 +28,7 @@ namespace gme{
 const ObjectNode&
 DocObj::getRootObject()
 {
-    return ExtraObjectManager::instance().getRoot();
+    return pDocData->objManager.getRoot();
 }
 
 

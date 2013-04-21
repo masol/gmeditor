@@ -25,6 +25,7 @@
 namespace gme{
 
 class MainView;
+class ObjectView;
 
 class MainFrame : public wxFrame {
     typedef  wxFrame   inherited;
@@ -70,10 +71,12 @@ private:
             m_pGauge->Move(rect.x,rect.y);
         }
     }
+//not need free members.
     wxGauge         *m_pGauge;
+    ObjectView      *m_objectView;
     void    createMenubar();
     void    createStatusbar();
-    //@TODO meory leak detected by valgrind, caused by wxAuiManager loading paninfo using expat xmlparser.
+    ///@todo meory leak detected by valgrind, caused by wxAuiManager loading paninfo using expat xmlparser.
     wxAuiManager    m_mgr;
     DECLARE_EVENT_TABLE()
 };

@@ -25,6 +25,16 @@
 
 namespace gme{
 
+class ObjectViewClientData : public wxClientData
+{
+public:
+    const boost::uuids::uuid      m_objid;
+public:
+    ObjectViewClientData(const boost::uuids::uuid &id) : m_objid(id)
+    {
+    }
+};
+
 BEGIN_EVENT_TABLE(ObjectView, inherited)
     EVT_TREELIST_SELECTION_CHANGED(wxID_ANY, ObjectView::OnSelectionChanged)
     EVT_TREELIST_ITEM_EXPANDING(wxID_ANY, ObjectView::OnItemExpanding)
@@ -66,6 +76,7 @@ ObjectView::addChild(wxTreeListItem& parent,const ObjectNode &node,DocMat &objop
 	wxTreeListItem item = m_treelist->AppendItem(parent,node.name());
     m_treelist->SetItemText(item, 1, objop.getMatName(node.matid()));
     m_treelist->SetItemText(item, 2, "");
+    m_treelist->SetItemData(item,new ObjectViewClientData(node.id()));
     ObjectNode::type_child_container::const_iterator it = node.begin();
     while(it != node.end())
     {
@@ -100,6 +111,24 @@ ObjectView::~ObjectView()
 {
 
 }
+
+bool
+ObjectView::getSelection(boost::uuids::uuid &id)
+{
+    wxTreeListItem  item = m_treelist->GetSelection();
+    if(item.IsOk())
+    {
+        wxClientData *pData = m_treelist->GetItemData(item);
+        ObjectViewClientData* pvd = dynamic_cast<ObjectViewClientData*>(pData);
+        if(pvd)
+        {
+            id = pvd->m_objid;
+            return true;
+        }
+    }
+    return false;
+}
+
 
 void
 ObjectView::OnSelectionChanged(wxTreeListEvent& event)
