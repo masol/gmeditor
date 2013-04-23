@@ -27,6 +27,7 @@
 #include "dm/objectnode.h"
 #include "slgutils.h"
 #include "dm/doc.h"
+#include "importctx.h"
 
 //forward declare.
 class MD5;
@@ -34,59 +35,22 @@ struct aiMaterial;
 
 namespace gme{
 
-class  SlgMaterial2Name
-{
-private:
-    ///@brief 用于从material出发反向查找name的变量。
-    ///@todo: 是否有必要在ExtraMaterialManager中建立长期缓冲？
-    std::vector<u_int>      m_matIdx2NameIdx;
-    std::vector< std::string >  m_materialNameArray;
-public:
-    SlgMaterial2Name(void);
-    SlgMaterial2Name(const SlgMaterial2Name &ref)
-    {
-        this->m_materialNameArray = ref.m_materialNameArray;
-        this->m_matIdx2NameIdx = ref.m_matIdx2NameIdx;
-    }
-    const std::string&      getMaterialName(const slg::Material* pmat)const;
-};
-
-struct  MaterialWriteContext{
-protected:
-	inline	void outIndent(void)
-	{
-		for(int indent = 0; indent < this->m_indent; indent++)
-			stream() << "  ";
-	}
-    TextureWriteContext m_texCtx;
-    const SlgMaterial2Name        m_mat2name;
-    void    buildSlgMatidx2Nameidx();
-    friend  class ExtraMaterialManager;
-    /** @brief 保存了材质内容码到材质id的映射。这允许我们正确加入use属性。
-    **/
-    typedef   boost::unordered_map<std::string, std::string>    type_ctx2id;
-    type_ctx2id             m_ctx2id;
-
-    const bool                      m_bSaveRes;
-    const boost::filesystem::path   &m_dest_path;
-	int				m_indent;
-    std::ostream	*m_pstream;
-
-	inline std::ostream&	stream(){
-		return *m_pstream;
-	}
-public:
-    MaterialWriteContext(bool bExportRes,const boost::filesystem::path &p,std::ostream &o,int indent = 1)
-        : m_texCtx(bExportRes,p,o,indent),
-          m_bSaveRes(bExportRes),
-          m_dest_path(p),
-          m_indent(indent)
-    {
-        m_pstream = &o;
-    }
-    ~MaterialWriteContext(){}
-};
-
+///@brief 用于从material出发反向查找name的变量。
+/// 在ExtraMaterialManager中建立长期缓冲，本类不再需要。
+//class  SlgMaterial2Name
+//{
+//private:
+//    std::vector<u_int>      m_matIdx2NameIdx;
+//    std::vector< std::string >  m_materialNameArray;
+//public:
+//    SlgMaterial2Name(void);
+//    SlgMaterial2Name(const SlgMaterial2Name &ref)
+//    {
+//        this->m_materialNameArray = ref.m_materialNameArray;
+//        this->m_matIdx2NameIdx = ref.m_matIdx2NameIdx;
+//    }
+//    const std::string&      getMaterialName(const slg::Material* pmat)const;
+//};
 
 class ExtraMaterialManager
 {
@@ -115,64 +79,28 @@ public:
         return m_id2name[id];
     }
 
-    inline  void       eraseMaterialInfo(const std::string &id,const slg::Material *pMat)
-    {
-        ///@fixme 需要继续清理掉引用的ExtraTexture信息。
-        m_id2name.erase(id);
-        if(pMat)
-        {
-            m_mat2id.erase(pMat);
-        }
-    }
-
     void    appendMat2IdFromSlg(void);
     inline  const std::string&  getMaterialId(const slg::Material* pMat)
     {
         return m_mat2id[pMat];
     }
 
+    /** @brief recursion remove extrainfo from slg material.
+    **/
+    void    onMaterialRemoved(const slg::Material* pMat);
+
     /** @brief
     **/
     static slg::Material* getSlgMaterial(const std::string &id);
 
-    /** @brief 将指定材质的内容导出到node中。
-    **/
-//    inline bool   dump(const std::string &id,type_node &node)
-//    {
-//        slg::Material* pmat = getSlgMaterial(id);
-//        if(pmat)
-//        {
-//            dump(pmat,&id,node);
-//            return true;
-//        }
-//        return false;
-//    }
-    ///@todo 从type_node对象中恢复材质。
-    //void    exportResource(type_node &node,boost::);
-
     ///@fixme : 使用rapidxml接口来导入导出材质。
-    //void    write(MaterialWriteContext &ctx,const std::vector<boost::uuids::uuid> &outset);
-    //std::string  createAssimpMaterial(aiMaterial *paiMat,SlgUtil::Editor &editor);
-    static  void createGrayMaterial(const std::string& id);
-    //boost::uuids::uuid  createGrayMaterial(const std::string &name);
+    void createMatteMaterial(ImportContext &ctx,const std::string& id,const std::string &kdpath,const char* emissionPath = NULL,const char* normalPath = NULL);
+    void createGrayMaterial(ImportContext &ctx,const std::string& id);
     ///@brief 改进slg缺陷，递归检查一个材质是否是光源。
     static  bool    materialIsLight(const slg::Material *pmat);
 
     type_xml_node*   dump(type_xml_node &parent,const slg::Material* pMat,dumpContext &ctx);
 private:
-//    void    dump(slg::Material *pMat,
-//                    const boost::uuids::uuid *pId,
-//                    type_node &node);
-
-    /** @brief 实际写入一个材质到ostream.
-     * @param ppmd5 父md5标识，可以传入空。
-     * @return 返回本Material最后写入的id.
-    */
-    /*std::string    WriteMaterialImpl(MaterialWriteContext &ctx,
-                                        const slg::Material *pMat,
-                                        const boost::uuids::uuid *pId,
-                                        const std::string &name,
-                                        MD5 *ppmd5);*/
 };
 
 }

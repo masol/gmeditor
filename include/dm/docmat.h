@@ -21,9 +21,7 @@
 
 
 #include "dm/doc.h"
-#include <boost/property_tree/ptree.hpp>
-#include <boost/any.hpp>
-#include <boost/uuid/uuid_generators.hpp>
+#include "dm/xmlutil.h"
 #include <string>
 
 namespace gme{
@@ -74,13 +72,17 @@ public: //material.
     static  std::string  getTypeNameFromType(int type);
     static  int   getTypeFromTypeName(const std::string &name);
 public:
-    typedef    boost::property_tree::basic_ptree<std::string, boost::any>       type_material_def;
     std::string& getMatName(const std::string& id);
-    int         getMatType(const boost::uuids::uuid& id);
-    boost::any  getMatProperty(const boost::uuids::uuid& id,const std::string &prop);
-    bool        setMatProperty(const boost::uuids::uuid& id,const std::string &prop,boost::any &value);
-    void        setMaterial(const boost::uuids::uuid& id,type_material_def &matdef);
-    boost::uuids::uuid  addMaterial(type_material_def &matdef);
+    int         getMatType(const std::string& id);
+    bool        getMatProperty(const std::string& id,const std::string &prop,std::string &value);
+    bool        setMatProperty(const std::string& id,const std::string &prop,const std::string &value);
+    bool        setMaterial(const std::string &id,const type_xml_node &matdef);
+    //no used.
+//    std::string addMaterial(const type_xml_node &matdef);
+    /**@brief 获取模型描述信息。将自动添加到parent下。parent必须有doc对象。
+      * @return self.
+    **/
+    type_xml_node*   getMaterial(const std::string &id,type_xml_node &parent);
 };
 
 }

@@ -21,6 +21,7 @@
 #include "dm/objectnode.h"
 #include "utils/pathext.h"
 #include "utils/option.h"
+#include "utils/rapidxml_print.hpp"
 #include <slg/slg.h>
 #include <luxrays/utils/properties.h>
 #include <boost/algorithm/string/predicate.hpp>
@@ -63,12 +64,8 @@ DocIO::loadExtraFromSlgSceneFile(const std::string pathstring)
 
         //获取每个模型对象的原始文件信息。
         pDocData->objManager.loadExtraFromProps(props);
-
-        pDocData->matManager.appendMat2IdFromSlg();
-
         //保存每个贴图对应的原始文件信息。
         pDocData->texManager.loadExtraFromProps(props);
-        pDocData->texManager.appendTex2IdFromSlg();
     }
 }
 
@@ -78,7 +75,6 @@ DocIO::loadExtraFromScene(void)
     slg::Scene  *scene = pDocData->getSession()->renderConfig->scene;
     std::vector<std::string> names = scene->meshDefs.GetExtMeshNames();
 
-    SlgMaterial2Name    mat2name;
     for(std::vector<std::string>::const_iterator iter = names.begin(); iter < names.end(); ++iter)
     {
         luxrays::ExtMesh * extmesh = scene->meshDefs.GetExtMesh((*iter));
@@ -90,7 +86,7 @@ DocIO::loadExtraFromScene(void)
         //SLG中有缺陷。namearray的index不同于matarray!所以下面的检查是错误的。请查看上文如何获取的材质名称以了解nameidx和matidx之间的换算。
         //BOOST_ASSERT_MSG(scene->matDefs.GetMaterial(materialInfo.m_slgname) == scene->objectMaterials[i], "material panic");
         u_int meshIdx = scene->meshDefs.GetExtMeshIndex(extmesh);
-        obj.m_matid = mat2name.getMaterialName(scene->objectMaterials[meshIdx]);
+        obj.m_matid = pDocData->matManager.getMaterialId(scene->objectMaterials[meshIdx]);
 
         pDocData->matManager.get(obj.m_matid) = obj.m_matid;
 
@@ -106,6 +102,64 @@ DocIO::loadExtraFromScene(void)
     }
 }
 
+bool
+DocIO::loadSlgScene(const std::string &path)
+{
+    try
+    {
+        pDocData->closeScene();
+        luxrays::Properties cmdLineProp;
+        //我们需要自动应用本地的渲染配置(例如平台选择以及设备选择,未指定的话采用本地配置文件，未配置的自动使用最大集合)。
+        {
+            int	platformId = 0;
+            if(Option::instance().is_existed(Setting::OPT_PLATFORMID))
+            {
+                platformId = boost::lexical_cast<int>(Option::instance().get<std::string>(Setting::OPT_PLATFORMID));
+            }
+            cmdLineProp.SetString(Setting::OPT_PLATFORMID,boost::lexical_cast<std::string>(platformId));
+
+            if(Option::instance().is_existed(Setting::OPT_DEVICESTR))
+            {
+                cmdLineProp.SetString(Setting::OPT_DEVICESTR,Option::instance().get<std::string>(Setting::OPT_DEVICESTR));
+            }else{
+                std::string	full = clHardwareInfo::instance().getFullSelectString(platformId);
+                cmdLineProp.SetString(Setting::OPT_DEVICESTR,full);
+            }
+        }
+
+        slg::RenderConfig *config = new slg::RenderConfig(&path, &cmdLineProp);
+        pDocData->m_session.reset(new slg::RenderSession(config));
+
+        //第一步必须把反向表建立起来，后面依赖本表做数据更新。
+        pDocData->matManager.appendMat2IdFromSlg();
+        pDocData->texManager.appendTex2IdFromSlg();
+
+        loadExtraFromScene();
+        std::string scnFile = pDocData->m_session->renderConfig->cfg.GetString("scene.file","");
+        if(scnFile.length())
+        {
+            //slg以当前路径为拼接原则，而不是相对于文件。
+            loadExtraFromSlgSceneFile(boost::filesystem::canonical(scnFile/*,boost::filesystem::absolute(path.parent_path())*/).string());
+        }
+        pDocData->m_session->Start();
+        pDocData->m_started = true;
+        return true;
+    }
+    catch(cl::Error err)
+    {
+        std::cerr << err.what() << "(" << err.err() << ")" << std::endl;
+        pDocData->m_session.reset();
+    }
+    return false;
+}
+
+bool
+DocIO::loadSpsScene(const std::string &path)
+{
+    return false;
+}
+
+
 
 bool
 DocIO::loadScene(const std::string &path)
@@ -113,50 +167,15 @@ DocIO::loadScene(const std::string &path)
     std::string ext = boost::filesystem::gme_ext::get_extension(path);
     if(boost::iequals(ext,".cfg"))
     {
-        try
-        {
-            pDocData->closeScene();
-            luxrays::Properties cmdLineProp;
-            //我们需要自动应用本地的渲染配置(例如平台选择以及设备选择,未指定的话采用本地配置文件，未配置的自动使用最大集合)。
-			{
-				int	platformId = 0;
-				if(Option::instance().is_existed(Setting::OPT_PLATFORMID))
-				{
-					platformId = boost::lexical_cast<int>(Option::instance().get<std::string>(Setting::OPT_PLATFORMID));
-				}
-				cmdLineProp.SetString(Setting::OPT_PLATFORMID,boost::lexical_cast<std::string>(platformId));
-
-				if(Option::instance().is_existed(Setting::OPT_DEVICESTR))
-				{
-					cmdLineProp.SetString(Setting::OPT_DEVICESTR,Option::instance().get<std::string>(Setting::OPT_DEVICESTR));
-				}else{
-					std::string	full = clHardwareInfo::instance().getFullSelectString(platformId);
-					cmdLineProp.SetString(Setting::OPT_DEVICESTR,full);
-				}
-			}
-
-            slg::RenderConfig *config = new slg::RenderConfig(&path, &cmdLineProp);
-            pDocData->m_session.reset(new slg::RenderSession(config));
-            loadExtraFromScene();
-            std::string scnFile = pDocData->m_session->renderConfig->cfg.GetString("scene.file","");
-            if(scnFile.length())
-            {
-                //slg以当前路径为拼接原则，而不是相对于文件。
-                loadExtraFromSlgSceneFile(boost::filesystem::canonical(scnFile/*,boost::filesystem::absolute(path.parent_path())*/).string());
-            }
-            pDocData->m_session->Start();
-            pDocData->m_started = true;
-            return true;
-        }
-        catch(cl::Error err)
-        {
-            std::cerr << err.what() << "(" << err.err() << ")" << std::endl;
-            pDocData->m_session.reset();
-            return false;
-        }
+        return loadSlgScene(path);
     }
     else if(boost::iequals(ext,".sps"))
     {
+        return loadSpsScene(path);
+    }else if(boost::iequals(ext,".ctm"))
+    {//load open ctm format.
+    }else{
+    //load assimp format.
     }
     return false;
 }
@@ -177,40 +196,35 @@ DocIO::exportSpoloScene(const std::string &pathstring,bool bExportRes)
         }
         BOOST_SCOPE_EXIT_END
 
-        //slg::Scene  *scene = pDocData->getSession()->renderConfig->scene;
-        //u_int idx;
-
-
+        ///boost自带的rapidxml没有print函数.....加入到utils中。
         ofstream << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
-
         ofstream << "<scene>" << std::endl;
 
-        //write scene config.
-        ofstream << "<settings>" << std::endl;
-        ofstream << "</settings>" << std::endl;
-
-        //write camera.
-        //write tone-mapping.
-        //write light.
-        //write object.
+//        //write scene config.
+//        ofstream << "<settings>" << std::endl;
+//        ofstream << "</settings>" << std::endl;
+//
+//        //write camera.
+//        //write tone-mapping.
+//        //write light.
+//        //write object.
         {
-            ObjectWriteContext  objctx(bExportRes,root_path,ofstream);
-            ofstream << "<objects>" << std::endl;
-            {
-                //pDocData->objManager.write(objctx);
-            }
-            ofstream << "</objects>" << std::endl;
+            std::ostream_iterator<char>   oit(ofstream);
+            type_xml_doc    xmldoc;
+            type_xml_node * pNode = xmldoc.allocate_node(NS_RAPIDXML::node_element,"objects");
+            xmldoc.append_node(pNode);
 
-            //write material.
-            ofstream << "<materials>" << std::endl;
+            int flags = dumpContext::DUMP_NORMAL;
+            if(bExportRes)
             {
-                MaterialWriteContext    context(bExportRes,root_path,ofstream);
-                //pDocData->matManager.write(context,objctx.refMaterials());
+                flags = (dumpContext::DUMP_SAVECTM | dumpContext::DUMP_COPYRES);
             }
-            ofstream << "</materials>" << std::endl;
+            dumpContext     ctx(flags);
+            pDocData->objManager.dump(*pNode,ctx);
+            rapidxml::print(oit,xmldoc);
         }
-
         ofstream << "</scene>" << std::endl;
+
         return true;
     }
 
@@ -250,8 +264,21 @@ DocIO::exportScene(const std::string &pathstring,bool bExportResource)
 bool
 DocIO::importScene(const std::string &path,ObjectNode *pParent)
 {
-    SlgUtil::Editor      editor(pDocData->m_session.get());
-    return pDocData->objManager.loadObjectsFromFile(path,pParent,editor);
+    ImportContext   ctx(pDocData->m_session->renderConfig->scene);
+    SlgUtil::Editor editor(pDocData->m_session.get());
+    if(!pParent)
+    {
+        pParent = &pDocData->objManager.getRoot();
+    }
+
+    ObjectNode  node;
+    if(pDocData->objManager.importObjects(path,node,ctx))
+    {
+        editor.addAction(ctx.getAction());
+        return true;
+    }
+
+    return false;
 }
 
 

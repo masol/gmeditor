@@ -194,34 +194,40 @@ DocMat::getMatName(const std::string& id)
 }
 
 int
-DocMat::getMatType(const boost::uuids::uuid& id)
+DocMat::getMatType(const std::string& id)
 {
     return 0;
 }
 
-boost::any
-DocMat::getMatProperty(const boost::uuids::uuid& id,const std::string &prop)
-{
-    return boost::any();
-}
-
 bool
-DocMat::setMatProperty(const boost::uuids::uuid& id,const std::string &prop,boost::any &value)
+DocMat::getMatProperty(const std::string& id,const std::string &prop,std::string &value)
 {
     return false;
 }
 
-void
-DocMat::setMaterial(const boost::uuids::uuid& id,type_material_def &matdef)
+bool
+DocMat::setMatProperty(const std::string& id,const std::string &prop,const std::string &value)
 {
+    return false;
 }
 
-boost::uuids::uuid
-DocMat::addMaterial(type_material_def &matdef)
+bool
+DocMat::setMaterial(const std::string& id,const type_xml_node &matdef)
 {
-    return boost::uuids::uuid();
+	return false;
 }
 
+type_xml_node*
+DocMat::getMaterial(const std::string &id,type_xml_node &parent)
+{
+    slg::Material* pMat = ExtraMaterialManager::getSlgMaterial(id);
+    if(pMat)
+    {
+        dumpContext   ctx(dumpContext::DUMP_NORMAL);
+        return pDocData->matManager.dump(parent,pMat,ctx);
+    }
+    return NULL;
+}
 
 
 } //end namespace gme.

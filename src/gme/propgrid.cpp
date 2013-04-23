@@ -33,7 +33,8 @@
 #include "propgrid.h"
 
 #include <wx/artprov.h>
-
+#include "stringutil.h"
+#include "dm/docsetting.h"
 
 namespace gme{
 
@@ -70,13 +71,6 @@ BEGIN_EVENT_TABLE(PropFrame, wxFrame)
     // This occurs when propgridmanager's page changes.
     EVT_PG_PAGE_CHANGED( PGID, PropFrame::OnPropertyGridPageChange )
 
-    EVT_PG_ITEM_COLLAPSED( PGID, PropFrame::OnPropertyGridItemCollapse )
-    EVT_PG_ITEM_EXPANDED( PGID, PropFrame::OnPropertyGridItemExpand )
-
-    EVT_PG_COL_BEGIN_DRAG( PGID, PropFrame::OnPropertyGridColBeginDrag )
-    EVT_PG_COL_DRAGGING( PGID, PropFrame::OnPropertyGridColDragging )
-    EVT_PG_COL_END_DRAG( PGID, PropFrame::OnPropertyGridColEndDrag )
-
     EVT_TEXT( PGID, PropFrame::OnPropertyGridTextUpdate )
 END_EVENT_TABLE()
 
@@ -99,17 +93,17 @@ void PropFrame::OnMove( wxMoveEvent& event )
     wxPGProperty* id;
 
     // Must check if properties exist (as they may be deleted).
-
+	DECLARE_WXCONVERT;
     // Using m_pPropGridManager, we can scan all pages automatically.
-    id = m_pPropGridManager->GetPropertyByName( wxT("X") );
+    id = m_pPropGridManager->GetPropertyByName( gmeWXT("X") );
     if ( id )
         m_pPropGridManager->SetPropertyValue( id, x );
 
-    id = m_pPropGridManager->GetPropertyByName( wxT("Y") );
+    id = m_pPropGridManager->GetPropertyByName( gmeWXT("Y") );
     if ( id )
         m_pPropGridManager->SetPropertyValue( id, y );
 
-    id = m_pPropGridManager->GetPropertyByName( wxT("Position") );
+    id = m_pPropGridManager->GetPropertyByName( gmeWXT("Position") );
     if ( id )
         m_pPropGridManager->SetPropertyValue( id, WXVARIANT(wxPoint(x,y)) );
 
@@ -137,17 +131,17 @@ void PropFrame::OnResize( wxSizeEvent& event )
     wxPGProperty* p;
 
     // Must check if properties exist (as they may be deleted).
-
+	DECLARE_WXCONVERT;
     // Using m_pPropGridManager, we can scan all pages automatically.
-    p = m_pPropGridManager->GetPropertyByName( wxT("Width") );
+    p = m_pPropGridManager->GetPropertyByName( gmeWXT("Width") );
     if ( p && !p->IsValueUnspecified() )
         m_pPropGridManager->SetPropertyValue( p, w );
 
-    p = m_pPropGridManager->GetPropertyByName( wxT("Height") );
+    p = m_pPropGridManager->GetPropertyByName( gmeWXT("Height") );
     if ( p && !p->IsValueUnspecified() )
         m_pPropGridManager->SetPropertyValue( p, h );
 
-    id = m_pPropGridManager->GetPropertyByName ( wxT("Size") );
+    id = m_pPropGridManager->GetPropertyByName ( gmeWXT("Size") );
     if ( id )
         m_pPropGridManager->SetPropertyValue( id, WXVARIANT(wxSize(w,h)) );
 
@@ -159,14 +153,15 @@ void PropFrame::OnResize( wxSizeEvent& event )
 
 void PropFrame::OnPropertyGridChanging( wxPropertyGridEvent& event )
 {
+	DECLARE_WXCONVERT;
     wxPGProperty* p = event.GetProperty();
 
-    if ( p->GetName() == wxT("Font") )
+    if ( p->GetName() == gmeWXT("Font") )
     {
         int res =
-        wxMessageBox(wxString::Format(wxT("'%s' is about to change (to variant of type '%s')\n\nAllow or deny?"),
+        wxMessageBox(wxString::Format(gmeWXT("'%s' is about to change (to variant of type '%s')\n\nAllow or deny?"),
                                       p->GetName().c_str(),event.GetValue().GetType().c_str()),
-                     wxT("Testing wxEVT_PG_CHANGING"), wxYES_NO, m_pPropGridManager);
+                     gmeWXT("Testing wxEVT_PG_CHANGING"), wxYES_NO, m_pPropGridManager);
 
         if ( res == wxNO )
         {
@@ -190,7 +185,6 @@ void PropFrame::OnPropertyGridChanging( wxPropertyGridEvent& event )
 void PropFrame::OnPropertyGridChange( wxPropertyGridEvent& event )
 {
     wxPGProperty* property = event.GetProperty();
-    const wxString& name = property->GetName();
 	wxStringClientData *clientData  = (wxStringClientData *)property->GetClientObject();
 	const wxString& clientName = clientData->GetData();
     // Properties store values internally as wxVariants, but it is preferred
@@ -200,14 +194,16 @@ void PropFrame::OnPropertyGridChange( wxPropertyGridEvent& event )
     // Don't handle 'unspecified' values
     if ( value.IsNull() )
         return;
-
+	DECLARE_WXCONVERT;
 	float floatValue;
-    if ( name == wxT("linear scale") )
+	gme::DocSetting docSetting;
+    if ( clientName == gmeWXT("linear scale") )
 	{
 		floatValue = wxANY_AS(value, float);
+		docSetting.setLinearScale(floatValue);
 		// @todo:set linear scale by doc
 	}
-    else if ( name == wxT("burn") )
+    else if ( clientName == gmeWXT("burn") )
 		//@todo: set burn by doc
 		floatValue = wxANY_AS(value, float);
 }
@@ -221,9 +217,9 @@ void PropFrame::OnPropertyGridSelect( wxPropertyGridEvent& event )
     {
         //m_itemEnable->Enable( TRUE );
         //if ( property->IsEnabled() )
-        //    m_itemEnable->SetItemLabel( wxT("Disable") );
+        //    m_itemEnable->SetItemLabel( gmeWXT("Disable") );
         //else
-        //    m_itemEnable->SetItemLabel( wxT("Enable") );
+        //    m_itemEnable->SetItemLabel( gmeWXT("Enable") );
     }
     else
     {
@@ -231,11 +227,12 @@ void PropFrame::OnPropertyGridSelect( wxPropertyGridEvent& event )
     }
 
 #if wxUSE_STATUSBAR
+	DECLARE_WXCONVERT;
     wxPGProperty* prop = event.GetProperty();
     wxStatusBar* sb = GetStatusBar();
     if ( prop )
     {
-        wxString text(wxT("Selected: "));
+        wxString text(gmeWXT("Selected: "));
         text += m_pPropGridManager->GetPropertyLabel( prop );
         sb->SetStatusText ( text );
     }
@@ -247,8 +244,9 @@ void PropFrame::OnPropertyGridSelect( wxPropertyGridEvent& event )
 void PropFrame::OnPropertyGridPageChange( wxPropertyGridEvent& WXUNUSED(event) )
 {
 #if wxUSE_STATUSBAR
+	DECLARE_WXCONVERT;
     wxStatusBar* sb = GetStatusBar();
-    wxString text(wxT("Page Changed: "));
+    wxString text(gmeWXT("Page Changed: "));
     text += m_pPropGridManager->GetPageName(m_pPropGridManager->GetSelectedPage());
     sb->SetStatusText( text );
 #endif
@@ -263,13 +261,14 @@ void PropFrame::OnPropertyGridHighlight( wxPropertyGridEvent& WXUNUSED(event) )
 void PropFrame::OnPropertyGridItemRightClick( wxPropertyGridEvent& event )
 {
 #if wxUSE_STATUSBAR
+	DECLARE_WXCONVERT;
     wxPGProperty* prop = event.GetProperty();
     wxStatusBar* sb = GetStatusBar();
     if ( prop )
     {
-        wxString text(wxT("Right-clicked: "));
+        wxString text(gmeWXT("Right-clicked: "));
         text += prop->GetLabel();
-        text += wxT(", name=");
+        text += gmeWXT(", name=");
         text += m_pPropGridManager->GetPropertyName(prop);
         sb->SetStatusText( text );
     }
@@ -285,13 +284,14 @@ void PropFrame::OnPropertyGridItemRightClick( wxPropertyGridEvent& event )
 void PropFrame::OnPropertyGridItemDoubleClick( wxPropertyGridEvent& event )
 {
 #if wxUSE_STATUSBAR
+	DECLARE_WXCONVERT;
     wxPGProperty* prop = event.GetProperty();
     wxStatusBar* sb = GetStatusBar();
     if ( prop )
     {
-        wxString text(wxT("Double-clicked: "));
+        wxString text(gmeWXT("Double-clicked: "));
         text += prop->GetLabel();
-        text += wxT(", name=");
+        text += gmeWXT(", name=");
         text += m_pPropGridManager->GetPropertyName(prop);
         sb->SetStatusText ( text );
     }
@@ -301,51 +301,6 @@ void PropFrame::OnPropertyGridItemDoubleClick( wxPropertyGridEvent& event )
     }
 #endif
 }
-
-void PropFrame::OnPropertyGridItemCollapse( wxPropertyGridEvent& )
-{
-    //wxLogMessage(wxT("Item was Collapsed"));
-}
-
-// -----------------------------------------------------------------------
-
-void PropFrame::OnPropertyGridItemExpand( wxPropertyGridEvent& )
-{
-    //wxLogMessage(wxT("Item was Expanded"));
-}
-
-// -----------------------------------------------------------------------
-
-void PropFrame::OnPropertyGridColBeginDrag( wxPropertyGridEvent& event )
-{
-    if ( m_itemVetoDragging->IsChecked() )
-    {
-        wxLogMessage("Splitter %i resize was vetoed", event.GetColumn());
-        event.Veto();
-    }
-    else
-    {
-        wxLogMessage("Splitter %i resize began", event.GetColumn());
-    }
-}
-
-// -----------------------------------------------------------------------
-
-void PropFrame::OnPropertyGridColDragging( wxPropertyGridEvent& event )
-{
-    wxUnusedVar(event);
-    // For now, let's not spam the log output
-    //wxLogMessage("Splitter %i is being resized", event.GetColumn());
-}
-
-// -----------------------------------------------------------------------
-
-void PropFrame::OnPropertyGridColEndDrag( wxPropertyGridEvent& event )
-{
-    wxLogMessage("Splitter %i resize ended", event.GetColumn());
-}
-
-// -----------------------------------------------------------------------
 
 // EVT_TEXT handling
 void PropFrame::OnPropertyGridTextUpdate( wxCommandEvent& event )
@@ -360,109 +315,40 @@ void PropFrame::OnPropertyGridKeyEvent( wxKeyEvent& WXUNUSED(event) )
     // Occurs on wxGTK mostly, but not wxMSW.
 }
 
-static const wxChar* _fs_windowstyle_labels[] = {
-    wxT("wxSIMPLE_BORDER"),
-    wxT("wxDOUBLE_BORDER"),
-    wxT("wxSUNKEN_BORDER"),
-    wxT("wxRAISED_BORDER"),
-    wxT("wxNO_BORDER"),
-    wxT("wxTRANSPARENT_WINDOW"),
-    wxT("wxTAB_TRAVERSAL"),
-    wxT("wxWANTS_CHARS"),
-#if wxNO_FULL_REPAINT_ON_RESIZE
-    wxT("wxNO_FULL_REPAINT_ON_RESIZE"),
-#endif
-    wxT("wxVSCROLL"),
-    wxT("wxALWAYS_SHOW_SB"),
-    wxT("wxCLIP_CHILDREN"),
-#if wxFULL_REPAINT_ON_RESIZE
-    wxT("wxFULL_REPAINT_ON_RESIZE"),
-#endif
-    (const wxChar*) NULL // terminator is always needed
-};
-
-static const long _fs_windowstyle_values[] = {
-    wxSIMPLE_BORDER,
-    wxDOUBLE_BORDER,
-    wxSUNKEN_BORDER,
-    wxRAISED_BORDER,
-    wxNO_BORDER,
-    wxTRANSPARENT_WINDOW,
-    wxTAB_TRAVERSAL,
-    wxWANTS_CHARS,
-#if wxNO_FULL_REPAINT_ON_RESIZE
-    wxNO_FULL_REPAINT_ON_RESIZE,
-#endif
-    wxVSCROLL,
-    wxALWAYS_SHOW_SB,
-    wxCLIP_CHILDREN,
-#if wxFULL_REPAINT_ON_RESIZE
-    wxFULL_REPAINT_ON_RESIZE
-#endif
-};
-
-static const wxChar* _fs_framestyle_labels[] = {
-    wxT("wxCAPTION"),
-    wxT("wxMINIMIZE"),
-    wxT("wxMAXIMIZE"),
-    wxT("wxCLOSE_BOX"),
-    wxT("wxSTAY_ON_TOP"),
-    wxT("wxSYSTEM_MENU"),
-    wxT("wxRESIZE_BORDER"),
-    wxT("wxFRAME_TOOL_WINDOW"),
-    wxT("wxFRAME_NO_TASKBAR"),
-    wxT("wxFRAME_FLOAT_ON_PARENT"),
-    wxT("wxFRAME_SHAPED"),
-    (const wxChar*) NULL
-};
-
-static const long _fs_framestyle_values[] = {
-    wxCAPTION,
-    wxMINIMIZE,
-    wxMAXIMIZE,
-    wxCLOSE_BOX,
-    wxSTAY_ON_TOP,
-    wxSYSTEM_MENU,
-    wxRESIZE_BORDER,
-    wxFRAME_TOOL_WINDOW,
-    wxFRAME_NO_TASKBAR,
-    wxFRAME_FLOAT_ON_PARENT,
-    wxFRAME_SHAPED
-};
-
 // -----------------------------------------------------------------------
 
 void PropFrame::PopulateWithScene ()
 {
+	DECLARE_WXCONVERT;
     wxPropertyGridManager* pgman = m_pPropGridManager;
-    wxPropertyGridPage* pg = pgman->GetPage(wxT("Scene Setting"));
+    wxPropertyGridPage* pg = pgman->GetPage(gmeWXT("Scene Setting"));
 
 	// camera setting
-	wxPGProperty* pCamera = pg->Append( new wxStringProperty(wxT("camera"),wxPG_LABEL, wxT("<composed>")) );
-	pg->AppendIn( pCamera, new wxStringProperty( wxT("fieldofview"), wxPG_LABEL ) );
-	pg->AppendIn( pCamera, new wxStringProperty( wxT("focaldistance"), wxPG_LABEL ) );
-	pg->AppendIn( pCamera, new wxStringProperty( wxT("lensradius"), wxPG_LABEL ) );
-	pg->AppendIn( pCamera, new wxStringProperty( wxT("lookat"), wxPG_LABEL ) );
-	pg->AppendIn( pCamera, new wxStringProperty( wxT("up"), wxPG_LABEL ) );
+	wxPGProperty* pCamera = pg->Append( new wxStringProperty(gmeWXT("camera"),wxPG_LABEL, gmeWXT("<composed>")) );
+	pg->AppendIn( pCamera, new wxStringProperty( gmeWXT("fieldofview"), wxPG_LABEL ) );
+	pg->AppendIn( pCamera, new wxStringProperty( gmeWXT("focaldistance"), wxPG_LABEL ) );
+	pg->AppendIn( pCamera, new wxStringProperty( gmeWXT("lensradius"), wxPG_LABEL ) );
+	pg->AppendIn( pCamera, new wxStringProperty( gmeWXT("lookat"), wxPG_LABEL ) );
+	pg->AppendIn( pCamera, new wxStringProperty( gmeWXT("up"), wxPG_LABEL ) );
 
 	// infinitelight setting
-	wxPGProperty* pInfLight = pg->Append( new wxStringProperty(wxT("infinitelight"),wxPG_LABEL, wxT("<composed>")) );
-	pg->AppendIn( pInfLight, new wxStringProperty( wxT("gain"), wxPG_LABEL ) );
-    pg->AppendIn( pInfLight, new wxStringProperty( wxT("shift"), wxPG_LABEL ) );
+	wxPGProperty* pInfLight = pg->Append( new wxStringProperty(gmeWXT("infinitelight"),wxPG_LABEL, gmeWXT("<composed>")) );
+	pg->AppendIn( pInfLight, new wxStringProperty( gmeWXT("gain"), wxPG_LABEL ) );
+    pg->AppendIn( pInfLight, new wxStringProperty( gmeWXT("shift"), wxPG_LABEL ) );
 
 
 	// skylight setting
-	wxPGProperty* pSkyLight = pg->Append( new wxStringProperty(wxT("skylight"),wxPG_LABEL, wxT("<composed>")) );
-	pg->AppendIn( pSkyLight, new wxStringProperty( wxT("dir"), wxPG_LABEL ) );
-    pg->AppendIn( pSkyLight, new wxStringProperty( wxT("gain"), wxPG_LABEL ) );
-	pg->AppendIn( pSkyLight, new wxStringProperty( wxT("turbidity"), wxPG_LABEL ) );
+	wxPGProperty* pSkyLight = pg->Append( new wxStringProperty(gmeWXT("skylight"),wxPG_LABEL, gmeWXT("<composed>")) );
+	pg->AppendIn( pSkyLight, new wxStringProperty( gmeWXT("dir"), wxPG_LABEL ) );
+    pg->AppendIn( pSkyLight, new wxStringProperty( gmeWXT("gain"), wxPG_LABEL ) );
+	pg->AppendIn( pSkyLight, new wxStringProperty( gmeWXT("turbidity"), wxPG_LABEL ) );
 
 	// sunlight setting
-	wxPGProperty* pSunLight = pg->Append( new wxStringProperty(wxT("sunlight"),wxPG_LABEL, wxT("<composed>")) );
-	pg->AppendIn( pSunLight, new wxStringProperty( wxT("dir"), wxPG_LABEL ) );
-    pg->AppendIn( pSunLight, new wxStringProperty( wxT("gain"), wxPG_LABEL ) );
-	pg->AppendIn( pSunLight, new wxStringProperty( wxT("relsize"), wxPG_LABEL ) );
-	pg->AppendIn( pSunLight, new wxStringProperty( wxT("turbidity"), wxPG_LABEL ) );
+	wxPGProperty* pSunLight = pg->Append( new wxStringProperty(gmeWXT("sunlight"),wxPG_LABEL, gmeWXT("<composed>")) );
+	pg->AppendIn( pSunLight, new wxStringProperty( gmeWXT("dir"), wxPG_LABEL ) );
+    pg->AppendIn( pSunLight, new wxStringProperty( gmeWXT("gain"), wxPG_LABEL ) );
+	pg->AppendIn( pSunLight, new wxStringProperty( gmeWXT("relsize"), wxPG_LABEL ) );
+	pg->AppendIn( pSunLight, new wxStringProperty( gmeWXT("turbidity"), wxPG_LABEL ) );
 
 
 }
@@ -471,27 +357,32 @@ void PropFrame::PopulateWithScene ()
 
 void PropFrame::PopulateWithFilm ()
 {
+	DECLARE_WXCONVERT;
     wxPropertyGridManager* pgman = m_pPropGridManager;
-    wxPropertyGridPage* pg = pgman->GetPage(wxT("Film Setting"));
+    wxPropertyGridPage* pg = pgman->GetPage(gmeWXT("Film Setting"));
 
     // Append is ideal way to add items to wxPropertyGrid.
-	wxPGProperty* pid = pg->Append( new wxPropertyCategory(wxT("tonemap"),wxPG_LABEL) );
+	wxPGProperty* pid = pg->Append( new wxPropertyCategory(gmeWXT("色彩分布"),wxPG_LABEL));
+	pid->SetClientObject( new wxStringClientData(gmeWXT("tonemap")));
+	
 	pg->SetPropertyCell( pid, 0, wxPG_LABEL );
 
-	wxPGProperty* linearScale = pg->Append( new wxFloatProperty(wxT("linear scale"),wxPG_LABEL) );
-	linearScale->SetClientObject( new wxStringClientData(wxT("linear.scale")));
+	wxPGProperty* linearScale = pg->Append( new wxFloatProperty(gmeWXT("线性标尺"),wxPG_LABEL) );
+	linearScale->SetClientObject( new wxStringClientData(gmeWXT("linear scale")));
 
 	{
-		wxPGProperty* cat = pg->AppendIn( pid, new wxPropertyCategory(wxT("reinhard02"), wxPG_LABEL)) ;
-		pg->Append( new wxFloatProperty(wxT("burn"), wxPG_LABEL) );
-		pg->Append( new wxFloatProperty(wxT("postscale"), wxPG_LABEL) );
-		pg->Append( new wxFloatProperty(wxT("prescale"), wxPG_LABEL) );
+		wxPGProperty* reinhard02 = pg->AppendIn( pid, new wxPropertyCategory(gmeWXT("莱因哈德"), wxPG_LABEL)) ;
+		reinhard02->SetClientObject( new wxStringClientData(gmeWXT("reinhard02")));
+		
+		pg->AppendIn( reinhard02, new wxFloatProperty(gmeWXT("曝光"), wxPG_LABEL))->SetClientObject( new wxStringClientData(gmeWXT("burn"))) ;
+		pg->AppendIn( reinhard02, new wxFloatProperty(gmeWXT("postscale"), wxPG_LABEL))->SetClientObject( new wxStringClientData(gmeWXT("postscale"))) ;
+		pg->AppendIn( reinhard02, new wxFloatProperty(gmeWXT("prescale"), wxPG_LABEL))->SetClientObject( new wxStringClientData(gmeWXT("prescale"))) ;
 		/*
 		{
-			wxPGProperty* cat2 = pg->AppendIn( cat, new wxPropertyCategory(wxT("reinhard032", wxPG_LABEL)) );
-			pg->Append( new wxFloatProperty(wxT("burn"), wxPG_LABEL) );
-			pg->Append( new wxFloatProperty(wxT("postscale"), wxPG_LABEL) );
-			pg->Append( new wxFloatProperty(wxT("prescale"), wxPG_LABEL) );
+			wxPGProperty* cat2 = pg->AppendIn( cat, new wxPropertyCategory(gmeWXT("reinhard032", wxPG_LABEL)) );
+			pg->Append( new wxFloatProperty(gmeWXT("burn"), wxPG_LABEL) );
+			pg->Append( new wxFloatProperty(gmeWXT("postscale"), wxPG_LABEL) );
+			pg->Append( new wxFloatProperty(gmeWXT("prescale"), wxPG_LABEL) );
 		}
 		*/
 	}
@@ -539,28 +430,32 @@ END_EVENT_TABLE()
 
 void wxMyPropertyGridPage::OnPropertySelect( wxPropertyGridEvent& WXUNUSED(event) )
 {
-    wxLogDebug(wxT("wxMyPropertyGridPage::OnPropertySelect()"));
+	DECLARE_WXCONVERT;
+    wxLogDebug(gmeWXT("wxMyPropertyGridPage::OnPropertySelect()"));
 }
 
 void wxMyPropertyGridPage::OnPropertyChange( wxPropertyGridEvent& event )
 {
+	DECLARE_WXCONVERT;
     wxPGProperty* p = event.GetProperty();
-    wxLogVerbose(wxT("wxMyPropertyGridPage::OnPropertyChange('%s', to value '%s')"),
+    wxLogVerbose(gmeWXT("wxMyPropertyGridPage::OnPropertyChange('%s', to value '%s')"),
                p->GetName().c_str(),
                p->GetDisplayedString().c_str());
 }
 
 void wxMyPropertyGridPage::OnPropertyChanging( wxPropertyGridEvent& event )
 {
+	DECLARE_WXCONVERT;
     wxPGProperty* p = event.GetProperty();
-    wxLogVerbose(wxT("wxMyPropertyGridPage::OnPropertyChanging('%s', to value '%s')"),
+    wxLogVerbose(gmeWXT("wxMyPropertyGridPage::OnPropertyChanging('%s', to value '%s')"),
                p->GetName().c_str(),
                event.GetValue().GetString().c_str());
 }
 
 void wxMyPropertyGridPage::OnPageChange( wxPropertyGridEvent& WXUNUSED(event) )
 {
-    wxLogDebug(wxT("wxMyPropertyGridPage::OnPageChange()"));
+	DECLARE_WXCONVERT;
+    wxLogDebug(gmeWXT("wxMyPropertyGridPage::OnPageChange()"));
 }
 
 
@@ -570,7 +465,8 @@ public:
 
     void OnKeyEvent( wxKeyEvent& event )
     {
-        wxMessageBox(wxString::Format(wxT("%i"),event.GetKeyCode()));
+		DECLARE_WXCONVERT;
+        wxMessageBox(wxString::Format(gmeWXT("%i"),event.GetKeyCode()));
         event.Skip();
     }
 private:
@@ -619,15 +515,16 @@ void PropFrame::FinalizePanel( bool wasCreated )
 
 void PropFrame::PopulateGrid()
 {
+	DECLARE_WXCONVERT;
     wxPropertyGridManager* pgman = m_pPropGridManager;
 
-    pgman->AddPage(wxT("Film Setting"));
+    pgman->AddPage(gmeWXT("Film Setting"));
 
     PopulateWithFilm();
 
     // Use wxMyPropertyGridPage (see above) to test the
     // custom wxPropertyGridPage feature.
-    pgman->AddPage(wxT("Scene Setting"));
+    pgman->AddPage(gmeWXT("Scene Setting"));
 
     PopulateWithScene();
 
@@ -797,6 +694,7 @@ void PropFrame::FinalizeFramePosition()
 //
 void GenerateUniquePropertyLabel( wxPropertyGridManager* pg, wxString& baselabel )
 {
+	DECLARE_WXCONVERT;
     int count = -1;
     wxString newlabel;
 
@@ -805,7 +703,7 @@ void GenerateUniquePropertyLabel( wxPropertyGridManager* pg, wxString& baselabel
         for (;;)
         {
             count++;
-            newlabel.Printf(wxT("%s%i"),baselabel.c_str(),count);
+            newlabel.Printf(gmeWXT("%s%i"),baselabel.c_str(),count);
             if ( !pg->GetPropertyByLabel( newlabel ) ) break;
         }
     }
@@ -830,11 +728,11 @@ void PropFrame::OnIdle( wxIdleEvent& event )
 
     if ( cur_focus != last_focus )
     {
-        const wxChar* class_name = wxT("<none>");
+        const wxChar* class_name = gmeWXT("<none>");
         if ( cur_focus )
             class_name = cur_focus->GetClassInfo()->GetClassName();
         last_focus = cur_focus;
-        wxLogDebug( wxT("FOCUSED: %s %X"),
+        wxLogDebug( gmeWXT("FOCUSED: %s %X"),
             class_name,
             (unsigned int)cur_focus);
     }

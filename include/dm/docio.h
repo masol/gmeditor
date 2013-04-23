@@ -35,6 +35,13 @@ protected:
     void    loadExtraFromScene(void);
     void    loadExtraFromSlgSceneFile(const std::string pathstring);
     bool    exportSpoloScene(const std::string &pathstring,bool bExportRes);
+
+    /** @brief load cfg format implement.
+    **/
+    bool    loadSlgScene(const std::string &path);
+    /** @brief load sps format implement
+    **/
+    bool    loadSpsScene(const std::string &path);
 public:
     bool    loadScene(const std::string &path);
     /** @brief 从制定文件加载场景，并加入到pParent指定的节点下。

@@ -32,6 +32,8 @@ public:
     //film 接口:
     bool   getImageSize(unsigned long &width,unsigned long &height);
     bool   setImageSize(unsigned long w,unsigned long h);
+	bool   getLinearScale(float &ls);
+	bool   setLinearScale(float ls);
     //engine 接口:
     int    getEngineType(void);
     void   setEngineType(int type);

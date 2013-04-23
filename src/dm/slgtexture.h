@@ -32,118 +32,21 @@ class MD5;
 
 namespace gme{
 
-/** @brief 为了弥补slg中名称保存机制的辅助类。
-**/
-class  SlgTexture2Name
-{
-private:
-    ///@brief 用于从material出发反向查找name的变量。
-    ///@todo: 是否有必要在ExtraMaterialManager中建立长期缓冲？
-    std::vector<u_int>      m_texIdx2NameIdx;
-    std::vector< std::string >  m_textureNameArray;
-public:
-    SlgTexture2Name(void);
-    const std::string&      getTextureName(const slg::Texture* ptex);
-};
+///** @brief 为了弥补slg中名称保存机制的辅助类。
+///不再需要，被ExtraTextureManager内部维护。
+//**/
+//class  SlgTexture2Name
+//{
+//private:
+//    ///@brief 用于从material出发反向查找name的变量。
+//    ///@todo: 是否有必要在ExtraMaterialManager中建立长期缓冲？
+//    std::vector<u_int>      m_texIdx2NameIdx;
+//    std::vector< std::string >  m_textureNameArray;
+//public:
+//    SlgTexture2Name(void);
+//    const std::string&      getTextureName(const slg::Texture* ptex);
+//};
 
-
-struct  TextureWriteContext{
-    TextureWriteContext(bool bExportRes,
-            const boost::filesystem::path& p,
-            std::ostream &o,
-            int indent)
-        : m_dest_path(p),
-          m_bSaveRes(bExportRes),
-          m_pstream(&o),
-          m_indent(indent)
-    {}
-    ~TextureWriteContext(){}
-public:
-    inline std::ostream& stream()
-    {
-        return *m_pstream;
-    }
-protected:
-	inline	void outIndent()
-	{
-		for(int indent = 0; indent < this->m_indent; indent++)
-			stream() << "  ";
-	}
-    friend  class ExtraTextureManager;
-    const boost::filesystem::path m_dest_path;
-    const bool      m_bSaveRes;
-    std::ostream   *m_pstream;
-    int             m_indent;
-    SlgTexture2Name m_tex2name;
-
-    /** @brief 保存了图像加载后内容的md5string到文件名的映射。
-    **/
-    typedef   boost::unordered_map<std::string, std::string>        type_ctx2filepath;
-    type_ctx2filepath       m_ctx2filepath;
-
-    const std::string*  queryFilepath(const std::string &ctxmd5)
-    {
-        type_ctx2filepath::iterator it = m_ctx2filepath.find(ctxmd5);
-        if(it != m_ctx2filepath.end())
-        {
-            return &(it->second);
-        }
-        return NULL;
-    }
-private:
-    friend class TextureWriteContextSetter;
-};
-
-///@brief 通过本setter来设置stream,可以在脱离作用域时恢复原始stream.
-class  TextureWriteContextSetter
-{
-private:
-    TextureWriteContext     &m_ctx;
-    std::ostream            *m_oldStream;
-    int                     m_oldIndent;
-public:
-    TextureWriteContextSetter(TextureWriteContext &ctx,std::ostream &o,int indent) : m_ctx(ctx)
-    {
-        m_oldStream = m_ctx.m_pstream;
-        m_oldIndent = m_ctx.m_indent;
-        m_ctx.m_pstream = &o;
-        m_ctx.m_indent = indent;
-    }
-    ~TextureWriteContextSetter()
-    {
-        m_ctx.m_pstream = m_oldStream;
-        m_ctx.m_indent = m_oldIndent;
-    }
-};
-
-
-/** @brief 本类保存了额外的贴图信息，可以看作对slg texture基类的信息添加。
-**/
-struct  ExtraTexture
-{
-protected:
-    std::string     m_slgname;
-    /// @brief 如果贴图是image类型，m_filename保存了原始文件名。
-    std::string     m_filename;
-    ExtraTexture(){
-    }
-public:
-    ExtraTexture(const ExtraTexture& ref){
-        AssignFrom(ref);
-    }
-    ~ExtraTexture(){
-    }
-    ExtraTexture&   operator=(const ExtraTexture& ref)
-    {
-        AssignFrom(ref);
-        return *this;
-    }
-private:
-    void    AssignFrom(const ExtraTexture& ref){
-        this->m_slgname = ref.m_slgname;
-        this->m_filename = ref.m_filename;
-    }
-};
 
 class ExtraTextureManager
 {
@@ -170,10 +73,14 @@ public:
         m_tex2id.clear();
     }
 
-    const std::string&   getId(const slg::Texture *pTex)
+    const std::string&   getTextureId(const slg::Texture *pTex)
     {
         return m_tex2id[pTex];
     }
+
+    /** @brief recursion remove extrainfo from slg material.
+    **/
+    void    onTextureRemoved(const slg::Texture *pTex);
 
     /** @brief 从当前场景构建tex到name的映射表。只有在加载cfg时需要构建一次，之后会被gmeditor处理。
     **/
@@ -201,13 +108,9 @@ public:
 	}
 public:
     static std::string getBondnameFromType(slg::MasonryBond type);
-
-    static void    writeTexture(TextureWriteContext &ctx,const std::string &tag,const slg::Texture *pTex,MD5 *ppmd5);
 private:
     static type_xml_node*   dumpTextureMapping2D(type_xml_node &parent,const slg::TextureMapping2D *ptm2d,dumpContext &ctx);
     static type_xml_node*   dumpTextureMapping3D(type_xml_node &parent,const slg::TextureMapping3D *ptm3d,dumpContext &ctx);
-    static void    writeTextureMapping2D(TextureWriteContext &ctx,const slg::TextureMapping2D *ptm2d,MD5 &md5);
-    static void    writeTextureMapping3D(TextureWriteContext &ctx,const slg::TextureMapping3D *ptm3d,MD5 &md5);
 
     /** @brief 添加一个路径映射。
     **/

@@ -16,42 +16,42 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "config.h"
-#include "dm/setting.h"
-#include "dm/docsetting.h"
+#ifndef  GME_DM_IMPORTCTX_H
+#define  GME_DM_IMPORTCTX_H
+
+
 #include "slg/slg.h"
-#include "docprivate.h"
-#include "slgmaterial.h"
-#include <boost/assert.hpp>
 
+namespace gme{
 
-namespace gme
+/** @brief Implements the import context.
+ * @details ImportContext isolation new and import
+**/
+class ImportContext
 {
-bool
-DocSetting::getImageSize(unsigned long &width,unsigned long &height)
-{
-    return false;
-}
-
-bool
-DocSetting::getLinearScale(float &ls)
-{
-    return false;
-}
-
-bool
-DocSetting::setLinearScale(float ls)
-{
-	slg::RenderSession* session = pDocData->getSession();
-    if(session && session->film)
+private:
+    slg::Scene      *m_scene;
+    int             m_editAction;
+public:
+    ImportContext(slg::Scene* s)
     {
-		slg::Film *film = session->film;
-		slg::LinearToneMapParams *params = (slg::LinearToneMapParams *)film->GetToneMapParams()->Copy();
-		params->scale = ls;
-		film->SetToneMapParams(*params);
-		delete params;
-		return true;
-	}
-    return false;
+        m_scene = s;
+        m_editAction = 0;
+    }
+    inline void addAction(const slg::EditAction a)
+    {
+        m_editAction |= a;
+    }
+    inline slg::EditAction getAction()const
+    {
+        return (slg::EditAction)m_editAction;
+    }
+    inline slg::Scene*  scene()const{
+        return m_scene;
+    }
+};
+
 }
-}
+
+#endif //GME_DM_IMPORTCTX_H
+

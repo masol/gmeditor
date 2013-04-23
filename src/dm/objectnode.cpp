@@ -149,6 +149,7 @@ ObjectNode::dump(type_xml_node &parent,dumpContext &ctx)
     BOOST_ASSERT_MSG(pDoc,"node usage error!");
     type_xml_node *pSelf = pDoc->allocate_node(NS_RAPIDXML::node_element, constDef::object);
 
+    parent.append_node(pSelf);
     pSelf->append_attribute(pDoc->allocate_attribute(constDef::id,allocate_string(pDoc,m_id)));
 
     if(this->m_name.length())
@@ -160,8 +161,9 @@ ObjectNode::dump(type_xml_node &parent,dumpContext &ctx)
     if(extMesh)
     {//只有模型存在，我们才继续输出与模型相关的信息。
         std::string     write_file;
-        conditional_md5 md5(ctx.flags);
+        conditional_md5 md5(ctx);
         //boost::filesystem::path target_model = ctx.target / "mesh%%%%%%.ply";
+        //只有在不是multiMesh时我们才可以保存。否则会引发下次加载的模型重复。从而导致材质无法配对。
         if(this->filepath().length())
         {//获取映射的文件名。
             if(ctx.isCopyResource())
@@ -215,7 +217,6 @@ ObjectNode::dump(type_xml_node &parent,dumpContext &ctx)
         it++;
     }
 
-    parent.append_node(pSelf);
     return pSelf;
 }
 

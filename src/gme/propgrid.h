@@ -62,11 +62,6 @@ public:
     void OnPropertyGridPageChange( wxPropertyGridEvent& event );
     void OnPropertyGridTextUpdate( wxCommandEvent& event );
     void OnPropertyGridKeyEvent( wxKeyEvent& event );
-    void OnPropertyGridItemCollapse( wxPropertyGridEvent& event );
-    void OnPropertyGridItemExpand( wxPropertyGridEvent& event );
-    void OnPropertyGridColBeginDrag( wxPropertyGridEvent& event );
-    void OnPropertyGridColDragging( wxPropertyGridEvent& event );
-    void OnPropertyGridColEndDrag( wxPropertyGridEvent& event );
 
     //void OnAbout( wxCommandEvent& event );
 

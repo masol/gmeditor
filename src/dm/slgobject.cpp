@@ -196,7 +196,6 @@ ExtraObjectManager::removeMesh(const std::string &id)
         }
         editor.addAction(slg::AREALIGHTS_EDIT);
     }
-//#endif
 
     if(ref_count <= 1)
     {//需要删除本体,如果有的话。
@@ -208,6 +207,9 @@ ExtraObjectManager::removeMesh(const std::string &id)
         }
     }
 
+    //最后，清理extra信息。
+    Doc::instance().pDocData->matManager.onMaterialRemoved(pRefMaterial);
+
     ///@todo: 我们是否需要对象缓冲？现在删了下次就必须重新加载。
     //最后删除对象。
     pMesh->Delete();
@@ -218,80 +220,255 @@ ExtraObjectManager::removeMesh(const std::string &id)
     editor.addAction(slg::MATERIALS_EDIT);
     editor.addAction(slg::MATERIAL_TYPES_EDIT);
 
-    //最后，清理extra信息。
-    Doc::instance().pDocData->matManager.eraseMaterialInfo(pNode->matid(),pRefMaterial);
     parent->removeChild(id);
 
     return true;
 }
 
 bool
-ExtraObjectManager::loadObjectsFromFile(const std::string &path,ObjectNode *pParent,SlgUtil::Editor &editor)
+ExtraObjectManager::importCTMObj(const std::string& path,ObjectNode &obj,ImportContext &ctx)
 {
-    (void)editor;
-    if(!pParent)
-        pParent = &this->m_objectGroup;
+    bool   bAdd = false;
+    CTMcontext context = ctmNewContext(CTM_IMPORT);
+    BOOST_SCOPE_EXIT( (&context) )
+    {
+        if(context){
+            ctmFreeContext(context);
+        }
+    }
+    BOOST_SCOPE_EXIT_END
 
-    bool    bAdd = false;
-    slg::Scene  *scene = Doc::instance().pDocData->m_session->renderConfig->scene;
-    std::string ext = boost::filesystem::gme_ext::get_extension(path);
-    if(boost::iequals(ext,".ctm"))
-    {//加载openctm. assume ctm is internal data. generate from gmeditor,so no postprocessing with it!.
-        CTMcontext context = ctmNewContext(CTM_IMPORT);
-        BOOST_SCOPE_EXIT( (&context) )
+    ctmLoad(context, path.c_str());
+    if(ctmGetError(context) == CTM_NONE)
+    {
+        CTMuint    vertCount, triCount;
+        const CTMuint   *indices;
+        const CTMfloat  *vertices, *uvarray = NULL;
+        // Access the mesh data
+        vertCount = ctmGetInteger(context, CTM_VERTEX_COUNT);
+        vertices = ctmGetFloatArray(context, CTM_VERTICES);
+        triCount = ctmGetInteger(context, CTM_TRIANGLE_COUNT);
+        indices = ctmGetIntegerArray(context, CTM_INDICES);
+
+        boost::uuids::random_generator  gen;
+        if(obj.id().length() == 0)
         {
-            if(context){
-                ctmFreeContext(context);
+            obj.m_id = string::uuid_to_string(gen());
+        }
+
+        std::string     diffuse_file;
+        if(ctmGetInteger(context, CTM_UV_MAP_COUNT) > 0)
+        {//获取uv信息
+            CTMenum uvid = ctmGetNamedUVMap(context,"def");
+            if(uvid < CTM_UV_MAP_1 || uvid > CTM_UV_MAP_8)
+                uvid = CTM_UV_MAP_1;
+            uvarray = ctmGetFloatArray(context,uvid);
+            diffuse_file = ctmGetUVMapString(context,uvid,CTM_FILE_NAME);
+        }
+
+        if(obj.matid().length() == 0)
+        {
+            ///只有在没有给出材质信息时，我们才尝试加载贴图文件.否则我们使用ctm作为geometry data.没有索引的贴图文件信息。
+            obj.m_matid = string::uuid_to_string(gen());
+            if(diffuse_file.length())
+                Doc::instance().pDocData->matManager.createMatteMaterial(ctx,obj.matid(),diffuse_file);
+            else
+                Doc::instance().pDocData->matManager.createGrayMaterial(ctx,obj.matid());
+        }
+
+        //we use ctm as comporessed geometry data. so no name information here.
+        if(obj.name().length() == 0)
+        {//use file stem as the init name.
+            obj.m_name = boost::filesystem::path(path).stem().string();
+        }
+
+        luxrays::Point  *pPoint = new luxrays::Point[vertCount];
+        memcpy(pPoint,vertices,sizeof(luxrays::Point) * vertCount);
+        luxrays::Triangle   *pTri = new luxrays::Triangle[triCount];
+        memcpy(pTri,indices,sizeof(luxrays::Triangle) * triCount);
+        luxrays::UV *uv = NULL;
+        if(uvarray)
+        {
+            uv = new luxrays::UV[vertCount];
+            memcpy(uv,uvarray,sizeof(luxrays::UV) * vertCount);
+        }
+
+        //define object.
+        ctx.scene()->DefineObject("m" + obj.id(), (const long)vertCount, (const long)triCount,pPoint, pTri, NULL, uv, NULL,NULL, false);
+
+        // Add the object to the scene
+        ctx.scene()->AddObject(obj.id(), "m" + obj.id(),
+                "scene.objects." + obj.id() + ".material = " + obj.matid() + "\n"
+                "scene.objects." + obj.id() + ".useplynormals = 0\n"
+            );
+
+        ctx.addAction(slg::GEOMETRY_EDIT);
+        bAdd = true;
+    }
+    return bAdd;
+}
+
+bool
+ExtraObjectManager::importAiMesh(const aiScene *assimpScene,aiMesh* pMesh,ObjectNode &obj,ImportContext &ctx)
+{
+    bool    bAdd = false;
+    if(pMesh->mPrimitiveTypes & aiPrimitiveType_TRIANGLE)
+    {//只输出三角形面。
+        boost::uuids::random_generator  gen;
+        if(obj.id().length() == 0)
+        {
+            obj.m_id = string::uuid_to_string(gen());
+        }
+        if(obj.matid().length() == 0)
+        {
+            obj.m_matid = string::uuid_to_string(gen());
+            if(pMesh->mMaterialIndex >= 0)
+            {
+                ///@todo add material name if exist.
+                aiMaterial *pMat = assimpScene->mMaterials[pMesh->mMaterialIndex];
+
+                aiString    diffusePath;
+                aiString    normalPath;
+                aiString    emmisionPath;
+                unsigned int matCount = pMat->GetTextureCount(aiTextureType_DIFFUSE);
+                if(!matCount || (pMat->GetTexture(aiTextureType_DIFFUSE, 0, &diffusePath, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) )
+                {
+                    diffusePath.Clear();
+                }
+
+                matCount = pMat->GetTextureCount(aiTextureType_NORMALS);
+                if(!matCount || (pMat->GetTexture(aiTextureType_NORMALS, 0, &normalPath, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) )
+                {
+                    normalPath.Clear();
+                }
+
+                matCount = pMat->GetTextureCount(aiTextureType_EMISSIVE);
+                if(!matCount || (pMat->GetTexture(aiTextureType_EMISSIVE, 0, &emmisionPath, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) )
+                {
+                    emmisionPath.Clear();
+                }
+
+                Doc::instance().pDocData->matManager.createMatteMaterial(ctx,obj.matid(),diffusePath.C_Str(),emmisionPath.C_Str(),normalPath.C_Str());
+            }else{
+                Doc::instance().pDocData->matManager.createGrayMaterial(ctx,obj.matid());
             }
         }
-        BOOST_SCOPE_EXIT_END
 
-        ctmLoad(context, path.c_str());
-        if(ctmGetError(context) == CTM_NONE)
+        if(obj.name().length() == 0)
         {
-            CTMuint    vertCount, triCount;
-            const CTMuint   *indices;
-            const CTMfloat  *vertices, *uvarray = NULL;
-            // Access the mesh data
-            vertCount = ctmGetInteger(context, CTM_VERTEX_COUNT);
-            vertices = ctmGetFloatArray(context, CTM_VERTICES);
-            triCount = ctmGetInteger(context, CTM_TRIANGLE_COUNT);
-            indices = ctmGetIntegerArray(context, CTM_INDICES);
+            obj.m_name = pMesh->mName.C_Str();
+        }
+        //这里的内存会被luxrays管理。因此不能被释放。
+        luxrays::Point  *pPoint = new luxrays::Point[pMesh->mNumVertices];
+        memcpy(pPoint,pMesh->mVertices,sizeof(luxrays::Point) * pMesh->mNumVertices);
+        luxrays::Triangle   *pTri = new luxrays::Triangle[pMesh->mNumFaces];
+        luxrays::UV *uv = NULL;
+        //@fixme: support normal.
+        luxrays::Normal *normal = NULL;
 
-            ObjectNode  obj;
-            boost::uuids::random_generator  gen;
-            obj.m_id = string::uuid_to_string(gen());
-            obj.m_matid = string::uuid_to_string(gen());
-
-            ExtraMaterialManager::createGrayMaterial(obj.m_matid);
-            //we use ctm as comporessed geometry data. so no name information here.
-            //obj.m_name = ctmGetString(context, CTM_NAME);
-            obj.m_filepath = path;
-
-            uvarray = ctmGetFloatArray(context,ctmGetNamedUVMap(context,"def"));
-            ///@fixme: 我们只使用ctm作为geometry data.没有索引的贴图文件信息。
-
-            luxrays::Point  *pPoint = new luxrays::Point[vertCount];
-            memcpy(pPoint,vertices,sizeof(luxrays::Point) * vertCount);
-            luxrays::Triangle   *pTri = new luxrays::Triangle[triCount];
-            memcpy(pTri,indices,sizeof(luxrays::Triangle) * triCount);
-            luxrays::UV *uv = NULL;
-            if(uvarray)
+        //prepare triangle data.
+        unsigned int   realFace = 0;
+        for(unsigned int i = 0; i < pMesh->mNumFaces; i++)
+        {
+            if(pMesh->mFaces[i].mNumIndices == 3)
             {
-                uv = new luxrays::UV[vertCount];
-                memcpy(uv,uvarray,sizeof(luxrays::UV) * vertCount);
+                //memcpy(pTri[i].v,pMesh->mFaces[i]->mIndices)
+                pTri[realFace].v[0] = pMesh->mFaces[i].mIndices[0];
+                pTri[realFace].v[1] = pMesh->mFaces[i].mIndices[1];
+                pTri[realFace].v[2] = pMesh->mFaces[i].mIndices[2];
+                realFace++;
+            }else{
+                BOOST_ASSERT_MSG(false,"can not support non-triangle now.");
             }
+        }
 
-            //define object.
-            scene->DefineObject("m" + obj.id(), (const long)vertCount, (const long)triCount,pPoint, pTri, NULL, uv, NULL,NULL, false);
+        for(unsigned int i = 0; i < AI_MAX_NUMBER_OF_TEXTURECOORDS; i++)
+        {
+            if(pMesh->mTextureCoords[i])
+            {//prepare uv data.only use first valid channel.
+                uv = new luxrays::UV[pMesh->mNumVertices];
+                aiVector3D *aiUV = pMesh->mTextureCoords[i];
+                for(i = 0; i < pMesh->mNumVertices; i++)
+                {
+                    uv[i].u = aiUV[i].x;
+                    uv[i].v = aiUV[i].y;
+                }
+                break;
+            }
+        }
 
-            // Add the object to the scene
-            scene->AddObject(obj.id(), "m" + obj.id(),
-                    "scene.objects." + obj.id() + ".material = " + obj.matid() + "\n"
-                    "scene.objects." + obj.id() + ".useplynormals = 0\n"
-                );
+        ///@fixme : 这里加入matrix导入.
+        //define object.
+        ctx.scene()->DefineObject("m" + obj.id(), pMesh->mNumVertices, realFace,pPoint, pTri, normal, uv, NULL,NULL,false);
 
-            pParent->addChild(obj);
+        // Add the object to the scene
+        ctx.scene()->AddObject(obj.id(), "m" + obj.id(),
+                "scene.objects." + obj.id() + ".material = " + obj.matid() + "\n"
+                "scene.objects." + obj.id() + ".useplynormals = 0\n"
+            );
+        bAdd = true;
+    }
+    return bAdd;
+}
+
+
+bool
+ExtraObjectManager::importAiNode(const aiScene *assimpScene,aiNode* pNode,ObjectNode &objNode,ImportContext &ctx)
+{
+    bool    bAdd = false;
+    if(pNode->mNumMeshes > 1)
+    {//超过多于1个mesh.需要在当前mesh下构建子节点。
+        for(unsigned int i = 0; i < pNode->mNumMeshes; i++)
+        {
+            aiMesh  *pMesh = assimpScene->mMeshes[pNode->mMeshes[i]];
+            ObjectNode  obj;
+            ///@todo error revovery
+            if(importAiMesh(assimpScene,pMesh,obj,ctx))
+            {
+                objNode.addChild(obj);
+                bAdd = true;
+            }
+        }
+    }else if(pNode->mNumMeshes)
+    {
+        aiMesh  *pMesh = assimpScene->mMeshes[pNode->mMeshes[0]];
+        if(importAiMesh(assimpScene,pMesh,objNode,ctx))
+        {
+            bAdd = true;
+        }
+    }
+    //开始处理孩子。
+    for(unsigned int i = 0; i < pNode->mNumChildren; i++)
+    {
+        aiNode *child = pNode->mChildren[i];
+        ObjectNode  childNode;
+        if(importAiNode(assimpScene,child,childNode,ctx))
+        {
+            objNode.addChild(childNode);
+            bAdd = true;
+        }
+    }
+    if(bAdd)
+    {//如果objNode无id,这里添加。
+        if(objNode.id().length() == 0)
+        {
+            objNode.m_id = string::uuid_to_string(boost::uuids::random_generator()());
+        }
+    }
+    return bAdd;
+}
+
+bool
+ExtraObjectManager::importObjects(const std::string& path,ObjectNode &obj,ImportContext &ctx)
+{
+    std::string ext = boost::filesystem::gme_ext::get_extension(path);
+
+    bool    bAdd = false;
+    if(boost::iequals(ext,".ctm"))
+    {
+        if(importCTMObj(path,obj,ctx))
+        {
+            obj.m_filepath = path;
             bAdd = true;
         }
     }else{
@@ -314,100 +491,27 @@ ExtraObjectManager::loadObjectsFromFile(const std::string &path,ObjectNode *pPar
                 aiProcess_SortByPType);
         if(assimpScene && assimpScene->HasMeshes())
         {//process data.
-            for(unsigned int idx = 0; idx < assimpScene->mNumMeshes; idx++)
-            {//process one mesh.
-                aiMesh* pMesh = assimpScene->mMeshes[idx];
-                if(pMesh->mPrimitiveTypes & aiPrimitiveType_TRIANGLE)
-                {//只输出三角形面。
-                    ObjectNode  obj;
-                    boost::uuids::random_generator  gen;
-                    obj.m_id = string::uuid_to_string(gen());
-                    obj.m_matid = string::uuid_to_string(gen());
-                    ExtraMaterialManager::createGrayMaterial(obj.m_matid);
-                    obj.m_name = pMesh->mName.C_Str();
-                    //这里只有第一个被加载的
-                    if(idx == 0)
-                        obj.m_filepath = path;
-//                    if(pMesh->mMaterialIndex >= 0)
-//                    {
-//                        //matid = ExtraMaterialManager::instance().createAssimpMaterial(aiMaterial *paiMat);
-//                    }else{
-//                        //matid = ExtraMaterialManager::instance().createStockMaterial();
-//                    }
-                    //这里的内存会被luxrays管理。因此不能被释放。
-                    luxrays::Point  *pPoint = new luxrays::Point[pMesh->mNumVertices];
-                    memcpy(pPoint,pMesh->mVertices,sizeof(luxrays::Point) * pMesh->mNumVertices);
-                    luxrays::Triangle   *pTri = new luxrays::Triangle[pMesh->mNumFaces];
-                    luxrays::UV *uv = NULL;
-                    //@fixme: support normal.
-                    luxrays::Normal *normal = NULL;
-
-//                    BOOST_SCOPE_EXIT( (&pTri)(&uv) )
-//                    {
-//                        delete[] pTri;
-//                        if(uv){
-//                            delete[] uv;
-//                        }
-//                    }
-//                    BOOST_SCOPE_EXIT_END
-
-                    //prepare triangle data.
-                    unsigned int   realFace = 0;
-                    for(unsigned int i = 0; i < pMesh->mNumFaces; i++)
-                    {
-                        if(pMesh->mFaces[i].mNumIndices == 3)
-                        {
-                            //memcpy(pTri[i].v,pMesh->mFaces[i]->mIndices)
-                            pTri[realFace].v[0] = pMesh->mFaces[i].mIndices[0];
-                            pTri[realFace].v[1] = pMesh->mFaces[i].mIndices[1];
-                            pTri[realFace].v[2] = pMesh->mFaces[i].mIndices[2];
-                            realFace++;
-                        }else{
-                            BOOST_ASSERT_MSG(false,"can not support non-triangle now.");
-                        }
-                    }
-
-                    for(unsigned int i = 0; i < AI_MAX_NUMBER_OF_TEXTURECOORDS; i++)
-                    {
-                        if(pMesh->mTextureCoords[i])
-                        {//prepare uv data.only use first valid channel.
-                            uv = new luxrays::UV[pMesh->mNumVertices];
-                            aiVector3D *aiUV = pMesh->mTextureCoords[i];
-                            for(i = 0; i < pMesh->mNumVertices; i++)
-                            {
-                                uv[i].u = aiUV[i].x;
-                                uv[i].v = aiUV[i].y;
-                            }
-                            break;
-                        }
-                    }
-
-                    //define object.
-                    scene->DefineObject("m" + obj.id(), pMesh->mNumVertices, realFace,pPoint, pTri, normal, uv, NULL,NULL,false);
-
-                    // Add the object to the scene
-                    scene->AddObject(obj.id(), "m" + obj.id(),
-                            "scene.objects." + obj.id() + ".material = " + obj.matid() + "\n"
-                            "scene.objects." + obj.id() + ".useplynormals = 0\n"
-                        );
-
-                    pParent->addChild(obj);
-                    bAdd = true;
-                }
+            if(assimpScene->mNumMeshes == 1)
+            {//只有模型为1时我们才加入原始路径。
+                obj.m_filepath = path;
+            }
+            //从root开始加载数据。
+            if(importAiNode(assimpScene,assimpScene->mRootNode,obj,ctx))
+            {
+                bAdd = true;
             }
         }
     }
 
     if(bAdd)
     {
-        editor.addAction(slg::GEOMETRY_EDIT);
-        //editor.addAction(slg::INSTANCE_TRANS_EDIT);
-        editor.addAction(slg::MATERIALS_EDIT);
-        editor.addAction(slg::MATERIAL_TYPES_EDIT);
+        ctx.addAction(slg::GEOMETRY_EDIT);
+        ctx.addAction(slg::INSTANCE_TRANS_EDIT);
+        //ctx.addAction(slg::MATERIALS_EDIT);
+        //ctx.addAction(slg::MATERIAL_TYPES_EDIT);
     }
     return bAdd;
 }
-
 
 luxrays::ExtMesh*
 ExtraObjectManager::getExtMesh(const std::string &objid)
@@ -420,73 +524,6 @@ ExtraObjectManager::getExtMesh(const std::string &objid)
     return NULL;
 }
 
-/*
-//基于文件内容md5码的ctxmd5属性。用于检查mesh一致性。
-void
-ExtraObjectManager::write(ObjectNode &pThis,ObjectWriteContext& ctx)
-{
-    std::ostream    &o = ctx.m_stream;
-    ctx.outIndent();
-    o  << "<object id='" << ObjectNode::idto_string(pThis.id())
-        << "' name='" << pThis.name() << "'";
-
-    luxrays::ExtMesh*   extMesh = getExtMesh(pThis.id());
-    if(extMesh){
-        ctx.m_refMaterials.push_back(pThis.matid());
-        o << " material='" << ObjectNode::idto_string(pThis.matid())
-            << "' useplynormals='" << (pThis.useplynormals() ? "true" : "false")
-            << "'";
-
-        std::string     write_file;
-        std::string     ctxHashValue;
-        //boost::filesystem::path target_model = ctx.m_dest_path / "mesh%%%%%%.ply";
-        boost::filesystem::path target_model = ctx.m_dest_path / "mesh%%%%%%.ctm";
-        if(pThis.filepath().length())
-        {//获取映射的文件名。
-            if(ctx.m_bSaveRes)
-            {//保存资源。
-                boost::filesystem::path target = boost::filesystem::unique_path(target_model);
-                //extMesh->WritePly(target.string());
-                SaveCtmFile(pThis.useplynormals(),extMesh,target.string(),ctxHashValue);
-                write_file = target.filename().string();
-            }else{//不保存资源，直接保存m_filepath.
-                write_file = pThis.filepath();
-            }
-        }else{//没有定义文件名。此时直接保存资源。
-            boost::filesystem::path target = boost::filesystem::unique_path(target_model);
-            //extMesh->WritePly(target.string());
-            SaveCtmFile(pThis.useplynormals(),extMesh,target.string(),ctxHashValue);
-            write_file = target.filename().string();
-        }
-        if(ctxHashValue.length())
-        {
-            o << " ctxmd5='" << ctxHashValue << "'";
-            ObjectWriteContext::type_file_ctxid2savename::iterator it = ctx.m_file_ctx2savename.find(ctxHashValue);
-            if(it == ctx.m_file_ctx2savename.end())
-            {
-                ctx.m_file_ctx2savename[ctxHashValue] = write_file;
-            }else{
-                write_file = it->second;
-                //由于内容重复，删除刚保存的模型文件。
-                boost::filesystem::remove(target_model);
-            }
-        }
-        o << " file='" << write_file << "'";
-    }
-	o << ">" << std::endl;
-    ObjectNode::type_child_container::iterator  it = pThis.begin();
-    ctx.m_indent++;
-    while(it != pThis.end())
-    {
-        write((*it),ctx);
-        it++;
-    }
-    ctx.m_indent--;
-
-    ctx.outIndent();
-    o << "</object>" << std::endl;
-}
-*/
 void
 ExtraObjectManager::loadExtraFromProps(ObjectNode& node,luxrays::Properties &props)
 {

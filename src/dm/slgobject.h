@@ -29,6 +29,8 @@
 #include "slg/editaction.h"
 #include "slg/rendersession.h"
 #include "slgutils.h"
+#include "importctx.h"
+#include "assimp/scene.h"
 
 //forward declare.
 namespace luxrays{
@@ -36,39 +38,6 @@ class ExtMesh;
 }
 
 namespace gme{
-
-struct  ObjectWriteContext{
-    ObjectWriteContext(bool bExportRes,const boost::filesystem::path& p,std::ostream &o,int indent = 1)
-        : m_dest_path(p),
-          m_bSaveRes(bExportRes),
-          m_stream(o),
-          m_indent(indent)
-    {}
-    ~ObjectWriteContext(){}
-    inline  const std::vector<std::string>&  refMaterials()const
-    {
-        return m_refMaterials;
-    }
-protected:
-	inline	void outIndent(void)
-	{
-		for(int indent = 0; indent < this->m_indent; indent++)
-			m_stream << "  ";
-	}
-    friend  class ExtraObjectManager;
-    typedef   boost::unordered_map<std::string, std::string>    type_file_ctxid2savename;
-    /** @brief 保存了文件内容md5字符串到本地文件名的映射。这可以判断是否是相同文件，以决定是否引用相同mesh.
-    **/
-    type_file_ctxid2savename  m_file_ctx2savename;
-    const boost::filesystem::path &m_dest_path;
-    const bool      m_bSaveRes;
-    std::ostream   &m_stream;
-    int             m_indent;
-    /** 每个被引用的material被保存在这里。
-    **/
-    std::vector<std::string>     m_refMaterials;
-};
-
 
 class ExtraObjectManager
 {
@@ -92,17 +61,18 @@ public:
         return m_objectGroup;
     }
 
-/*
-    inline  void    write(ObjectWriteContext &ctx){
-        ObjectNode::type_child_container::iterator  it = this->m_objectGroup.begin();
-        while(it != this->m_objectGroup.end())
+    /** @brief 将所有子节点dump到parent.没有直接调用m_objectGroup.dump的原因是忽略自身。
+    **/
+    inline  void  dump(type_xml_node &parent,dumpContext &ctx)
+    {
+		ObjectNode::type_child_container::iterator it = m_objectGroup.begin();
+        while(it != m_objectGroup.end())
         {
-            this->write(*it,ctx);
+            it->dump(parent,ctx);
             it++;
         }
     }
-    void    write(ObjectNode &pThis,ObjectWriteContext& ctx);
-*/
+
     static  luxrays::ExtMesh*   getExtMesh(const std::string &objid);
     void    loadExtraFromProps(luxrays::Properties &props)
     {//不加载根节点:
@@ -114,13 +84,22 @@ public:
          }
     }
 public:
+    /** @brief Loading objects from the model file according to objNode information.
+     * @details If not given matid / objid. Then create random id.
+    **/
+    static  bool   importObjects(const std::string& path,ObjectNode &objNode,ImportContext &ctx);
     /** @brief 删除指定模型.
     **/
     bool    removeMesh(const std::string &id);
-    /** @brief 从模型文件中加载对象组。
-    **/
-    bool    loadObjectsFromFile(const std::string &file,ObjectNode *pParent,SlgUtil::Editor &editor);
 private:
+    static  bool   importAiNode(const aiScene *assimpScene,aiNode* pNode,ObjectNode &objNode,ImportContext &ctx);
+    /** @brief only load self.no child.
+    **/
+    static  bool   importAiMesh(const aiScene *assimpScene,aiMesh* pMesh,ObjectNode &objNode,ImportContext &ctx);
+    /** @brief loading openctm data. assume ctm is internal data. generate from gmeditor,so no postprocessing with it!.
+    **/
+    static  bool   importCTMObj(const std::string& path,ObjectNode &objNode,ImportContext &ctx);
+
     ///@brief 从props中加载原始文件信息。
     void    loadExtraFromProps(ObjectNode& node,luxrays::Properties &props);
     /**@brief 清理extMeshCache信息。

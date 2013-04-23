@@ -102,19 +102,19 @@ namespace gme
         }
         inline  bool    isOptmizeTex(void)const
         {
-            return (flags & DUMP_OPTMIZE_TEX) == 0;
+            return (flags & DUMP_OPTMIZE_TEX) != 0;
         }
         inline  bool    isGenerateMD5(void)const
         {
-            return (flags & DUMP_GENMD5) == 0;
+            return (flags & DUMP_GENMD5) != 0;
         }
         inline  bool    isCopyResource(void)const
         {
-            return (flags & DUMP_COPYRES) == 0;
+            return (flags & DUMP_COPYRES) != 0;
         }
         inline  bool    isSvaeCtm(void)const
         {
-            return (flags & DUMP_SAVECTM) == 0;
+            return (flags & DUMP_SAVECTM) != 0;
         }
     public:
         dumpContext(int f) : flags(f)
@@ -131,10 +131,6 @@ namespace gme
         conditional_md5(const dumpContext& ctx)
         {
             m_update = ctx.isGenerateMD5();
-        }
-        conditional_md5(const int flag)
-        {
-            m_update = ((flag & dumpContext::DUMP_GENMD5) == 0);
         }
         inline void update(const unsigned char *buf, MD5::size_type length)
         {
