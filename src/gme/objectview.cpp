@@ -28,9 +28,9 @@ namespace gme{
 class ObjectViewClientData : public wxClientData
 {
 public:
-    const boost::uuids::uuid      m_objid;
+    const std::string      m_objid;
 public:
-    ObjectViewClientData(const boost::uuids::uuid &id) : m_objid(id)
+    ObjectViewClientData(const std::string &id) : m_objid(id)
     {
     }
 };
@@ -113,7 +113,7 @@ ObjectView::~ObjectView()
 }
 
 bool
-ObjectView::getSelection(boost::uuids::uuid &id)
+ObjectView::getSelection(std::string &id)
 {
     wxTreeListItem  item = m_treelist->GetSelection();
     if(item.IsOk())

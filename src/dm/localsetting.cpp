@@ -16,24 +16,12 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_CMDIDS_H
-#define  GME_CMDIDS_H
-
-namespace gme{
-
-namespace cmd{
-
-enum{
-    GID_BEGIN = wxID_HIGHEST+1,
-    GID_REFRESH_OBJVIEW,
-    GID_EXPORT,
-    GID_IMPORT,
-    GID_MAX,
-	GID_PROP
-};
-
-} //end namespace cmd
-} //end namepsace gme
+#include "config.h"
+#include "localsetting.h"
 
 
-#endif //GME_CMDIDS_H
+namespace gme
+{
+
+}
+

@@ -64,9 +64,11 @@ DocIO::loadExtraFromSlgSceneFile(const std::string pathstring)
         //获取每个模型对象的原始文件信息。
         pDocData->objManager.loadExtraFromProps(props);
 
+        pDocData->matManager.appendMat2IdFromSlg();
+
         //保存每个贴图对应的原始文件信息。
         pDocData->texManager.loadExtraFromProps(props);
-
+        pDocData->texManager.appendTex2IdFromSlg();
     }
 }
 
@@ -82,18 +84,15 @@ DocIO::loadExtraFromScene(void)
         luxrays::ExtMesh * extmesh = scene->meshDefs.GetExtMesh((*iter));
         BOOST_ASSERT_MSG(extmesh != NULL,"Mesh Array Panic?");
         ObjectNode  obj;
-        obj.m_id = boost::uuids::random_generator()();
-        obj.m_name = (*iter);
+        obj.m_id = (*iter);
+        obj.m_name = obj.m_id;
 
-        obj.m_matid = boost::uuids::random_generator()();
-
-        ExtraMaterial  &materialInfo = pDocData->matManager.get(obj.m_matid);
-
-        u_int meshIdx = scene->meshDefs.GetExtMeshIndex(extmesh);
-        materialInfo.m_slgname = mat2name.getMaterialName(scene->objectMaterials[meshIdx]);
-        materialInfo.m_name = materialInfo.m_slgname;
         //SLG中有缺陷。namearray的index不同于matarray!所以下面的检查是错误的。请查看上文如何获取的材质名称以了解nameidx和matidx之间的换算。
         //BOOST_ASSERT_MSG(scene->matDefs.GetMaterial(materialInfo.m_slgname) == scene->objectMaterials[i], "material panic");
+        u_int meshIdx = scene->meshDefs.GetExtMeshIndex(extmesh);
+        obj.m_matid = mat2name.getMaterialName(scene->objectMaterials[meshIdx]);
+
+        pDocData->matManager.get(obj.m_matid) = obj.m_matid;
 
         //所有从slg读取的场景，不支持normal。
         obj.m_useplynormals = false;//extmesh->HasNormals();
@@ -104,7 +103,6 @@ DocIO::loadExtraFromScene(void)
         }
 
         pDocData->objManager.getRoot().addChild(obj);
-        pDocData->objManager.updateSlgMap(obj.m_id,obj.m_name);
     }
 }
 
@@ -199,7 +197,7 @@ DocIO::exportSpoloScene(const std::string &pathstring,bool bExportRes)
             ObjectWriteContext  objctx(bExportRes,root_path,ofstream);
             ofstream << "<objects>" << std::endl;
             {
-                pDocData->objManager.write(objctx);
+                //pDocData->objManager.write(objctx);
             }
             ofstream << "</objects>" << std::endl;
 
@@ -207,7 +205,7 @@ DocIO::exportSpoloScene(const std::string &pathstring,bool bExportRes)
             ofstream << "<materials>" << std::endl;
             {
                 MaterialWriteContext    context(bExportRes,root_path,ofstream);
-                pDocData->matManager.write(context,objctx.refMaterials());
+                //pDocData->matManager.write(context,objctx.refMaterials());
             }
             ofstream << "</materials>" << std::endl;
         }
@@ -258,7 +256,7 @@ DocIO::importScene(const std::string &path,ObjectNode *pParent)
 
 
 bool
-DocIO::deleteModel(const boost::uuids::uuid &id)
+DocIO::deleteModel(const std::string &id)
 {
     return pDocData->objManager.removeMesh(id);
 }

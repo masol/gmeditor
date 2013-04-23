@@ -87,7 +87,7 @@ clHardwareInfo::clHardwareInfo()
 }
 
 std::string
-clHardwareInfo::getFullSelectString(int platformIdx)
+clHardwareInfo::getFullSelectString(unsigned int platformIdx)
 {
 	if(platformIdx < m_deviceNames.size())
 	{

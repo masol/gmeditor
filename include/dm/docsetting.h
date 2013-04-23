@@ -16,24 +16,33 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_CMDIDS_H
-#define  GME_CMDIDS_H
+#ifndef  GME_DM_DOCSETTING_H
+#define  GME_DM_DOCSETTING_H
 
-namespace gme{
+#include "dm/doc.h"
 
-namespace cmd{
+namespace gme
+{
 
-enum{
-    GID_BEGIN = wxID_HIGHEST+1,
-    GID_REFRESH_OBJVIEW,
-    GID_EXPORT,
-    GID_IMPORT,
-    GID_MAX,
-	GID_PROP
+/** @brief 动态配置接口。可以动态配置当前文档的各类信息。const information please see class Setting.
+**/
+class DocSetting : public DocScopeLocker
+{
+public:
+    //film 接口:
+    bool   getImageSize(unsigned long &width,unsigned long &height);
+    bool   setImageSize(unsigned long w,unsigned long h);
+    //engine 接口:
+    int    getEngineType(void);
+    void   setEngineType(int type);
+    int    getAccelType(void);
+    void   setAccelType(int type);
+    //platform 接口: @todo: 是否暴露？
+//    int    getUsedCPU(void);
+//    int    getOpenclPlatformId(void);
+//    void   getUsedGPU(std::string &gpu);
 };
 
-} //end namespace cmd
-} //end namepsace gme
+}
 
-
-#endif //GME_CMDIDS_H
+#endif //GME_DM_DOCSETTING_H

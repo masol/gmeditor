@@ -15,7 +15,7 @@
 #                                                                         #
 #   GMEditor website: http://www.render001.com/gmeditor                   #
 ###########################################################################
-
+Message("ASSIMP_LIBRARY_DBG============================${ASSIMP_LIBRARY_DBG}")
 MESSAGE(STATUS "CMAKE VERSION DETECTED " ${CMAKE_VERSION})
 
 ###########################################################################

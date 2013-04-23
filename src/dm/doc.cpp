@@ -61,7 +61,7 @@ Doc::Doc(void)
 
     FreeImage_Initialise(TRUE);
 	FreeImage_SetOutputMessage(::FreeImageErrorHandler);
-	
+
     pDocData = new DocPrivate();
 }
 

@@ -57,7 +57,7 @@ endif ()
 
 
 #set(wxWidgets_USE_STATIC 1)
-find_package(wxWidgets 2.8 COMPONENTS aui stc html adv core base REQUIRED)
+find_package(wxWidgets 2.9 COMPONENTS propgrid aui stc html adv core base REQUIRED)
 if (wxWidgets_FOUND)
     set(wxUSE_UNICODE_DEFINE "wxUSE_UNICODE=1")
 #    set(wxUSE_STATIC_DEFINE "wxUSE_STATIC=1")    

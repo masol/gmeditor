@@ -28,6 +28,10 @@
 
 namespace gme{
 
+/** @brief 材质操作接口。
+ * @notice 为了简化数据流，我们不使用boost::property_tree.而是使用luxrays::Properties作为数据交换。
+ * @todo how to resolve dependence if we use luxrays::Properties?
+**/
 class DocMat : public DocScopeLocker
 {
 public: //texture.
@@ -71,7 +75,7 @@ public: //material.
     static  int   getTypeFromTypeName(const std::string &name);
 public:
     typedef    boost::property_tree::basic_ptree<std::string, boost::any>       type_material_def;
-    std::string getMatName(const boost::uuids::uuid& id);
+    std::string& getMatName(const std::string& id);
     int         getMatType(const boost::uuids::uuid& id);
     boost::any  getMatProperty(const boost::uuids::uuid& id,const std::string &prop);
     bool        setMatProperty(const boost::uuids::uuid& id,const std::string &prop,boost::any &value);

@@ -19,14 +19,13 @@
 #ifndef  GME_DM_MESHNODE_H
 #define  GME_DM_MESHNODE_H
 
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/filesystem.hpp>
 #include <string>
 #include <vector>
 #include <Eigen/Core>
 #include <fstream>
+#include "dm/xmlutil.h"
 
 namespace gme{
 
@@ -34,21 +33,27 @@ namespace gme{
 **/
 class ObjectNode
 {
+public:
+    typedef std::vector<ObjectNode*>        type_path;
 private:
     friend class DocIO;
     friend class ExtraObjectManager;
 protected:
-    boost::uuids::uuid      m_id;
+    //以字符串形式保存了模型的id.这个id直接作为slgname使用。
+    std::string             m_id;
+    //扩展保存了name。这允许我们自定义重复的名称作为模型名称。
     std::string             m_name;
     /** @brief 模型文件。m_filepath保存了本mesh的原始文件。
       * @details 这个原始文件可能保存了若干模型.将会被展开为子模型节点。
     **/
     std::string             m_filepath;
-    /** @brief 这里以string类型保存material id.如果从cfg打开，则matID不能转化为uuid.在保存时自动更新。
+    /** @brief 这里以string类型保存material id.matID就是slgname.
     **/
-    boost::uuids::uuid      m_matid;
+    std::string             m_matid;
     std::vector<ObjectNode> m_children;
     bool                    m_useplynormals;
+    /** @brief m_transformation is difference from slg. this is a hierarchy.
+    **/
     Eigen::Matrix4f         m_transformation;
     inline void    assignFrom(const ObjectNode& ref)
     {
@@ -61,15 +66,25 @@ protected:
         m_transformation = ref.m_transformation;
     }
 public:
+    /** @brief 将指定xml node的内容加载为子节点。
+    **/
+    bool    load(const type_xml_node &node);
+
+    /** @brief 将当前对象的内容dump到给定的xml node.
+      * @details 如果使用相对路径或者拷贝资源或者导出ctm,都是相对于当前路径展开的计算，因此调用之前需要设置当前路径为资源目标路径。
+      * @return self node.
+    **/
+    type_xml_node*   dump(type_xml_node &parent,dumpContext &ctx);
+
     /** @brief 搜索值为id的节点对象。
      *  @param parent 如果给出此参数，将把父对象写入这里。
     **/
-    ObjectNode*     findObject(const boost::uuids::uuid &id,ObjectNode **ppparent=NULL);
+    ObjectNode*     findObject(const std::string &id,type_path *pPath=NULL);
     inline void addChild(const ObjectNode&  child)
     {
         m_children.push_back(child);
     }
-    inline  bool    removeChild(const boost::uuids::uuid &id)
+    inline  bool    removeChild(const std::string &id)
     {
         std::vector<ObjectNode>::iterator it = m_children.begin();
         while(it != m_children.end())
@@ -80,7 +95,7 @@ public:
                 return true;
             }else if(it->removeChild(id))
             {
-                    return true;
+                return true;
             }
             it++;
         }
@@ -102,10 +117,10 @@ public:
     inline type_child_container::const_iterator  end()const{
         return m_children.end();
     }
-    inline  const boost::uuids::uuid&     id(void)const{
+    inline  const std::string&     id(void)const{
         return m_id;
     }
-    inline  const boost::uuids::uuid&     matid(void)const{
+    inline  const std::string&     matid(void)const{
         return m_matid;
     }
 	inline	const std::string&		name(void)const{
@@ -120,7 +135,6 @@ public:
 	inline  bool    useplynormals()const{
 	    return m_useplynormals;
     }
-    static  std::string     idto_string(const boost::uuids::uuid &id);
     ObjectNode()
     {
         m_useplynormals = false;

@@ -16,24 +16,21 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_CMDIDS_H
-#define  GME_CMDIDS_H
-
-namespace gme{
-
-namespace cmd{
-
-enum{
-    GID_BEGIN = wxID_HIGHEST+1,
-    GID_REFRESH_OBJVIEW,
-    GID_EXPORT,
-    GID_IMPORT,
-    GID_MAX,
-	GID_PROP
-};
-
-} //end namespace cmd
-} //end namepsace gme
+#include "config.h"
+#include "dm/setting.h"
+#include "dm/docsetting.h"
+#include "slg/slg.h"
+#include "docprivate.h"
+#include "slgmaterial.h"
+#include <boost/assert.hpp>
 
 
-#endif //GME_CMDIDS_H
+namespace gme
+{
+bool
+DocSetting::getImageSize(unsigned long &width,unsigned long &height)
+{
+    return false;
+}
+
+}

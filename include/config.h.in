@@ -68,5 +68,4 @@
     #define GME_TRACE(s)    
 #endif
 
-
 #endif	/* GME_CONFIG_H */

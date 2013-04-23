@@ -24,6 +24,7 @@
 #include "cmdids.h"
 #include "dm/docio.h"
 #include <boost/locale.hpp>
+#include "propgrid.h"
 
 namespace gme{
 
@@ -35,8 +36,10 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_MENU(wxID_EXIT, MainFrame::onMenuFileQuit)
 	EVT_MENU(wxID_DELETE, MainFrame::onMenuEditDelete)
 	EVT_MENU(wxID_ABOUT, MainFrame::onMenuHelpAbout)
+	EVT_MENU(cmd::GID_PROP, MainFrame::onShowPropertyPane)
 	EVT_SIZE(MainFrame::onSize)
 	EVT_CLOSE(MainFrame::onClose)
+
 END_EVENT_TABLE()
 
 MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
@@ -65,10 +68,15 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
 	wxMBConvUTF8	conv;
     m_mgr.AddPane(m_objectView, wxLEFT, gmeWXT("模型一览"));
     m_mgr.AddPane(text2, wxBOTTOM, gmeWXT("Pane Number Two"));
+	
 
     RenderView        *mainView = new RenderView(this);
     m_mgr.AddPane(mainView, wxCENTER);
 
+	// create and show propery pane
+	m_propFrame = new PropFrame(this, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
+	m_mgr.AddPane(m_propFrame, wxRIGHT, gmeWXT("属性设置"));
+	m_mgr.GetPane(m_propFrame).Hide();
     // tell the manager to "commit" all the changes just made
     m_mgr.Update();
 }
@@ -103,7 +111,14 @@ MainFrame::createMenubar()
 
         pMenuBar->Append(pEditMenu, gmeWXT("编辑(&E)"));
     }
+	
+	{
+		// view menu
+		wxMenu *pViewMenu = new wxMenu();
+		pViewMenu->Append(cmd::GID_PROP, gmeWXT("属性设置(&P)"), gmeWXT("显示属性面板"));
 
+		pMenuBar->Append(pViewMenu, gmeWXT("视图(&V)"));
+	}
 	SetMenuBar(pMenuBar);
 }
 
@@ -201,7 +216,7 @@ void
 MainFrame::onMenuEditDelete(wxCommandEvent &event)
 {
     DocIO   dio;
-    boost::uuids::uuid id;
+    std::string id;
     if(this->m_objectView->getSelection(id))
     {
         dio.deleteModel(id);
@@ -212,6 +227,14 @@ MainFrame::onMenuEditDelete(wxCommandEvent &event)
 void
 MainFrame::onMenuHelpAbout(wxCommandEvent &event)
 {
+}
+
+void 
+MainFrame::onShowPropertyPane(wxCommandEvent &event)
+{
+	m_mgr.GetPane(m_propFrame).Show();
+
+	m_mgr.Update();
 }
 
 } //namespace gme

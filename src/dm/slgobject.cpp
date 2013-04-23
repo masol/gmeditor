@@ -26,15 +26,15 @@
 #include "luxrays/core/exttrianglemesh.h"
 #include "openctm/openctm.h"
 #include "utils/MD5.h"
+#include "utils/strext.h"
 #include <boost/filesystem.hpp>
 #include <boost/scope_exit.hpp>
 #include <assimp/Importer.hpp>      // C++ importer interface
 #include <assimp/scene.h>           // Output data structure
 #include <assimp/postprocess.h>     // Post processing flags
-
-
-
 #include "luxrays/core/exttrianglemesh.h"
+
+
 namespace gme{
 
 int
@@ -100,7 +100,7 @@ ExtraObjectManager::deleteFromExtMeshCache(luxrays::ExtMeshCache &ec,luxrays::Ex
 }
 
 bool
-ExtraObjectManager::removeMesh(const boost::uuids::uuid &id)
+ExtraObjectManager::removeMesh(const std::string &id)
 {
     ObjectNode  *parent = NULL;
     ObjectNode *pNode = this->m_objectGroup.findObject(id);
@@ -219,7 +219,7 @@ ExtraObjectManager::removeMesh(const boost::uuids::uuid &id)
     editor.addAction(slg::MATERIAL_TYPES_EDIT);
 
     //最后，清理extra信息。
-    Doc::instance().pDocData->matManager.eraseMaterialInfo(pNode->matid());
+    Doc::instance().pDocData->matManager.eraseMaterialInfo(pNode->matid(),pRefMaterial);
     parent->removeChild(id);
 
     return true;
@@ -260,9 +260,10 @@ ExtraObjectManager::loadObjectsFromFile(const std::string &path,ObjectNode *pPar
 
             ObjectNode  obj;
             boost::uuids::random_generator  gen;
-            obj.m_id = gen();
+            obj.m_id = string::uuid_to_string(gen());
+            obj.m_matid = string::uuid_to_string(gen());
 
-            obj.m_matid = Doc::instance().pDocData->matManager.createGrayMaterial();
+            ExtraMaterialManager::createGrayMaterial(obj.m_matid);
             //we use ctm as comporessed geometry data. so no name information here.
             //obj.m_name = ctmGetString(context, CTM_NAME);
             obj.m_filepath = path;
@@ -281,14 +282,13 @@ ExtraObjectManager::loadObjectsFromFile(const std::string &path,ObjectNode *pPar
                 memcpy(uv,uvarray,sizeof(luxrays::UV) * vertCount);
             }
 
-            std::string    objName = ObjectNode::idto_string(obj.id());
             //define object.
-            scene->DefineObject("m" + objName, (const long)vertCount, (const long)triCount,pPoint, pTri, NULL, uv, NULL,NULL, false);
+            scene->DefineObject("m" + obj.id(), (const long)vertCount, (const long)triCount,pPoint, pTri, NULL, uv, NULL,NULL, false);
 
             // Add the object to the scene
-            scene->AddObject(objName, "m" + objName,
-                    "scene.objects." + objName + ".material = " + ObjectNode::idto_string(obj.matid()) + "\n"
-                    "scene.objects." + objName + ".useplynormals = 0\n"
+            scene->AddObject(obj.id(), "m" + obj.id(),
+                    "scene.objects." + obj.id() + ".material = " + obj.matid() + "\n"
+                    "scene.objects." + obj.id() + ".useplynormals = 0\n"
                 );
 
             pParent->addChild(obj);
@@ -321,8 +321,9 @@ ExtraObjectManager::loadObjectsFromFile(const std::string &path,ObjectNode *pPar
                 {//只输出三角形面。
                     ObjectNode  obj;
                     boost::uuids::random_generator  gen;
-                    obj.m_id = gen();
-                    obj.m_matid = ExtraMaterialManager::createGrayMaterial();
+                    obj.m_id = string::uuid_to_string(gen());
+                    obj.m_matid = string::uuid_to_string(gen());
+                    ExtraMaterialManager::createGrayMaterial(obj.m_matid);
                     obj.m_name = pMesh->mName.C_Str();
                     //这里只有第一个被加载的
                     if(idx == 0)
@@ -381,14 +382,13 @@ ExtraObjectManager::loadObjectsFromFile(const std::string &path,ObjectNode *pPar
                         }
                     }
 
-                    std::string    objName = ObjectNode::idto_string(obj.id());
                     //define object.
-                    scene->DefineObject("m" + objName, pMesh->mNumVertices, realFace,pPoint, pTri, normal, uv, NULL,NULL,false);
+                    scene->DefineObject("m" + obj.id(), pMesh->mNumVertices, realFace,pPoint, pTri, normal, uv, NULL,NULL,false);
 
                     // Add the object to the scene
-                    scene->AddObject(objName, "m" + objName,
-                            "scene.objects." + objName + ".material = " + ObjectNode::idto_string(obj.matid()) + "\n"
-                            "scene.objects." + objName + ".useplynormals = 0\n"
+                    scene->AddObject(obj.id(), "m" + obj.id(),
+                            "scene.objects." + obj.id() + ".material = " + obj.matid() + "\n"
+                            "scene.objects." + obj.id() + ".useplynormals = 0\n"
                         );
 
                     pParent->addChild(obj);
@@ -408,98 +408,19 @@ ExtraObjectManager::loadObjectsFromFile(const std::string &path,ObjectNode *pPar
     return bAdd;
 }
 
-template<class T>
-bool    SaveCtmFile(bool useplynormals,T *pMesh,const std::string &filename,std::string &ctxHashValue)
-{
-    CTMcontext context = NULL;
-    CTMuint    vertCount, triCount, * indices;
-    CTMfloat   *vertices;
-    CTMfloat   *aNormals = NULL;
-    CTMfloat   *aUVCoords = NULL;
-
-    vertCount = pMesh->GetTotalVertexCount ();
-    triCount = pMesh->GetTotalTriangleCount ();
-    vertices  = (CTMfloat*)(void*)pMesh->GetVertices();
-    indices  = (CTMuint*)(void*)pMesh->GetTriangles();
-
-    MD5     md5;
-
-    md5.update((const unsigned char *)(void*)vertices,vertCount * 3 * sizeof(CTMfloat));
-    md5.update((const unsigned char *)(void*)indices,triCount * 3 * sizeof(CTMuint));
-
-    if(false)//useplynormals) //pMesh->HasNormals())
-    {
-        GME_TRACE("has normals ... ");
-        aNormals = new CTMfloat[vertCount * 3];
-        for(unsigned int idx = 0 ; idx < vertCount; idx++)
-        {
-            luxrays::Normal n = pMesh->GetShadeNormal(idx);
-            aNormals[idx * 3] = n.x;
-            aNormals[idx * 3 + 1] = n.y;
-            aNormals[idx * 3 + 2] = n.z;
-        }
-        md5.update((const unsigned char *)(void*)aNormals,vertCount * 3 * sizeof(CTMfloat));
-    }
-
-    context = ctmNewContext(CTM_EXPORT);
-    ctmDefineMesh(context, vertices, vertCount, indices, triCount, aNormals);
-    if(pMesh->HasUVs())
-    {
-        aUVCoords = new CTMfloat[vertCount * 2];
-        for(unsigned int idx = 0 ; idx < vertCount; idx++)
-        {
-            luxrays::UV uv = pMesh->GetUV(idx);
-            aUVCoords[idx * 2] = uv.u;
-            aUVCoords[idx * 2 + 1] = uv.v;
-        }
-        ctmAddUVMap(context,aUVCoords,"def",NULL);
-    }
-
-    ctmSave(context, filename.c_str());
-
-    ctxHashValue = md5.finalize().hexdigest();
-
-    if(aNormals)
-        delete[] aNormals;
-    if(aUVCoords)
-        delete[] aUVCoords;
-    if(context)
-        ctmFreeContext(context);
-
-
-    return true;
-}
-
-static
-bool    SaveCtmFile(bool useplynormals,luxrays::ExtMesh* extMesh,const std::string &filename,std::string &ctxHashValue)
-{
-    luxrays::ExtInstanceTriangleMesh*   pMesh = dynamic_cast<luxrays::ExtInstanceTriangleMesh*>(extMesh);
-    if(pMesh)
-    {
-        return SaveCtmFile<luxrays::ExtInstanceTriangleMesh>(useplynormals,pMesh,filename,ctxHashValue);
-    }
-    luxrays::ExtTriangleMesh*   pMesh2 = dynamic_cast<luxrays::ExtTriangleMesh*>(extMesh);
-    if(pMesh2)
-    {
-        return SaveCtmFile<luxrays::ExtTriangleMesh>(useplynormals,pMesh2,filename,ctxHashValue);
-    }
-    return false;
-}
-
 
 luxrays::ExtMesh*
-ExtraObjectManager::getExtMesh(const boost::uuids::uuid &objid)
+ExtraObjectManager::getExtMesh(const std::string &objid)
 {
-    std::string    name = this->getNameForSlg(objid);
     slg::RenderSession* session = Doc::instance().pDocData->getSession();
     if(session && session->renderConfig->scene)
     {
-        return session->renderConfig->scene->meshDefs.GetExtMesh(name);
+        return session->renderConfig->scene->meshDefs.GetExtMesh(objid);
     }
     return NULL;
 }
 
-
+/*
 //基于文件内容md5码的ctxmd5属性。用于检查mesh一致性。
 void
 ExtraObjectManager::write(ObjectNode &pThis,ObjectWriteContext& ctx)
@@ -565,12 +486,11 @@ ExtraObjectManager::write(ObjectNode &pThis,ObjectWriteContext& ctx)
     ctx.outIndent();
     o << "</object>" << std::endl;
 }
-
+*/
 void
 ExtraObjectManager::loadExtraFromProps(ObjectNode& node,luxrays::Properties &props)
 {
-    std::string     slgname = getNameForSlg(node.id());
-    std::string path = props.GetString("scene.objects." + slgname + ".ply","");
+    std::string path = props.GetString("scene.objects." + node.id() + ".ply","");
     if(path.length())
     {
         boost::filesystem::path   filepath = boost::filesystem::canonical(path);

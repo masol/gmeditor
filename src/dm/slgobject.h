@@ -45,7 +45,7 @@ struct  ObjectWriteContext{
           m_indent(indent)
     {}
     ~ObjectWriteContext(){}
-    inline  const std::vector<boost::uuids::uuid>&  refMaterials()const
+    inline  const std::vector<std::string>&  refMaterials()const
     {
         return m_refMaterials;
     }
@@ -66,7 +66,7 @@ protected:
     int             m_indent;
     /** 每个被引用的material被保存在这里。
     **/
-    std::vector<boost::uuids::uuid>     m_refMaterials;
+    std::vector<std::string>     m_refMaterials;
 };
 
 
@@ -77,39 +77,22 @@ private:
     ExtraObjectManager(){}
     ~ExtraObjectManager(){}
 
-    typedef   boost::unordered_map<boost::uuids::uuid, std::string>        type_id2name_map;
-    /** @brief 保存了从object id到slg object name的map.
-    **/
-    type_id2name_map                        m_oid2slgname_map;
-
     /** @brief  保存了mesh组。根节点只作为容器节点存在，数据无效。
     **/
     ObjectNode                              m_objectGroup;
 public:
-    inline  ObjectNode*     findObject(const boost::uuids::uuid &id)
+    inline  ObjectNode*     findObject(const std::string &id)
     {
         return m_objectGroup.findObject(id);
     }
     void    clear(){
         m_objectGroup.clear();
-        m_oid2slgname_map.clear();
-    }
-    inline std::string     getNameForSlg(const boost::uuids::uuid &objid)
-    {
-        type_id2name_map::const_iterator it = m_oid2slgname_map.find(objid);
-        if(it == m_oid2slgname_map.end())
-        {
-            return ObjectNode::idto_string(objid);
-        }
-        return it->second;
     }
     inline  ObjectNode&     getRoot(void){
         return m_objectGroup;
     }
-    ///@brief 更新uuid到slgname的映射记录。
-    inline  void    updateSlgMap(const boost::uuids::uuid &id,const std::string& slgname){
-        m_oid2slgname_map[id] = slgname;
-    }
+
+/*
     inline  void    write(ObjectWriteContext &ctx){
         ObjectNode::type_child_container::iterator  it = this->m_objectGroup.begin();
         while(it != this->m_objectGroup.end())
@@ -118,8 +101,9 @@ public:
             it++;
         }
     }
-    luxrays::ExtMesh*   getExtMesh(const boost::uuids::uuid &objid);
     void    write(ObjectNode &pThis,ObjectWriteContext& ctx);
+*/
+    static  luxrays::ExtMesh*   getExtMesh(const std::string &objid);
     void    loadExtraFromProps(luxrays::Properties &props)
     {//不加载根节点:
          ObjectNode::type_child_container::iterator it = m_objectGroup.begin();
@@ -132,7 +116,7 @@ public:
 public:
     /** @brief 删除指定模型.
     **/
-    bool    removeMesh(const boost::uuids::uuid &id);
+    bool    removeMesh(const std::string &id);
     /** @brief 从模型文件中加载对象组。
     **/
     bool    loadObjectsFromFile(const std::string &file,ObjectNode *pParent,SlgUtil::Editor &editor);

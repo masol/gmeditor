@@ -26,10 +26,11 @@
 #include "slgtexture.h"
 #include "dm/objectnode.h"
 #include "slgutils.h"
+#include "dm/doc.h"
 
 //forward declare.
 class MD5;
-class aiMaterial;
+struct aiMaterial;
 
 namespace gme{
 
@@ -87,53 +88,6 @@ public:
 };
 
 
-
-/** @brief 本类保存了额外的材质信息。可以看作对slg material基类的信息添加。
-**/
-struct  ExtraMaterial
-{
-protected:
-    friend  class DocIO;
-    std::string     m_slgname;
-public:
-    std::string     m_name;
-    ExtraMaterial(){
-    }
-    ExtraMaterial(const std::string &slgname) : m_slgname(slgname)
-    {
-    }
-    ExtraMaterial(const ExtraMaterial& ref){
-        AssignFrom(ref);
-    }
-    ~ExtraMaterial(){
-    }
-    ExtraMaterial&  operator=(const ExtraMaterial& ref){
-        AssignFrom(ref);
-        return *this;
-    }
-    inline  const std::string&  name(void)const{
-        return m_name;
-    }
-    inline  void  name(const std::string& n){
-        m_name = n;
-    }
-    inline  const std::string&  slgname(void)const{
-        return m_slgname;
-    }
-    inline  std::string getNameForSlg(const boost::uuids::uuid &id)const
-    {
-        if(this->m_slgname.length())
-            return this->m_slgname;
-        return ObjectNode::idto_string(id);
-    }
-private:
-    void    AssignFrom(const ExtraMaterial& ref)
-    {
-        this->m_slgname = ref.m_slgname;
-        this->m_name = ref.m_name;
-    }
-};
-
 class ExtraMaterialManager
 {
 private:
@@ -141,80 +95,84 @@ private:
     ExtraMaterialManager(){}
     ~ExtraMaterialManager(){}
 
-    typedef  boost::unordered_map<boost::uuids::uuid, ExtraMaterial>        type_id2matinfo_map;
-    /** @brief 保存了从material id 到material_map.
+    ///@brief 保存了从材质id到材质名称的map.材质id就是slgname.
+    typedef  boost::unordered_map<std::string, std::string>        type_id2name_map;
+    /** @brief 保存了从material id 到material name.
     **/
-    type_id2matinfo_map                    m_id2matinfo_map;
+    type_id2name_map                    m_id2name;
+
+    typedef  boost::unordered_map<const slg::Material*,std::string>     type_mat2id;
+    type_mat2id                         m_mat2id;
 public:
     ///@brief 清空全部数据，用于场景重置(例如加载)。
     void    clear(){
-        m_id2matinfo_map.clear();
+        m_id2name.clear();
+        m_mat2id.clear();
     }
-    ///@brief 查询及获取方法。返回对应的materialInfo记录，如果没有，则返回空。
-    inline ExtraMaterial*  query(const boost::uuids::uuid &id){
-        type_id2matinfo_map::iterator it = m_id2matinfo_map.find(id);
-        if(it != m_id2matinfo_map.end())
-        {
-            return &(it->second);
-        }
-        return NULL;
+
+    ///@brief 查询及获取方法。返回对应的materialName。
+    inline std::string&  get(const std::string &id){
+        return m_id2name[id];
     }
-    inline  void       eraseMaterialInfo(const boost::uuids::uuid &id)
+
+    inline  void       eraseMaterialInfo(const std::string &id,const slg::Material *pMat)
     {
         ///@fixme 需要继续清理掉引用的ExtraTexture信息。
-        m_id2matinfo_map.erase(id);
-    }
-    type_id2matinfo_map::iterator  queryFromSlgname(const std::string &slgname){
-        type_id2matinfo_map::iterator it = m_id2matinfo_map.begin();
-        while(it != m_id2matinfo_map.end())
+        m_id2name.erase(id);
+        if(pMat)
         {
-            if(it->second.slgname() == slgname)
-            {
-                return it;
-            }
-            it++;
+            m_mat2id.erase(pMat);
         }
-        return it;
     }
 
-    /** @brief getXXX函数如果没有找到对应记录，会自动添加一个materialInfo记录。
+    void    appendMat2IdFromSlg(void);
+    inline  const std::string&  getMaterialId(const slg::Material* pMat)
+    {
+        return m_mat2id[pMat];
+    }
+
+    /** @brief
     **/
-    inline ExtraMaterial&  get(const boost::uuids::uuid &id)
-    {
-        return m_id2matinfo_map[id];
-    }
+    static slg::Material* getSlgMaterial(const std::string &id);
 
-    ExtraMaterial&  getFromSlgname(const std::string &slgname)
-    {
-        type_id2matinfo_map::iterator it = queryFromSlgname(slgname);
-        if(it != m_id2matinfo_map.end())
-        {
-            return it->second;
-        }
-        ExtraMaterial   em(slgname);
-        em.name(slgname);
-        boost::uuids::uuid id = boost::uuids::random_generator()();
-        m_id2matinfo_map[id] = em;
-        return m_id2matinfo_map[id];
-    }
+    /** @brief 将指定材质的内容导出到node中。
+    **/
+//    inline bool   dump(const std::string &id,type_node &node)
+//    {
+//        slg::Material* pmat = getSlgMaterial(id);
+//        if(pmat)
+//        {
+//            dump(pmat,&id,node);
+//            return true;
+//        }
+//        return false;
+//    }
+    ///@todo 从type_node对象中恢复材质。
+    //void    exportResource(type_node &node,boost::);
 
-    void    write(MaterialWriteContext &ctx,const std::vector<boost::uuids::uuid> &outset);
-    boost::uuids::uuid  createAssimpMaterial(aiMaterial *paiMat,SlgUtil::Editor &editor);
-    static  boost::uuids::uuid  createGrayMaterial(void);
-    boost::uuids::uuid  createGrayMaterial(const std::string &name);
+    ///@fixme : 使用rapidxml接口来导入导出材质。
+    //void    write(MaterialWriteContext &ctx,const std::vector<boost::uuids::uuid> &outset);
+    //std::string  createAssimpMaterial(aiMaterial *paiMat,SlgUtil::Editor &editor);
+    static  void createGrayMaterial(const std::string& id);
+    //boost::uuids::uuid  createGrayMaterial(const std::string &name);
     ///@brief 改进slg缺陷，递归检查一个材质是否是光源。
     static  bool    materialIsLight(const slg::Material *pmat);
+
+    type_xml_node*   dump(type_xml_node &parent,const slg::Material* pMat,dumpContext &ctx);
 private:
+//    void    dump(slg::Material *pMat,
+//                    const boost::uuids::uuid *pId,
+//                    type_node &node);
+
     /** @brief 实际写入一个材质到ostream.
      * @param ppmd5 父md5标识，可以传入空。
      * @return 返回本Material最后写入的id.
     */
-    std::string    WriteMaterialImpl(MaterialWriteContext &ctx,
+    /*std::string    WriteMaterialImpl(MaterialWriteContext &ctx,
                                         const slg::Material *pMat,
                                         const boost::uuids::uuid *pId,
                                         const std::string &name,
-                                        const std::string &slgname,
-                                        MD5 *ppmd5);
+                                        MD5 *ppmd5);*/
 };
 
 }

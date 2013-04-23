@@ -37,6 +37,8 @@ set(DM_SRCS
     slgmaterial.cpp
     slgtexture.cpp
     setting.cpp
+    localsetting.cpp
+    docsetting.cpp
    )
 
 

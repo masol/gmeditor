@@ -72,13 +72,13 @@ public:
         if(idx < m_deviceNames.size())
             return m_deviceNames[idx];
 		throw std::exception();
-        return std::vector<std::string>();
+        //return std::vector<std::string>();
     }
     clHardwareInfo();
     ~clHardwareInfo(){}
     /** @brief 返回选择指定平台下全部硬件的标识字符串。(参考slg的配置文件格式)
     **/
-    std::string     getFullSelectString(int platformIdx = 0);
+    std::string     getFullSelectString(unsigned int platformIdx = 0);
 };
 
 }

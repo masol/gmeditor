@@ -22,6 +22,7 @@
 #include "utils/singleton.h"
 #include <boost/thread/recursive_mutex.hpp>
 
+
 namespace gme{
 
 class DocPrivate;
@@ -34,6 +35,7 @@ protected:
     friend class ExtraTextureManager;
     friend class SlgMaterial2Name;
     friend class SlgTexture2Name;
+	friend class ObjectNode;
     friend class Singleton<Doc>;
     typedef Singleton<Doc>   inherited;
     Doc(void);

@@ -26,6 +26,7 @@ namespace gme{
 
 class MainView;
 class ObjectView;
+class PropFrame;
 
 class MainFrame : public wxFrame {
     typedef  wxFrame   inherited;
@@ -52,6 +53,8 @@ public:
 
 	/** Processes menu About|Info */
 	void onMenuHelpAbout(wxCommandEvent &event);
+	
+	void onShowPropertyPane(wxCommandEvent &event);
 
 	enum{
 		SFP_INFO = 0,
@@ -74,6 +77,7 @@ private:
 //not need free members.
     wxGauge         *m_pGauge;
     ObjectView      *m_objectView;
+	PropFrame       *m_propFrame;
     void    createMenubar();
     void    createStatusbar();
     ///@todo meory leak detected by valgrind, caused by wxAuiManager loading paninfo using expat xmlparser.

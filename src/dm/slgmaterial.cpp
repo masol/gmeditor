@@ -25,6 +25,19 @@
 
 namespace gme{
 
+void
+ExtraMaterialManager::appendMat2IdFromSlg(void)
+{
+    slg::Scene  *scene = Doc::instance().pDocData->getSession()->renderConfig->scene;
+    std::vector<std::string> materialNameArray = scene->matDefs.GetMaterialNames ();
+    u_int   nameIdx = 0;
+    for(std::vector< std::string >::const_iterator it = materialNameArray.begin(); it < materialNameArray.end(); ++it,++nameIdx)
+    {
+        m_mat2id[scene->matDefs.GetMaterial(scene->matDefs.GetMaterialIndex(*it))] = nameIdx;
+    }
+}
+
+
 SlgMaterial2Name::SlgMaterial2Name()
 {
     slg::Scene  *scene = Doc::instance().pDocData->getSession()->renderConfig->scene;
@@ -45,14 +58,236 @@ SlgMaterial2Name::getMaterialName(const slg::Material* pmat)const
     return m_materialNameArray[matNameIdx];
 }
 
+type_xml_node*
+ExtraMaterialManager::dump(type_xml_node &parent,const slg::Material* pMat,dumpContext &ctx)
+{
+    type_xml_doc *pDoc = parent.document();
+    BOOST_ASSERT_MSG(pDoc != NULL,"invalid node,must from doc");
+
+    type_xml_node *pSelf = pDoc->allocate_node(NS_RAPIDXML::node_element,constDef::material);
+
+    const std::string &id = this->getMaterialId(pMat);
+    if(id.length())
+    {
+        const std::string  &name = this->get(id);
+        if(name.length())
+        {
+            pSelf->append_attribute(pDoc->allocate_attribute(constDef::name,allocate_string(pDoc,name)));
+        }
+        //output id.
+        pSelf->append_attribute(pDoc->allocate_attribute(constDef::id,allocate_string(pDoc,id)));
+    }
+
+    std::string type = DocMat::getTypeNameFromType(pMat->GetType());
+    pSelf->append_attribute(pDoc->allocate_attribute(constDef::type,allocate_string(pDoc,type)));
+
+    conditional_md5 md5(ctx.flags);
+    md5.update(type.c_str(),type.length());
+    ExtraTextureManager &texManager = Doc::instance().pDocData->texManager;
+
+    if(pMat->IsLightSource())
+    {
+        texManager.dump(*pSelf,"emission",pMat->GetEmitTexture(),ctx,md5);
+    }
+
+    if(pMat->HasBumpTex())
+    {
+        texManager.dump(*pSelf,"bumptex",pMat->GetBumpTexture(),ctx,md5);
+    }
+
+    if(pMat->HasNormalTex())
+    {
+        texManager.dump(*pSelf,"normaltex",pMat->GetNormalTexture(),ctx,md5);
+    }
+
+    switch(pMat->GetType())
+    {
+    case slg::MATTE:
+        {
+            const slg::Texture *pTex = dynamic_cast<const slg::MatteMaterial*>(pMat)->GetKd ();
+            if(pTex)
+            {
+                texManager.dump(*pSelf,"kd",pTex,ctx,md5);
+            }
+        }
+        break;
+    case slg::MIRROR:
+        {
+            const slg::Texture *pTex = dynamic_cast<const slg::MirrorMaterial*>(pMat)->GetKr();
+            if(pTex)
+            {
+                texManager.dump(*pSelf,"kr",pTex,ctx,md5);
+            }
+        }
+        break;
+    case slg::GLASS:
+        {
+            const slg::GlassMaterial *pMaterial = dynamic_cast<const slg::GlassMaterial*>(pMat);
+            if(pMaterial->GetKr())
+            {
+                texManager.dump(*pSelf,"kr",pMaterial->GetKr(),ctx,md5);
+            }
+            if(pMaterial->GetKt())
+            {
+                texManager.dump(*pSelf,"kt",pMaterial->GetKt(),ctx,md5);
+            }
+            if(pMaterial->GetOutsideIOR())
+            {
+                texManager.dump(*pSelf,"ioroutside",pMaterial->GetOutsideIOR(),ctx,md5);
+            }
+            if(pMaterial->GetIOR())
+            {
+                texManager.dump(*pSelf,"iorinside",pMaterial->GetIOR(),ctx,md5);
+            }
+        }
+        break;
+    case slg::METAL:
+        {
+            const slg::MetalMaterial *pMaterial = dynamic_cast<const slg::MetalMaterial*>(pMat);
+            if(pMaterial->GetKr())
+            {
+                texManager.dump(*pSelf,"kr",pMaterial->GetKr(),ctx,md5);
+            }
+            if(pMaterial->GetExp())
+            {
+                texManager.dump(*pSelf,"exp",pMaterial->GetExp(),ctx,md5);
+            }
+        }
+        break;
+    case slg::ARCHGLASS:
+        {
+            const slg::ArchGlassMaterial *pMaterial = dynamic_cast<const slg::ArchGlassMaterial*>(pMat);
+            if(pMaterial->GetKr())
+            {
+                texManager.dump(*pSelf,"kr",pMaterial->GetKr(),ctx,md5);
+            }
+            if(pMaterial->GetKt ())
+            {
+                texManager.dump(*pSelf,"kt",pMaterial->GetKt(),ctx,md5);
+            }
+            if(pMaterial->GetOutsideIOR())
+            {
+                texManager.dump(*pSelf,"ioroutside",pMaterial->GetOutsideIOR(),ctx,md5);
+            }
+            if(pMaterial->GetIOR())
+            {
+                texManager.dump(*pSelf,"iorinside",pMaterial->GetIOR(),ctx,md5);
+            }
+        }
+        break;
+    case slg::MIX:
+        {
+            const slg::MixMaterial *pMaterial = dynamic_cast<const slg::MixMaterial*>(pMat);
+            BOOST_ASSERT_MSG(pMaterial->GetMaterialA() && pMaterial->GetMaterialB(), "invalid mix material");
+
+			type_xml_node* matA = dump(*pSelf,pMaterial->GetMaterialA(),ctx);
+			type_xml_node* matB = dump(*pSelf,pMaterial->GetMaterialB(),ctx);
+			md5.updateChild(matA);
+			md5.updateChild(matB);
+
+			//为了防止子节点没有id而搞乱位置，我们通过position来识别位置。
+			matA->append_attribute(pDoc->allocate_attribute(constDef::position,allocate_string(pDoc,"A")));
+			matB->append_attribute(pDoc->allocate_attribute(constDef::position,allocate_string(pDoc,"B")));
 
 
+            if(pMaterial->GetMixFactor())
+            {
+				texManager.dump(*pSelf,"amount",pMaterial->GetMixFactor(),ctx,md5);
+            }
+        }
+        break;
+    case slg::NULLMAT:
+        {
+        }
+        break;
+    case slg::MATTETRANSLUCENT:
+        {
+            const slg::MatteTranslucentMaterial  *pMaterial = dynamic_cast<const slg::MatteTranslucentMaterial*>(pMat);
+            if(pMaterial->GetKr())
+            {
+				texManager.dump(*pSelf,"kr",pMaterial->GetKr(),ctx,md5);
+            }
+            if(pMaterial->GetKt ())
+            {
+				texManager.dump(*pSelf,"kt",pMaterial->GetKt(),ctx,md5);
+            }
+        }
+        break;
+    case slg::GLOSSY2:
+        {
+            const slg::Glossy2Material  *pMaterial = dynamic_cast<const slg::Glossy2Material*>(pMat);
+            if(pMaterial->GetKd())
+            {
+				texManager.dump(*pSelf,"kd",pMaterial->GetKd(),ctx,md5);
+            }
+            if(pMaterial->GetKs ())
+            {
+				texManager.dump(*pSelf,"ks",pMaterial->GetKs(),ctx,md5);
+            }
+            if(pMaterial->GetNu ())
+            {
+				texManager.dump(*pSelf,"uroughness",pMaterial->GetNu(),ctx,md5);
+            }
+            if(pMaterial->GetNv ())
+            {
+				texManager.dump(*pSelf,"vroughness",pMaterial->GetNv(),ctx,md5);
+            }
+            if(pMaterial->GetKa ())
+            {
+				texManager.dump(*pSelf,"ka",pMaterial->GetKa(),ctx,md5);
+            }
+            if(pMaterial->GetDepth ())
+            {
+				texManager.dump(*pSelf,"d",pMaterial->GetDepth(),ctx,md5);
+            }
+            if(pMaterial->GetIndex ())
+            {
+				texManager.dump(*pSelf,"index",pMaterial->GetIndex(),ctx,md5);
+            }
+			pSelf->append_attribute(pDoc->allocate_attribute(constDef::position,allocate_string(pDoc,(pMaterial->IsMultibounce() ? "true" : "false" ))));
+        }
+        break;
+    case slg::METAL2:
+        {
+            const slg::Metal2Material  *pMaterial = dynamic_cast<const slg::Metal2Material*>(pMat);
+            if(pMaterial->GetN())
+            {
+				texManager.dump(*pSelf,"n",pMaterial->GetN(),ctx,md5);
+            }
+            if(pMaterial->GetK())
+            {
+				texManager.dump(*pSelf,"k",pMaterial->GetK(),ctx,md5);
+            }
+            if(pMaterial->GetNu ())
+            {
+				texManager.dump(*pSelf,"uroughness",pMaterial->GetNu(),ctx,md5);
+            }
+            if(pMaterial->GetNv ())
+            {
+				texManager.dump(*pSelf,"vroughness",pMaterial->GetNv(),ctx,md5);
+            }
+        }
+        break;
+    default:
+        BOOST_ASSERT_MSG(false,"unreachable code");
+    }
+
+    if(md5.isGenerateMD5())
+    {
+        std::string     md5_value = md5.hexdigest();
+        pSelf->append_attribute(allocate_attribute(pDoc,constDef::ctxmd5,md5_value));
+    }
+
+    parent.append_node(pSelf);
+    return pSelf;
+}
+
+/*
 std::string
 ExtraMaterialManager::WriteMaterialImpl(MaterialWriteContext &ctx,
 										const slg::Material *pMat,
 										const boost::uuids::uuid *pId,
 										const std::string &name,
-										const std::string &slgname,
 										MD5 *ppmd5)
 {
     std::ostream &o = ctx.stream();
@@ -188,19 +423,19 @@ ExtraMaterialManager::WriteMaterialImpl(MaterialWriteContext &ctx,
             std::string matIdStr;
 			if(itA != m_id2matinfo_map.end())
             {
-                matIdStr = WriteMaterialImpl(ctx,pMaterial->GetMaterialA(),&itA->first,itA->second.name(),matAname,&md5);
+                matIdStr = WriteMaterialImpl(ctx,pMaterial->GetMaterialA(),&itA->first,itA->second.name(),&md5);
             }else{
 				//@本材质没有被任何对象直接引用。
-                matIdStr = WriteMaterialImpl(ctx,pMaterial->GetMaterialA(),NULL,matAname,matAname,&md5);
+                matIdStr = WriteMaterialImpl(ctx,pMaterial->GetMaterialA(),NULL,matAname,&md5);
             }
             o << " material1='" << matIdStr << "'";
 
 			if(itB != m_id2matinfo_map.end())
             {
-                matIdStr = WriteMaterialImpl(ctx,pMaterial->GetMaterialB(),&itB->first,itB->second.name(),matBname,&md5);
+                matIdStr = WriteMaterialImpl(ctx,pMaterial->GetMaterialB(),&itB->first,itB->second.name(),&md5);
             }else{
 				//@本材质没有被任何对象直接引用。
-                matIdStr = WriteMaterialImpl(ctx,pMaterial->GetMaterialB(),NULL,matBname,matBname,&md5);
+                matIdStr = WriteMaterialImpl(ctx,pMaterial->GetMaterialB(),NULL,matBname,&md5);
             }
             o << " material2='" << matIdStr << "'";
 
@@ -314,8 +549,10 @@ ExtraMaterialManager::WriteMaterialImpl(MaterialWriteContext &ctx,
     }
     return idstring;
 }
+*/
 
 
+/*
 void
 ExtraMaterialManager::write(MaterialWriteContext &ctx,const std::vector<boost::uuids::uuid> &outset)
 {
@@ -324,17 +561,12 @@ ExtraMaterialManager::write(MaterialWriteContext &ctx,const std::vector<boost::u
     std::vector<boost::uuids::uuid>::const_iterator   outit = outset.begin();
     while(outit != outset.end())
     {
-        type_id2matinfo_map::iterator  it = m_id2matinfo_map.find(*outit);
-        if(it != m_id2matinfo_map.end())
-        {
-            slg::Material *pMat = Doc::instance().pDocData->m_session->renderConfig->scene->matDefs.GetMaterial(it->second.getNameForSlg(it->first));
-            WriteMaterialImpl(ctx,pMat,&(it->first),it->second.name(),it->second.slgname(),NULL);
-        }else{//slg的名称为uuid.
-            std::string     slgname = ObjectNode::idto_string(*outit);
-            slg::Material *pMat = Doc::instance().pDocData->m_session->renderConfig->scene->matDefs.GetMaterial(slgname);
-            BOOST_ASSERT_MSG(pMat != NULL,"panic material?");
-            WriteMaterialImpl(ctx,pMat,&(*outit),"",slgname,NULL);
-        }
+        std::string     slgname;
+        std::string     name;
+        slg::Material *pMat = this->getSlgMaterial(*outit,&name);
+
+        BOOST_ASSERT_MSG(pMat != NULL,"panic material?");
+        WriteMaterialImpl(ctx,pMat,&(*outit),name,NULL);
         outit++;
     }
 }
@@ -343,19 +575,6 @@ boost::uuids::uuid
 ExtraMaterialManager::createAssimpMaterial(aiMaterial *paiMat,SlgUtil::Editor &editor)
 {
     boost::uuids::uuid  matid = boost::uuids::random_generator()();
-    return matid;
-}
-
-boost::uuids::uuid
-ExtraMaterialManager::createGrayMaterial(void)
-{
-    boost::uuids::uuid  matid = boost::uuids::random_generator()();
-    std::string     matidStr = ObjectNode::idto_string(matid);
-    slg::Scene  *scene = Doc::instance().pDocData->getSession()->renderConfig->scene;
-    std::stringstream   ss;
-    ss << "scene.materials." << matidStr << ".type = matte" << std::endl;
-    ss << "scene.materials." << matidStr << ".kd = 0.75 0.75 0.75" << std::endl;
-    scene->DefineMaterials(ss.str());
     return matid;
 }
 
@@ -372,6 +591,17 @@ ExtraMaterialManager::createGrayMaterial(const std::string &name)
     return matid;
 }
 
+*/
+
+void
+ExtraMaterialManager::createGrayMaterial(const std::string &id)
+{
+    slg::Scene  *scene = Doc::instance().pDocData->getSession()->renderConfig->scene;
+    std::stringstream   ss;
+    ss << "scene.materials." << id << ".type = matte" << std::endl;
+    ss << "scene.materials." << id << ".kd = 0.75 0.75 0.75" << std::endl;
+    scene->DefineMaterials(ss.str());
+}
 
 bool
 ExtraMaterialManager::materialIsLight(const slg::Material *pmat)
@@ -390,6 +620,14 @@ ExtraMaterialManager::materialIsLight(const slg::Material *pmat)
     }
     return false;
 }
+
+
+slg::Material*
+ExtraMaterialManager::getSlgMaterial(const std::string &id)
+{
+    return Doc::instance().pDocData->m_session->renderConfig->scene->matDefs.GetMaterial(id);
+}
+
 
 
 

@@ -48,9 +48,9 @@ protected:
     void addChild(wxTreeListItem& parent,const ObjectNode &pNode,DocMat &pobjop);
     void refresh(void);
 public:
-    /** @brief 返回当前选择对象的uuid.
+    /** @brief 返回当前选择对象的id.
     **/
-    bool    getSelection(boost::uuids::uuid &id);
+    bool    getSelection(std::string &id);
     ObjectView(wxWindow* parent, wxWindowID id,const wxPoint& pos, const wxSize& size);
     ~ObjectView();
 private:

@@ -21,7 +21,7 @@
 
 
 #include "dm/doc.h"
-#include <boost/uuid/uuid.hpp>
+#include "dm/xmlutil.h"
 
 namespace gme{
 
@@ -46,7 +46,14 @@ public:
     /** @brief 删除指定模型.
      *  @param id 指定模型的id.
     **/
-    bool    deleteModel(const boost::uuids::uuid &id);
+    bool    deleteModel(const std::string &id);
+public:
+    /** @brief 更新node所指示对象的关联资源，将所有资源拷贝到指定目录，并修改node中的关联索引。
+     * @details 静态方法，不需要锁定文档对象。
+    **/
+    //static  bool    copyResource(type_node &node,const std::string &path);
+    ///@brief 针对原始xml做渲染优化，优化之后编辑将可能出各类问题。
+    //static  void  optimizeForRender(const type_doc &src,type_doc &dest);
 };
 
 }

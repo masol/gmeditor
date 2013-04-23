@@ -26,6 +26,7 @@
 #include <ostream>
 #include <boost/filesystem.hpp>
 #include <boost/unordered_map.hpp>
+#include "dm/xmlutil.h"
 
 class MD5;
 
@@ -155,16 +156,29 @@ private:
     /** @brief 保存了imagetype类型的Texture从slgname到全路径的映射。
     **/
     type_slgname2filepath               m_slgname2filepath_map;
+
+    /** @brief 为了便于处理，我们废弃使用slg的texture id pair set.而是在这里构建缓冲。
+    **/
+    typedef   boost::unordered_map<const slg::Texture*, std::string>      type_texture2id;
+    type_texture2id           m_tex2id;
+
 public:
     ///@brief 清空全部数据，用于场景重置(例如加载)。
-    void    clear(){
-    }
-    /** @brief 添加一个路径映射。
-    **/
-    inline void    addPath(const std::string& slgname,const std::string &path)
+    void    clear()
     {
-        m_slgname2filepath_map[slgname] = path;
+        m_slgname2filepath_map.clear();
+        m_tex2id.clear();
     }
+
+    const std::string&   getId(const slg::Texture *pTex)
+    {
+        return m_tex2id[pTex];
+    }
+
+    /** @brief 从当前场景构建tex到name的映射表。只有在加载cfg时需要构建一次，之后会被gmeditor处理。
+    **/
+    void    appendTex2IdFromSlg();
+
     /** @brief 查询路径映射是否存在。
     **/
     inline const std::string*  queryPath(const std::string &slgname)
@@ -177,13 +191,30 @@ public:
         return NULL;
     }
     void    loadExtraFromProps(luxrays::Properties &props);
+
+    type_xml_node*  dump(type_xml_node &parent,const std::string &tag,const slg::Texture *pTex,dumpContext &ctx);
+    inline type_xml_node*  dump(type_xml_node &parent,const std::string &tag,const slg::Texture *pTex,dumpContext &ctx,conditional_md5 &md5)
+	{
+        type_xml_node *pChild = dump(parent,tag,pTex,ctx);
+        md5.updateChild(pChild);
+		return pChild;
+	}
 public:
     static std::string getBondnameFromType(slg::MasonryBond type);
 
     static void    writeTexture(TextureWriteContext &ctx,const std::string &tag,const slg::Texture *pTex,MD5 *ppmd5);
 private:
+    static type_xml_node*   dumpTextureMapping2D(type_xml_node &parent,const slg::TextureMapping2D *ptm2d,dumpContext &ctx);
+    static type_xml_node*   dumpTextureMapping3D(type_xml_node &parent,const slg::TextureMapping3D *ptm3d,dumpContext &ctx);
     static void    writeTextureMapping2D(TextureWriteContext &ctx,const slg::TextureMapping2D *ptm2d,MD5 &md5);
     static void    writeTextureMapping3D(TextureWriteContext &ctx,const slg::TextureMapping3D *ptm3d,MD5 &md5);
+
+    /** @brief 添加一个路径映射。
+    **/
+    inline void    addPath(const std::string& slgname,const std::string &path)
+    {
+        m_slgname2filepath_map[slgname] = path;
+    }
 };
 
 }

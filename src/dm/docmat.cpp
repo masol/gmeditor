@@ -187,15 +187,10 @@ DocMat::getTypeFromTypeName(const std::string &name)
 }
 
 
-std::string
-DocMat::getMatName(const boost::uuids::uuid& id)
+std::string&
+DocMat::getMatName(const std::string& id)
 {
-    ExtraMaterial*  pmatInfo = pDocData->matManager.query(id);
-    if(pmatInfo)
-    {
-        return pmatInfo->slgname();
-    }
-    return ObjectNode::idto_string(id);
+    return pDocData->matManager.get(id);
 }
 
 int

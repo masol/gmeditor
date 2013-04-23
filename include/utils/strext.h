@@ -25,6 +25,10 @@
  **/
  
 #include <boost/locale.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/unordered_map.hpp>
+
 
 namespace gme{
 
@@ -40,6 +44,21 @@ inline std::wstring from_utf8( const std::string& str )
 inline std::string to_utf8( const std::wstring& str )
 {
     return boost::locale::conv::utf_to_utf<char>(str);
+}
+
+inline std::string uuid_to_string(const boost::uuids::uuid &u)
+{
+    std::string result;
+    result.reserve(32);
+
+    for (boost::uuids::uuid::const_iterator it_data = u.begin(); it_data!=u.end(); ++it_data) {
+        const size_t hi = ((*it_data) >> 4) & 0x0F;
+        result += boost::uuids::detail::to_char(hi);
+
+        const size_t lo = (*it_data) & 0x0F;
+        result += boost::uuids::detail::to_char(lo);
+    }
+    return result;
 }
 
 } //end namespace string
