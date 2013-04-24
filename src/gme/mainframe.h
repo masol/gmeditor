@@ -79,6 +79,7 @@ private:
     ObjectView      *m_objectView;
 	PropFrame       *m_propFrame;
     void    createMenubar();
+	void    createToolbar();
     void    createStatusbar();
     ///@todo meory leak detected by valgrind, caused by wxAuiManager loading paninfo using expat xmlparser.
     wxAuiManager    m_mgr;

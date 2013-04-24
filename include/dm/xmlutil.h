@@ -22,6 +22,7 @@
 
 #include <boost/property_tree/detail/rapidxml.hpp>
 #include "utils/MD5.h"
+#include "utils/strext.h"
 #include <boost/filesystem.hpp>
 #include <boost/unordered_map.hpp>
 
@@ -48,8 +49,50 @@ namespace gme
         static  const char* transformation;
 		static	const char* position;
 		static	const char* file;
+		static  const char* emission;
+		static  const char* bumptex;
+		static  const char* normaltex;
+		static  const char* kd;
+		static  const char* kr;
+		static  const char* kt;
+		static  const char* ioroutside;
+		static  const char* iorinside;
+		static  const char* exp;
+		static  const char* amount;
+		static  const char* ks;
+		static  const char* uroughness;
+		static  const char* vroughness;
+		static  const char* ka;
+		static  const char* d;
+		static  const char* index;
+		static  const char* n;
+		static  const char* k;
     };
 
+    inline const char* getFilepathFromDocument(const type_xml_node &node)
+    {
+        type_xml_doc *pDoc = node.document();
+        //BOOST_ASSERT_MSG(pDoc != NULL,"invalid node,must from doc");
+        if(pDoc)
+        {
+            type_xml_attr  *fileAttr = pDoc->first_attribute(constDef::file);
+            if(fileAttr)
+            {
+                return fileAttr->value();
+            }
+        }
+        return NULL;
+    }
+
+    inline std::string getIdFromNode(const type_xml_node &node)
+    {
+        type_xml_attr  *idAttr = node.first_attribute(constDef::id);
+        if(idAttr)
+        {
+            return idAttr->value();
+        }
+        return string::uuid_to_string(boost::uuids::random_generator()());
+    }
 
     struct  dumpContext
     {

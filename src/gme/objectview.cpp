@@ -129,6 +129,18 @@ ObjectView::getSelection(std::string &id)
     return false;
 }
 
+bool
+ObjectView::delSelection()
+{
+	wxTreeListItem  item = m_treelist->GetSelection();
+    if(item.IsOk())
+    {
+		m_treelist->DeleteItem(item);
+		return true;
+    }
+    return false;
+}
+
 
 void
 ObjectView::OnSelectionChanged(wxTreeListEvent& event)
@@ -165,5 +177,6 @@ ObjectView::OnItemContextMenu(wxTreeListEvent& event)
 {
 
 }
+
 
 } //end namespace gme

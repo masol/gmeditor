@@ -51,6 +51,8 @@ public:
     /** @brief 返回当前选择对象的id.
     **/
     bool    getSelection(std::string &id);
+	bool	delSelection();
+
     ObjectView(wxWindow* parent, wxWindowID id,const wxPoint& pos, const wxSize& size);
     ~ObjectView();
 private:

@@ -21,6 +21,8 @@
 
 
 #include "slg/slg.h"
+#include "slg/sdl/scene.h"
+#include "slg/editaction.h"
 
 namespace gme{
 

@@ -18,8 +18,8 @@
 
 #include "config.h"
 #include "dm/doc.h"
-#include "dm/docmat.h"
 #include "slgtexture.h"
+#include "dm/docmat.h"
 #include "docprivate.h"
 #include "slg/slg.h"
 #include "luxrays/luxrays.h"
@@ -27,6 +27,7 @@
 #include <boost/filesystem.hpp>
 #include "utils/MD5.h"
 #include "slgutils.h"
+#include <boost/format.hpp>
 
 namespace gme{
 
@@ -248,6 +249,52 @@ ExtraTextureManager::dumpTextureMapping3D(type_xml_node &parent,const slg::Textu
 
 	return pSelf;
 }
+
+void
+ExtraTextureManager::importTextureMapping3D(std::ostream &o,type_xml_node &self,const std::string &id)
+{
+    type_xml_attr *pTypeAttr = self.first_attribute(constDef::type);
+    if(pTypeAttr)
+    {
+        if(boost::iequals("uvmapping3d",pTypeAttr->value()))
+        {
+            o << "scene.textures." << id << ".mapping.type = uvmapping3d" << std::endl;
+
+            type_xml_attr *pAttr = self.first_attribute(constDef::transformation);
+            if(pAttr)
+                o << "scene.textures." << id << ".mapping.transformation = " << pAttr->value() << std::endl;
+        }else if(boost::iequals("globalmapping3d",pTypeAttr->value()))
+        {
+            o << "scene.textures." << id << ".mapping.type = globalmapping3d" << std::endl;
+
+            type_xml_attr *pAttr = self.first_attribute(constDef::transformation);
+            if(pAttr)
+                o << "scene.textures." << id << ".mapping.transformation = " << pAttr->value() << std::endl;
+        }
+    }
+}
+
+void
+ExtraTextureManager::importTextureMapping2D(std::ostream &o,type_xml_node &self,const std::string &id)
+{
+    type_xml_attr *pTypeAttr = self.first_attribute(constDef::type);
+    if(pTypeAttr)
+    {
+        if(boost::iequals("uvmapping2d",pTypeAttr->value()))
+        {
+            o << "scene.textures." << id << ".mapping.type = uvmapping2d" << std::endl;
+
+            type_xml_attr *pAttr = self.first_attribute("uvscale");
+            if(pAttr)
+                o << "scene.textures." << id << ".mapping.uvscale = " << pAttr->value() << std::endl;
+
+            pAttr = self.first_attribute("uvdelta");
+            if(pAttr)
+                o << "scene.textures." << id << ".mapping.uvdelta = " << pAttr->value() << std::endl;
+        }
+    }
+}
+
 
 
 type_xml_node*
@@ -480,7 +527,7 @@ ExtraTextureManager::dump(type_xml_node &parent,const std::string &tag,const slg
             pChild = dump(*pSelf,"texture2",pRealTex->GetTexture2(),ctx);
             md5.updateChild(pChild);
 
-            pChild = dump(*pSelf,"amount",pRealTex->GetAmountTexture(),ctx);
+            pChild = dump(*pSelf,constDef::amount,pRealTex->GetAmountTexture(),ctx);
             md5.updateChild(pChild);
         }
         break;
@@ -668,5 +715,383 @@ ExtraTextureManager::dump(type_xml_node &parent,const std::string &tag,const slg
     }
     return pSelf;
 }
+
+//static inline
+//void extractNameAttr(type_xml_node &self,const std::string &id)
+//{
+//    type_xml_attr  *pNameAttr = self.first_attribute(constDef::name);
+//    if(pNameAttr)
+//}
+
+static inline
+void appendAttribute(type_xml_node &self,const std::string& id,std::ostream &o,const std::string& tag)
+{
+    type_xml_attr   *pAttr = self.first_attribute(tag.c_str());
+    if(pAttr)
+        o << "scene.textures." << id << '.' << tag << " = " << pAttr->value() << std::endl;
+}
+
+
+std::string
+ExtraTextureManager::createTexture(ImportContext &ctx,type_xml_node &self)
+{
+    std::string     result;
+    type_xml_attr  *pTypeAttr = self.first_attribute(constDef::type);
+    if(pTypeAttr)
+    {
+        const char *typeStr = pTypeAttr->value();
+        int type = DocMat::texGetTypeFromTypeName(typeStr);
+        switch(type)
+        {
+        case slg::CONST_FLOAT3:
+            {
+                type_xml_attr *rAttr = self.first_attribute("r");
+                type_xml_attr *gAttr = self.first_attribute("g");
+                type_xml_attr *bAttr = self.first_attribute("b");
+                if(rAttr && gAttr && bAttr)
+                {
+                    result = boost::str(boost::format("%s %s %s") % rAttr->value() % gAttr->value() % bAttr->value());
+                }
+            }
+            break;
+        case slg::CONST_FLOAT:
+            {
+                type_xml_attr  *valAttr = self.first_attribute("value");
+                if(valAttr)
+                {
+                    result = valAttr->value();
+                }
+            }
+            break;
+        case slg::IMAGEMAP:
+            {
+                type_xml_attr  *fileAttr = self.first_attribute("file");
+                if(fileAttr)
+                {
+                    std::string     id = getIdFromNode(self);
+
+                    std::string fullpath;
+                    const char* basepath = getFilepathFromDocument(self);
+                    if(basepath)
+                        fullpath = boost::filesystem::canonical(fileAttr->value(),basepath).string();
+                    else
+                        fullpath = boost::filesystem::canonical(fileAttr->value()).string();
+
+                    if(boost::filesystem::exists(fullpath))
+                    {
+                        std::stringstream      ss;
+                        ss << "scene.textures." << id << ".type = imagemap" << std::endl;
+                        ss << "scene.textures." << id << ".file = " << fullpath << std::endl;
+
+                        appendAttribute(self,id,ss,"gamma");
+                        appendAttribute(self,id,ss,"gain");
+
+                        m_slgname2filepath_map[id] = fullpath;
+                        result = defineAndUpdate(id,ctx.scene(),ss.str());
+
+                        ctx.addAction(slg::IMAGEMAPS_EDIT);
+                    }
+                }
+            }
+            break;
+        case slg::SCALE_TEX:
+            {
+                type_xml_node   *pTexture1 = self.first_node("texture1");
+                type_xml_node   *pTexture2 = self.first_node("texture2");
+                if(pTexture1 && pTexture2)
+                {
+                    std::stringstream       ss;
+                    std::string id = getIdFromNode(self);
+                    ss << "scene.textures." << id << ".type = scale" << std::endl;
+                    ss << "scene.textures." << id << ".texture1 = " << createTexture(ctx,*pTexture1) << std::endl;
+                    ss << "scene.textures." << id << ".texture2 = " << createTexture(ctx,*pTexture2) << std::endl;
+
+                    result = defineAndUpdate(id,ctx.scene(),ss.str());
+                }
+            }
+            break;
+        case slg::FRESNEL_APPROX_N:
+            {
+                type_xml_node   *pTexture = self.first_node("texture");
+                if(pTexture)
+                {
+                    std::stringstream       ss;
+                    std::string id = getIdFromNode(self);
+
+                    ss << "scene.textures." << id << ".type = fresnelapproxn" << std::endl;
+                    ss << "scene.textures." << id << ".texture = " << createTexture(ctx,*pTexture) << std::endl;
+
+                    result = defineAndUpdate(id,ctx.scene(),ss.str());
+                }
+            }
+            break;
+        case slg::FRESNEL_APPROX_K:
+            {
+                type_xml_node   *pTexture = self.first_node("texture");
+                if(pTexture)
+                {
+                    std::stringstream       ss;
+                    std::string id = getIdFromNode(self);
+
+                    ss << "scene.textures." << id << ".type = fresnelapproxk" << std::endl;
+                    ss << "scene.textures." << id << ".texture = " << createTexture(ctx,*pTexture) << std::endl;
+
+                    result = defineAndUpdate(id,ctx.scene(),ss.str());
+                }
+            }
+            break;
+        case slg::MIX_TEX:
+            {
+                type_xml_node   *pTexture1 = self.first_node("texture1");
+                type_xml_node   *pTexture2 = self.first_node("texture2");
+                type_xml_node   *pAmount = self.first_node("amount");
+
+                if(pTexture1 && pTexture2 && pAmount)
+                {
+                    std::stringstream       ss;
+                    std::string id = getIdFromNode(self);
+
+                    ss << "scene.textures." << id << ".type = mix" << std::endl;
+                    ss << "scene.textures." << id << ".amount = " << createTexture(ctx,*pAmount) << std::endl;
+                    ss << "scene.textures." << id << ".texture1 = " << createTexture(ctx,*pTexture1) << std::endl;
+                    ss << "scene.textures." << id << ".texture2 = " << createTexture(ctx,*pTexture2) << std::endl;
+
+                    result = defineAndUpdate(id,ctx.scene(),ss.str());
+                }
+            }
+            break;
+        case slg::ADD_TEX:
+            {
+                type_xml_node   *pTexture1 = self.first_node("texture1");
+                type_xml_node   *pTexture2 = self.first_node("texture2");
+
+                if(pTexture1 && pTexture2)
+                {
+                    std::stringstream       ss;
+                    std::string id = getIdFromNode(self);
+
+                    ss << "scene.textures." << id << ".type = add" << std::endl;
+                    ss << "scene.textures." << id << ".texture1 = " << createTexture(ctx,*pTexture1) << std::endl;
+                    ss << "scene.textures." << id << ".texture2 = " << createTexture(ctx,*pTexture2) << std::endl;
+
+                    result = defineAndUpdate(id,ctx.scene(),ss.str());
+                }
+            }
+            break;
+        case slg::CHECKERBOARD2D:
+            {
+                type_xml_node   *pTexture1 = self.first_node("texture1");
+                type_xml_node   *pTexture2 = self.first_node("texture2");
+                if(pTexture1 && pTexture2)
+                {
+                    std::stringstream       ss;
+                    std::string id = getIdFromNode(self);
+
+                    ss << "scene.textures." << id << ".type = checkerboard2d" << std::endl;
+                    ss << "scene.textures." << id << ".texture1 = " << createTexture(ctx,*pTexture1) << std::endl;
+                    ss << "scene.textures." << id << ".texture2 = " << createTexture(ctx,*pTexture2) << std::endl;
+
+                    type_xml_node   *pMapping = self.first_node(constDef::mapping);
+                    if(pMapping)
+                    {
+                        importTextureMapping2D(ss,*pMapping,id);
+                    }
+
+                    result = defineAndUpdate(id,ctx.scene(),ss.str());
+                }
+            }
+            break;
+        case slg::CHECKERBOARD3D:
+            {
+                type_xml_node   *pTexture1 = self.first_node("texture1");
+                type_xml_node   *pTexture2 = self.first_node("texture2");
+
+                if(pTexture1 && pTexture2)
+                {
+                    std::stringstream       ss;
+                    std::string id = getIdFromNode(self);
+
+                    ss << "scene.textures." << id << ".type = checkerboard3d" << std::endl;
+                    ss << "scene.textures." << id << ".texture1 = " << createTexture(ctx,*pTexture1) << std::endl;
+                    ss << "scene.textures." << id << ".texture2 = " << createTexture(ctx,*pTexture2) << std::endl;
+
+                    type_xml_node   *pMapping = self.first_node(constDef::mapping);
+                    if(pMapping)
+                    {
+                        importTextureMapping3D(ss,*pMapping,id);
+                    }
+
+                    result = defineAndUpdate(id,ctx.scene(),ss.str());
+                }
+            }
+            break;
+        case slg::FBM_TEX:
+            {
+                std::stringstream   ss;
+                std::string id = getIdFromNode(self);
+
+                ss << "scene.textures." << id << ".type = fbm" << std::endl;
+
+                appendAttribute(self,id,ss,"octaves");
+                appendAttribute(self,id,ss,"roughness");
+
+                type_xml_node   *pMapping = self.first_node(constDef::mapping);
+                if(pMapping)
+                {
+                    importTextureMapping3D(ss,*pMapping,id);
+                }
+
+                result = defineAndUpdate(id,ctx.scene(),ss.str());
+            }
+            break;
+        case slg::MARBLE:
+            {
+                std::stringstream   ss;
+                std::string id = getIdFromNode(self);
+
+                ss << "scene.textures." << id << ".type = marble" << std::endl;
+
+                appendAttribute(self,id,ss,"octaves");
+                appendAttribute(self,id,ss,"roughness");
+                appendAttribute(self,id,ss,"scale");
+                appendAttribute(self,id,ss,"variation");
+
+                type_xml_node   *pMapping = self.first_node(constDef::mapping);
+                if(pMapping)
+                {
+                    importTextureMapping3D(ss,*pMapping,id);
+                }
+
+                result = defineAndUpdate(id,ctx.scene(),ss.str());
+            }
+            break;
+        case slg::DOTS:
+            {
+                type_xml_node   *pinside = self.first_node("inside");
+                type_xml_node   *poutside = self.first_node("outside");
+
+                if(pinside && poutside)
+                {
+                    std::stringstream       ss;
+                    std::string id = getIdFromNode(self);
+
+                    ss << "scene.textures." << id << ".type = dots" << std::endl;
+                    ss << "scene.textures." << id << ".inside = " << createTexture(ctx,*pinside) << std::endl;
+                    ss << "scene.textures." << id << ".outside = " << createTexture(ctx,*poutside) << std::endl;
+
+                    type_xml_node   *pMapping = self.first_node(constDef::mapping);
+                    if(pMapping)
+                    {
+                        importTextureMapping2D(ss,*pMapping,id);
+                    }
+
+                    result = defineAndUpdate(id,ctx.scene(),ss.str());
+                }
+            }
+            break;
+        case slg::BRICK:
+            {
+                type_xml_node   *bricktex = self.first_node("bricktex");
+                type_xml_node   *mortartex = self.first_node("mortartex");
+                type_xml_node   *brickmodtex = self.first_node("brickmodtex");
+
+                if(bricktex && mortartex && brickmodtex)
+                {
+                    std::stringstream       ss;
+                    std::string id = getIdFromNode(self);
+
+                    ss << "scene.textures." << id << ".type = brick" << std::endl;
+                    ss << "scene.textures." << id << ".bricktex = " << createTexture(ctx,*bricktex) << std::endl;
+                    ss << "scene.textures." << id << ".mortartex = " << createTexture(ctx,*mortartex) << std::endl;
+                    ss << "scene.textures." << id << ".brickmodtex = " << createTexture(ctx,*brickmodtex) << std::endl;
+
+                    appendAttribute(self,id,ss,"brickbond");
+                    appendAttribute(self,id,ss,"brickwidth");
+                    appendAttribute(self,id,ss,"brickheight");
+                    appendAttribute(self,id,ss,"brickdepth");
+                    appendAttribute(self,id,ss,"mortarsize");
+                    appendAttribute(self,id,ss,"brickrun");
+                    appendAttribute(self,id,ss,"brickbevel");
+
+                    type_xml_node   *pMapping = self.first_node(constDef::mapping);
+                    if(pMapping)
+                    {
+                        importTextureMapping3D(ss,*pMapping,id);
+                    }
+
+                    result = defineAndUpdate(id,ctx.scene(),ss.str());
+                }
+            }
+            break;
+        case slg::WINDY:
+            {
+                std::stringstream       ss;
+                std::string id = getIdFromNode(self);
+                ss << "scene.textures." << id << ".type = windy" << std::endl;
+
+                type_xml_node   *pMapping = self.first_node(constDef::mapping);
+                if(pMapping)
+                {
+                    importTextureMapping3D(ss,*pMapping,id);
+                }
+
+                result = defineAndUpdate(id,ctx.scene(),ss.str());
+            }
+            break;
+        case slg::WRINKLED:
+            {
+                std::stringstream       ss;
+                std::string id = getIdFromNode(self);
+                ss << "scene.textures." << id << ".type = wrinkled" << std::endl;
+
+                appendAttribute(self,id,ss,"octaves");
+                appendAttribute(self,id,ss,"roughness");
+
+
+                type_xml_node   *pMapping = self.first_node(constDef::mapping);
+                if(pMapping)
+                {
+                    importTextureMapping3D(ss,*pMapping,id);
+                }
+
+                result = defineAndUpdate(id,ctx.scene(),ss.str());
+            }
+            break;
+        case slg::UV_TEX:
+            {
+                std::stringstream       ss;
+                std::string id = getIdFromNode(self);
+                ss << "scene.textures." << id << ".type = uv" << std::endl;
+
+                type_xml_node   *pMapping = self.first_node(constDef::mapping);
+                if(pMapping)
+                {
+                    importTextureMapping2D(ss,*pMapping,id);
+                }
+
+                result = defineAndUpdate(id,ctx.scene(),ss.str());
+            }
+            break;
+        case slg::BAND_TEX:
+            {
+//                type_xml_node   *amount = self.first_node("amount");
+//
+//                if(amount)
+//                {
+//                    ss << "scene.textures." << id << ".type = band" << std::endl;
+//                    ss << "scene.textures." << id << ".amount = " << createTexture(ctx,*amount) << std::endl;
+//                }
+            }
+            break;
+        }
+    }
+
+    if(result.length() == 0)
+    {//fall back to greay.
+        result = "0.75 0.75 0.75";
+    }
+    return result;
+}
+
 
 }

@@ -33,6 +33,7 @@ namespace gme{
 class DocMat : public DocScopeLocker
 {
 public: //texture.
+    static  const   int  INVALID_TEXTURE = -1;
     static  const   int  CONST_FLOAT;
     static  const   int  CONST_FLOAT3;
     static  const   int  IMAGEMAP;
@@ -54,6 +55,7 @@ public: //texture.
     static  std::string  texGetTypeNameFromType(int type);
     static  int   texGetTypeFromTypeName(const std::string &name);
 public: //material.
+    static  const   int  INVALID_MATERIAL = -1;
     static  const   int  MATTE;
     static  const   int  MIRROR;
     static  const   int  GLASS;

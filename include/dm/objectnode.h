@@ -66,10 +66,6 @@ protected:
         m_transformation = ref.m_transformation;
     }
 public:
-    /** @brief 将指定xml node的内容加载为子节点。
-    **/
-    bool    load(const type_xml_node &node);
-
     /** @brief 将当前对象的内容dump到给定的xml node.
       * @details 如果使用相对路径或者拷贝资源或者导出ctm,都是相对于当前路径展开的计算，因此调用之前需要设置当前路径为资源目标路径。
       * @return self node.

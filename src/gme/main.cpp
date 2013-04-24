@@ -34,7 +34,7 @@ public:
     ~MyApp()
     {
     }
-    bool OnInit()
+    bool OnInit() 
     {
         //initionlize config.
         ///@FIXME: 根据valgrind报告，如果使用wx提供的argv自动转化，其数据在进程销毁时才会清理。因此下文自行处理utf8转化。

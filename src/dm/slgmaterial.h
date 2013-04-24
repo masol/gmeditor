@@ -93,14 +93,18 @@ public:
     **/
     static slg::Material* getSlgMaterial(const std::string &id);
 
-    ///@fixme : 使用rapidxml接口来导入导出材质。
     void createMatteMaterial(ImportContext &ctx,const std::string& id,const std::string &kdpath,const char* emissionPath = NULL,const char* normalPath = NULL);
     void createGrayMaterial(ImportContext &ctx,const std::string& id);
+    ///@fixme : 使用rapidxml接口来导入导出材质。
+    /** @brief 从xmlnode中定义一个材质。如果id未指定，尝试从xmlnode中读入，否则会自动创建一个随机id.
+    **/
+    void createMaterial(ImportContext &ctx,std::string& id,type_xml_node &xmlnode);
     ///@brief 改进slg缺陷，递归检查一个材质是否是光源。
     static  bool    materialIsLight(const slg::Material *pmat);
 
     type_xml_node*   dump(type_xml_node &parent,const slg::Material* pMat,dumpContext &ctx);
 private:
+    //static  void    createMatteMaterial(ImportContext &ctx,const std::string& id);
 };
 
 }

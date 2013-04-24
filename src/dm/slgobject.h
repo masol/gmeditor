@@ -86,12 +86,21 @@ public:
 public:
     /** @brief Loading objects from the model file according to objNode information.
      * @details If not given matid / objid. Then create random id.
+     * @param selfNode : will loading data to selfNode.
     **/
-    static  bool   importObjects(const std::string& path,ObjectNode &objNode,ImportContext &ctx);
+    static  bool   importObjects(const std::string& path,ObjectNode &selfNOde,ImportContext &ctx);
     /** @brief 删除指定模型.
     **/
+    static  int   importSpScene(const std::string &path,ObjectNode &parentNode,ImportContext &ctx);
     bool    removeMesh(const std::string &id);
 private:
+    /** @brief 将指定xml node加载到objNode(node必须为object节点)。
+    **/
+    static  int   importObjects(type_xml_node &node,ObjectNode &objNode,ImportContext &ctx);
+    /** @brief 搜索pNode下的所有子节点，并加入到parentNode中。 
+     * @return the object count of successfully imported.
+    **/
+    static  int   findAndImportObject(type_xml_node &pNode,ObjectNode &parentNode,ImportContext &ctx);
     static  bool   importAiNode(const aiScene *assimpScene,aiNode* pNode,ObjectNode &objNode,ImportContext &ctx);
     /** @brief only load self.no child.
     **/

@@ -115,6 +115,24 @@ const char* constDef::ctxmd5 = "ctxmd5";
 const char* constDef::transformation = "transformation";
 const char* constDef::position = "position";
 const char* constDef::file = "file";
+const char* constDef::emission = "emission";
+const char* constDef::bumptex = "bumptex";
+const char* constDef::normaltex = "normaltex";
+const char* constDef::kd = "kd";
+const char* constDef::kr = "kr";
+const char* constDef::kt = "kt";
+const char* constDef::ioroutside = "ioroutside";
+const char* constDef::iorinside = "iorinside";
+const char* constDef::exp = "exp";
+const char* constDef::amount = "amount";
+const char* constDef::ks = "ks";
+const char* constDef::uroughness = "uroughness";
+const char* constDef::vroughness = "vroughness";
+const char* constDef::ka = "ka";
+const char* constDef::d = "d";
+const char* constDef::index = "index";
+const char* constDef::n = "n";
+const char* constDef::k = "k";
 
 
 

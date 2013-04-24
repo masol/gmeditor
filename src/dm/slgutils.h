@@ -59,6 +59,8 @@ public:
                     o << ' ';
                 o << boost::lexical_cast<std::string>(luxmat.m[row][col]);
             }
+            if(col != 3)
+                o << ' ';
         }
     }
 };

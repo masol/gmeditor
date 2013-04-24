@@ -11,7 +11,7 @@
 //  or FITNESS FOR A PARTICULAR PURPOSE.                                    //
 //                                                                          //
 //  You should have received a copy of the LGPL License along with this     //
-//  program.  If not, see <http://www.render001.com/gmeditor/licenses>.     //
+//  program.  iiiiIf not, see <http://www.render001.com/gmeditor/licenses>.     //
 //                                                                          //
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
@@ -25,6 +25,11 @@
 #include "dm/docio.h"
 #include <boost/locale.hpp>
 #include "propgrid.h"
+
+#include "data/bitmap/open.xpm"
+#include "data/bitmap/save.xpm"
+#include "data/bitmap/help.xpm"
+#include "data/bitmap/delete.xpm"
 
 namespace gme{
 
@@ -48,6 +53,7 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
 {
     m_pGauge = NULL;
     createMenubar();
+	createToolbar();
     createStatusbar();
 
     DECLARE_WXCONVERT;
@@ -72,9 +78,11 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
 
     RenderView        *mainView = new RenderView(this);
     m_mgr.AddPane(mainView, wxCENTER);
-
+	
+	int propFrameStyle = wxNO_BORDER | \
+						 wxCLIP_CHILDREN;
 	// create and show propery pane
-	m_propFrame = new PropFrame(this, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
+	m_propFrame = new PropFrame(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, propFrameStyle);
 	m_mgr.AddPane(m_propFrame, wxRIGHT, gmeWXT("属性设置"));
 	m_mgr.GetPane(m_propFrame).Hide();
     // tell the manager to "commit" all the changes just made
@@ -112,14 +120,50 @@ MainFrame::createMenubar()
         pMenuBar->Append(pEditMenu, gmeWXT("编辑(&E)"));
     }
 	
-	{
-		// view menu
+	{// view menu
 		wxMenu *pViewMenu = new wxMenu();
 		pViewMenu->Append(cmd::GID_PROP, gmeWXT("属性设置(&P)"), gmeWXT("显示属性面板"));
 
 		pMenuBar->Append(pViewMenu, gmeWXT("视图(&V)"));
 	}
+
+	{//Help
+		wxMenu *pHelpMenu = new wxMenu();
+		pHelpMenu->Append(wxID_ABOUT,gmeWXT("关于(&A)"),gmeWXT("关于我们的信息"));
+
+		pMenuBar->Append(pHelpMenu,gmeWXT("帮助(&H)"));
+	}
+
 	SetMenuBar(pMenuBar);
+}
+
+void
+MainFrame::createToolbar()
+{
+	DECLARE_WXCONVERT;
+
+	wxToolBar *pToolBar = CreateToolBar();
+
+	wxBitmap bmpOpen(open_xpm);
+	wxBitmap bmpSave(save_xpm);
+	wxBitmap bmpHelp(help_xpm);
+	wxBitmap bmpDel(delete_xpm);
+
+	pToolBar->AddTool(wxID_OPEN,bmpOpen,gmeWXT("打开&O"),gmeWXT("打开已有场景"));
+	pToolBar->AddTool(cmd::GID_IMPORT,bmpOpen,gmeWXT("导入(&I)"),gmeWXT("从文件中导入模型到当前场景"));
+	pToolBar->AddSeparator();
+
+	
+	pToolBar->AddTool(wxID_SAVE,bmpSave,gmeWXT("保存&S"),gmeWXT("保存已有场景"));
+	pToolBar->AddTool(cmd::GID_EXPORT,bmpSave,gmeWXT("导出(&E)"),gmeWXT("导出现有场景"));
+	pToolBar->AddSeparator();
+
+	pToolBar->AddTool(wxID_DELETE,bmpDel,gmeWXT("删除(&D)"),gmeWXT("删除选中的模型"));
+
+	pToolBar->AddStretchableSpace();
+    pToolBar->AddTool(wxID_ABOUT,bmpHelp,gmeWXT("关于&A"),gmeWXT("关于我们"));
+
+	pToolBar->Realize();
 }
 
 void
@@ -221,12 +265,19 @@ MainFrame::onMenuEditDelete(wxCommandEvent &event)
     {
         dio.deleteModel(id);
     }
+
+	this->m_objectView->delSelection();
 }
 
 
 void
 MainFrame::onMenuHelpAbout(wxCommandEvent &event)
 {
+	DECLARE_WXCONVERT;
+
+	(void)wxMessageBox(gmeWXT("这是一个ABOUT消息框"),
+                       gmeWXT("About us"),
+                       wxOK | wxICON_INFORMATION);
 }
 
 void 

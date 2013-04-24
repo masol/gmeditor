@@ -27,6 +27,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/unordered_map.hpp>
 #include "dm/xmlutil.h"
+#include "importctx.h"
 
 class MD5;
 
@@ -106,9 +107,18 @@ public:
         md5.updateChild(pChild);
 		return pChild;
 	}
+	std::string    createTexture(ImportContext &ctx,type_xml_node &self);
 public:
     static std::string getBondnameFromType(slg::MasonryBond type);
 private:
+    inline const std::string&  defineAndUpdate(const std::string &id,slg::Scene *scene,const std::string &sceneDef)
+    {
+        scene->DefineTextures(sceneDef);
+        m_tex2id[scene->texDefs.GetTexture(id)] = id;
+        return id;
+    }
+    static void  importTextureMapping2D(std::ostream &o,type_xml_node &self,const std::string &id);
+    static void  importTextureMapping3D(std::ostream &o,type_xml_node &self,const std::string &id);
     static type_xml_node*   dumpTextureMapping2D(type_xml_node &parent,const slg::TextureMapping2D *ptm2d,dumpContext &ctx);
     static type_xml_node*   dumpTextureMapping3D(type_xml_node &parent,const slg::TextureMapping3D *ptm3d,dumpContext &ctx);
 

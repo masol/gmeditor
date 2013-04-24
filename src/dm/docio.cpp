@@ -156,6 +156,62 @@ DocIO::loadSlgScene(const std::string &path)
 bool
 DocIO::loadSpsScene(const std::string &path)
 {
+    try
+    {
+        pDocData->closeScene();
+
+        slg::Scene *scene = new slg::Scene();
+
+		// Setup the camera
+		scene->CreateCamera(
+			"scene.camera.lookat = 1.0 6.0 3.0  0.0 0.0 0.5\n"
+			"scene.camera.fieldofview = 60.0\n"
+			);
+
+#if 0
+        luxrays::Properties cmdLineProp;
+        //我们需要自动应用本地的渲染配置(例如平台选择以及设备选择,未指定的话采用本地配置文件，未配置的自动使用最大集合)。
+        {
+            int	platformId = 0;
+            if(Option::instance().is_existed(Setting::OPT_PLATFORMID))
+            {
+                platformId = boost::lexical_cast<int>(Option::instance().get<std::string>(Setting::OPT_PLATFORMID));
+            }
+            cmdLineProp.SetString(Setting::OPT_PLATFORMID,boost::lexical_cast<std::string>(platformId));
+
+            if(Option::instance().is_existed(Setting::OPT_DEVICESTR))
+            {
+                cmdLineProp.SetString(Setting::OPT_DEVICESTR,Option::instance().get<std::string>(Setting::OPT_DEVICESTR));
+            }else{
+                std::string	full = clHardwareInfo::instance().getFullSelectString(platformId);
+                cmdLineProp.SetString(Setting::OPT_DEVICESTR,full);
+            }
+        }
+
+        slg::RenderConfig *config = new slg::RenderConfig(&path, &cmdLineProp);
+        pDocData->m_session.reset(new slg::RenderSession(config));
+
+        //第一步必须把反向表建立起来，后面依赖本表做数据更新。
+        pDocData->matManager.appendMat2IdFromSlg();
+        pDocData->texManager.appendTex2IdFromSlg();
+
+        loadExtraFromScene();
+        std::string scnFile = pDocData->m_session->renderConfig->cfg.GetString("scene.file","");
+        if(scnFile.length())
+        {
+            //slg以当前路径为拼接原则，而不是相对于文件。
+            loadExtraFromSlgSceneFile(boost::filesystem::canonical(scnFile/*,boost::filesystem::absolute(path.parent_path())*/).string());
+        }
+        pDocData->m_session->Start();
+        pDocData->m_started = true;
+        return true;
+#endif
+    }
+    catch(cl::Error err)
+    {
+        std::cerr << err.what() << "(" << err.err() << ")" << std::endl;
+        pDocData->m_session.reset();
+    }
     return false;
 }
 
@@ -164,15 +220,14 @@ DocIO::loadSpsScene(const std::string &path)
 bool
 DocIO::loadScene(const std::string &path)
 {
-    std::string ext = boost::filesystem::gme_ext::get_extension(path);
-    if(boost::iequals(ext,".cfg"))
+    if(boost::iends_with(path,".cfg"))
     {
         return loadSlgScene(path);
     }
-    else if(boost::iequals(ext,".sps"))
+    else if(boost::iends_with(path,".sps"))
     {
         return loadSpsScene(path);
-    }else if(boost::iequals(ext,".ctm"))
+    }else if(boost::iends_with(path,".ctm"))
     {//load open ctm format.
     }else{
     //load assimp format.
@@ -235,25 +290,24 @@ bool
 DocIO::exportScene(const std::string &pathstring,bool bExportResource)
 {
     bool    bExportOK = false;
-    std::string ext = boost::filesystem::gme_ext::get_extension(pathstring);
-    if(boost::iequals(ext,".sps"))
+    if(boost::iends_with(pathstring,".sps"))
     {
         //export sp scene file.
         bExportOK = exportSpoloScene(pathstring,bExportResource);
     }
-    else if(boost::iequals(ext,".cfg"))
+    else if(boost::iends_with(pathstring,".cfg"))
     {
         //export slg scene file.
     }
-    else if(boost::iequals(ext,".ocs"))
+    else if(boost::iends_with(pathstring,".ocs"))
     {
         //export octane scene file.
     }
-    else if(boost::iequals(ext,".vray"))
+    else if(boost::iends_with(pathstring,".vray"))
     {
         //export vray scene file.
     }
-    else if(boost::iequals(ext,".blend"))
+    else if(boost::iends_with(pathstring,".blend"))
     {
         //export blend scene with cycles material file.
     }
@@ -271,14 +325,24 @@ DocIO::importScene(const std::string &path,ObjectNode *pParent)
         pParent = &pDocData->objManager.getRoot();
     }
 
-    ObjectNode  node;
-    if(pDocData->objManager.importObjects(path,node,ctx))
+    bool    bLoadSuc = false;
+    if(boost::iends_with(path,".sps"))
     {
-        editor.addAction(ctx.getAction());
-        return true;
+        int count = ExtraObjectManager::importSpScene(path,*pParent,ctx);
+        bLoadSuc = (count > 0);
+    }else{
+        ObjectNode  node;
+        if(pDocData->objManager.importObjects(path,node,ctx))
+        {
+            pParent->addChild(node);
+            bLoadSuc = true;
+        }
     }
 
-    return false;
+    if(bLoadSuc)
+        editor.addAction(ctx.getAction());
+
+    return bLoadSuc;
 }
 
 

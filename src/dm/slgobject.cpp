@@ -412,6 +412,7 @@ ExtraObjectManager::importAiMesh(const aiScene *assimpScene,aiMesh* pMesh,Object
 }
 
 
+///@todo transform support.
 bool
 ExtraObjectManager::importAiNode(const aiScene *assimpScene,aiNode* pNode,ObjectNode &objNode,ImportContext &ctx)
 {
@@ -457,6 +458,158 @@ ExtraObjectManager::importAiNode(const aiScene *assimpScene,aiNode* pNode,Object
     }
     return bAdd;
 }
+
+int
+ExtraObjectManager::importObjects(type_xml_node &node,ObjectNode &objNode,ImportContext &ctx)
+{
+    int ret = 0;
+    if(boost::iequals(constDef::object,node.name()))
+    {
+        std::string     basepath;
+        type_xml_doc    *pDoc = node.document();
+        BOOST_ASSERT_MSG(pDoc,"invalid document.");
+        type_xml_attr*  pAttr = pDoc->first_attribute(constDef::file);
+        if(pAttr)
+        {
+            basepath = pAttr->value();
+        }
+        if(basepath.length() == 0)
+            basepath = boost::filesystem::current_path().string();
+
+		const char* transform = NULL;
+		pAttr = node.first_attribute();
+		while(pAttr)
+		{
+            if(boost::iequals(constDef::id,pAttr->name()))
+            {
+                objNode.m_id = pAttr->value();
+            }else if(boost::iequals(constDef::name,pAttr->name()))
+            {
+                objNode.m_name = pAttr->value();
+            }else if(boost::iequals(constDef::file,pAttr->name()))
+            {
+                objNode.m_filepath = boost::filesystem::canonical(pAttr->value(),basepath).string();
+            }else if(boost::iequals(constDef::transformation,pAttr->name()))
+            {
+                transform = pAttr->value();
+            }
+            else if(boost::iequals("matid",pAttr->name()))
+            {
+                objNode.m_matid = pAttr->value();
+            }
+			pAttr = pAttr->next_attribute();
+		}
+		//开始读入material.
+		type_xml_node *pMatNode = node.first_node(constDef::material);
+
+		bool  loadOk = false;
+		if(pMatNode)
+		{
+            Doc::instance().pDocData->matManager.createMaterial(ctx,objNode.m_matid,*pMatNode);
+
+            //开始加载内容。
+            if(objNode.m_filepath.length())
+            {
+                //开始设置transform
+                if(transform)
+                {
+                }
+
+                ///@fixme : how to set transform?
+                loadOk = importObjects(objNode.filepath(),objNode,ctx);
+            }
+		}
+
+		if(loadOk)
+		{
+            ret++;
+        }else{
+            objNode.m_filepath.clear();
+        }
+
+		//process sub object.
+        type_xml_node   *pChild = node.first_node(constDef::object);
+        while(pChild)
+        {
+            ObjectNode  childNode;
+            int tmpRet = importObjects(*pChild,childNode,ctx);
+            if(tmpRet)
+            {
+                ret += tmpRet;
+                objNode.addChild(childNode);
+            }
+            pChild = pChild->next_sibling(constDef::object);
+        }
+    }
+    return ret;
+}
+
+int
+ExtraObjectManager::findAndImportObject(type_xml_node &node,ObjectNode &parentNode,ImportContext &ctx)
+{
+    int ret = 0;
+    if(boost::iequals(constDef::object,node.name()))
+    {
+        ObjectNode obj;
+        int tmpRet = importObjects(node,obj,ctx);
+        if(tmpRet)
+        {
+            ret += tmpRet;
+            parentNode.addChild(obj);
+        }
+    }else{
+        type_xml_node *pChild = node.first_node();
+        while(pChild)
+        {
+            ret += findAndImportObject(*pChild,parentNode,ctx);
+            pChild = pChild->next_sibling();
+        }
+    }
+    return ret;
+}
+
+int
+ExtraObjectManager::importSpScene(const std::string &path,ObjectNode &parentNode,ImportContext &ctx)
+{
+    int    count = 0;
+    std::ifstream file(path.c_str(),std::ifstream::binary);
+    if (file) {
+        BOOST_SCOPE_EXIT( (&file))
+        {
+            file.close();
+        }BOOST_SCOPE_EXIT_END
+        // get length of file:
+        file.seekg (0, file.end);
+        int length = file.tellg();
+        file.seekg (0, file.beg);
+
+        char * buffer = new char [length + 1];
+        BOOST_SCOPE_EXIT( (buffer))
+        {
+            delete[] buffer;
+        }BOOST_SCOPE_EXIT_END
+        // read data as a block:
+        file.read (buffer,length);
+        if(file)
+        {
+            // ...buffer contains the entire file...
+            buffer[length] = 0;
+            type_xml_doc    doc;
+            const int flag = NS_RAPIDXML::parse_no_element_values | NS_RAPIDXML::parse_trim_whitespace;
+            try{
+                doc.parse<flag>(buffer);
+                boost::filesystem::path tmp = boost::filesystem::canonical(path);
+                doc.append_attribute(doc.allocate_attribute(constDef::file,tmp.parent_path().string().c_str()));
+                count = findAndImportObject(doc,parentNode,ctx);
+            }catch(std::exception &e)
+            {
+                (void)e;
+            }
+        }
+    }
+    return count;
+}
+
 
 bool
 ExtraObjectManager::importObjects(const std::string& path,ObjectNode &obj,ImportContext &ctx)

@@ -94,8 +94,63 @@ DocMat::texGetTypeNameFromType(int type)
 int
 DocMat::texGetTypeFromTypeName(const std::string &name)
 {
-    BOOST_ASSERT_MSG(false,"unreachable code!");
-    return -1;
+    if(name == "constfloat1")
+    {
+        return slg::CONST_FLOAT;
+    }else if(name == "constfloat3")
+    {
+        return slg::CONST_FLOAT3;
+    }else if(name == "imagemap")
+    {
+        return slg::IMAGEMAP;
+    }else if(name == "scale")
+    {
+        return slg::SCALE_TEX;
+    }else if(name == "fresnelapproxn")
+    {
+        return slg::FRESNEL_APPROX_N;
+    }else if(name == "fresnelapproxk")
+    {
+        return slg::FRESNEL_APPROX_K;
+    }else if(name == "mix")
+    {
+        return slg::MIX_TEX;
+    }else if(name == "add")
+    {
+        return slg::ADD_TEX;
+    }else if(name == "checkerboard2d")
+    {
+        return slg::CHECKERBOARD2D;
+    }else if(name == "checkerboard3d")
+    {
+        return slg::CHECKERBOARD3D;
+    }else if(name == "fbm")
+    {
+        return slg::FBM_TEX;
+    }else if(name == "marble")
+    {
+        return slg::MARBLE;
+    }else if(name == "dots")
+    {
+        return slg::DOTS;
+    }else if(name == "brick")
+    {
+        return slg::BRICK;
+    }else if(name == "windy")
+    {
+        return slg::WINDY;
+    }else if(name == "wrinkled")
+    {
+        return slg::WRINKLED;
+    }else if(name == "uv")
+    {
+        return slg::UV_TEX;
+    }else if(name == "band")
+    {
+        return slg::BAND_TEX;
+    }
+    //BOOST_ASSERT_MSG(false,"unreachable code!");
+    return INVALID_TEXTURE;
 }
 
 
@@ -182,8 +237,8 @@ DocMat::getTypeFromTypeName(const std::string &name)
     {
         return METAL2;
     }
-    BOOST_ASSERT_MSG(false,"unreachable code!");
-    return -1;
+    //BOOST_ASSERT_MSG(false,"unreachable code!");
+    return INVALID_MATERIAL;
 }
 
 

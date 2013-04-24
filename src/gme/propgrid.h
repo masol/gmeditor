@@ -26,10 +26,10 @@
 
 namespace gme{
 
-class PropFrame : public wxFrame
+class PropFrame : public wxScrolledWindow
 {
 public:
-    PropFrame(wxFrame *parent, const wxString& title, const wxPoint& pos, const wxSize& size , const long& style);
+    PropFrame(wxFrame *parent, wxWindowID id, const wxPoint& pos, const wxSize& size , const long& style);
     ~PropFrame();
 
     wxPropertyGridManager*  m_pPropGridManager;
@@ -40,7 +40,7 @@ public:
 
     wxMenuItem*     m_itemVetoDragging;
 
-
+private:
     void CreateGrid( int style, int extraStyle );
     void FinalizeFramePosition();
 
@@ -72,7 +72,7 @@ public:
 
     void OnIdle( wxIdleEvent& event );
 
-
+public:
     //bool RunTests( bool fullTest, bool interactive = false );
 	void updateDate();
 private:
