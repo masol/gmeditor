@@ -193,6 +193,7 @@ void PropFrame::OnPropertyGridChange( wxPropertyGridEvent& event )
 	wxStringClientData *clientObj = (wxStringClientData *)property->GetClientObject();
 	if((clientObj != NULL)&&(clientObj->GetData() == gmeWXT("type")))
 	{
+		wxLogMessage(gmeWXT("tonemap type changed"));
 		wxAny value = property->GetValue();
 		if(clientName == gmeWXT("film.tonemap"))
 		{

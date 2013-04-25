@@ -32,6 +32,7 @@ set(GME_SRCS
     objectview.cpp
     mainframe.cpp
 	main.cpp
+	data/xpmres.cpp
    )
 
 if(wxWidgets_CXX_FLAGS)

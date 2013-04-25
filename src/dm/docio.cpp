@@ -25,8 +25,10 @@
 #include <slg/slg.h>
 #include <luxrays/utils/properties.h>
 #include <boost/algorithm/string/predicate.hpp>
-#include <fstream>
+#include <boost/math/constants/constants.hpp>
 #include <boost/scope_exit.hpp>
+#include <boost/format.hpp>
+#include <fstream>
 #include "eigenutil.h"
 #include "slgutils.h"
 #include "docprivate.h"
@@ -42,6 +44,32 @@
 #include <CL/cl.hpp>
 #endif
 
+/** @brief 初始化时如果未定义摄像机，则显示全部内容。
+**/
+static  inline
+void    initViewAllCamera(slg::Scene *scene,float fov = 60.0f)
+{
+    BOOST_ASSERT_MSG(scene->dataSet == NULL, "wrong usage initViewAllCamera");
+    luxrays::BBox   box;
+    std::vector<luxrays::ExtMesh *>::iterator    it = scene->extMeshCache.meshes.begin();
+    while(it != scene->extMeshCache.meshes.end())
+    {
+        box = luxrays::Union(box,(*it)->GetBBox());
+        it++;
+    }
+    luxrays::BSphere    bs = box.BoundingSphere();
+    std::stringstream   ss;
+
+    float aspect = 640.0f / 480.0f;
+    float aspectradius = bs.rad / (aspect < 1.0f ? 1.0f : aspect);
+    ///@fixme can not get aspect here,how to do?
+    float  radius = aspectradius / std::tan(((fov / 180.0 ) * boost::math::constants::pi<float>() ) / 2.0);
+    ss <<"scene.camera.lookat = " << boost::format("%f %f %f  %f %f %f")
+                            % (bs.center.x  + radius) % (bs.center.y  + radius)% (bs.center.z  + radius)
+                            % bs.center.x % bs.center.y % bs.center.z << std::endl;
+    ss << "scene.camera.fieldofview = " << fov <<std::endl;
+    scene->CreateCamera(ss.str());
+}
 
 namespace gme
 {
@@ -163,11 +191,49 @@ DocIO::loadSpsScene(const std::string &path)
         slg::Scene *scene = new slg::Scene();
 
 		// Setup the camera
-		scene->CreateCamera(
-			"scene.camera.lookat = 1.0 6.0 3.0  0.0 0.0 0.5\n"
-			"scene.camera.fieldofview = 60.0\n"
-			);
+//		scene->CreateCamera(
+//			"scene.camera.lookat = 1.0 6.0 3.0  0.0 0.0 0.5\n"
+//			"scene.camera.fieldofview = 60.0\n"
+//			);
 
+        ImportContext   ctx(scene);
+
+        //首先，尝试将path指定的资源加载。
+        int count = ExtraObjectManager::importSpScene(path,pDocData->objManager.getRoot(),ctx);
+
+        if(count > 0)
+        {//如果加载数量大于0才继续。
+            initViewAllCamera(scene,60.0f);
+
+            scene->AddSkyLight(
+                    "scene.skylight.dir = 0.166974 0.59908 0.783085\n"
+                    "scene.skylight.turbidity = 2.2\n"
+                    "scene.skylight.gain = 0.8 0.8 0.8\n"
+                    );
+            scene->AddSunLight(
+                    "scene.sunlight.dir = 0.166974 0.59908 0.783085\n"
+                    "scene.sunlight.turbidity = 2.2\n"
+                    "scene.sunlight.gain = 0.8 0.8 0.8\n"
+                    );
+
+            slg::RenderConfig *config = new slg::RenderConfig(
+				"image.width = 640\n"
+				"image.height = 480\n"
+				"opencl.platform.index = 0\n"
+				"opencl.cpu.use = 0\n"
+				"opencl.gpu.use = 1\n"
+				"opencl.gpu.workgroup.size = 64\n"
+				"path.maxdepth = 8\n"
+				"path.russianroulette.depth = 5\n"
+				"batch.halttime = 0\n",
+				*scene);
+            pDocData->m_session.reset(new slg::RenderSession(config));
+            pDocData->m_session->Start();
+            pDocData->m_started = true;
+            return true;
+        }else{
+            delete scene;
+        }
 #if 0
         luxrays::Properties cmdLineProp;
         //我们需要自动应用本地的渲染配置(例如平台选择以及设备选择,未指定的话采用本地配置文件，未配置的自动使用最大集合)。
@@ -327,7 +393,7 @@ DocIO::importScene(const std::string &path,ObjectNode *pParent)
 
     bool    bLoadSuc = false;
     if(boost::iends_with(path,".sps"))
-    {
+    {//importSpScene中假定传入Parent对象。
         int count = ExtraObjectManager::importSpScene(path,*pParent,ctx);
         bLoadSuc = (count > 0);
     }else{

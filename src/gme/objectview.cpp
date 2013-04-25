@@ -56,6 +56,48 @@ ObjectView::ObjectView(wxWindow* parent, wxWindowID id,const wxPoint& pos, const
 }
 
 void
+ObjectView::refreshAll(void)
+{
+    m_treelist->DeleteAllItems();
+    refresh();
+}
+
+void
+ObjectView::refresh(const std::string &id)
+{
+	wxTreeListItem  parent = FindItem(id,m_treelist->GetRootItem());
+	BOOST_ASSERT_MSG(parent,"data panic....pls check");
+	DocObj	obj;
+	DocMat	mat;
+	gme::ObjectNode &root = obj.getRootObject();
+	ObjectNode *pParentNode = root.findObject(id);
+	BOOST_ASSERT_MSG(pParentNode,"data panic...");
+	ObjectNode::type_child_container::const_iterator it = pParentNode->begin();
+	while(it != pParentNode->end())
+	{
+		addChild(parent,*it,mat);
+		it++;
+	}
+}
+
+wxTreeListItem
+ObjectView::FindItem(const std::string &id,const wxTreeListItem &parent)
+{
+	const ObjectViewClientData* clientData = dynamic_cast<const ObjectViewClientData*>(m_treelist->GetItemData(parent));
+	if(clientData && (clientData->m_objid == id))
+		return parent;
+	wxTreeListItem child = m_treelist->GetFirstChild(parent);
+	while(child)
+	{
+		wxTreeListItem founded = FindItem(id,child);
+		if(founded)
+			return founded;
+		child = m_treelist->GetNextSibling(child);
+	}
+	return NULL;
+}
+
+void
 ObjectView::refresh(void)
 {
     gme::DocObj dobj;
@@ -140,6 +182,8 @@ ObjectView::delSelection()
     }
     return false;
 }
+
+
 
 
 void

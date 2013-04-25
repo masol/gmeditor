@@ -471,10 +471,41 @@ ExtraMaterialManager::createMaterial(ImportContext &ctx,std::string& id,type_xml
             case slg::MIX:
                 {
                     ///@todo 额外处理material1
-                    //appendTexture(ctx,id,xmlnode,ss,"material1",texManager);
-                    //appendTexture(ctx,id,xmlnode,ss,constDef::material2,texManager);
+                    std::string     ida,idb;
+                    bool    bAdded = false;
+                    type_xml_node   *pChildA = xmlnode.first_node(constDef::material);
+                    if(pChildA)
+                    {
+                        type_xml_node *pChildB = pChildA->next_sibling(constDef::material);
+                        if(pChildB)
+                        {
+                            bAdded = true;
+                            createMaterial(ctx,ida,*pChildA);
+                            createMaterial(ctx,idb,*pChildB);
+                            bool    bSwap = false;
+                            type_xml_attr *pAttr = pChildA->first_attribute(constDef::position);
+                            if(pAttr && boost::iequals(pAttr->value(),"B"))
+                            {
+                                bSwap = true;
+                            }
+                            pAttr = pChildB->first_attribute(constDef::position);
+                            if(pAttr && boost::iequals(pAttr->value(),"A"))
+                            {
+                                bSwap = true;
+                            }
+                            const std::string  &A = (bSwap ? idb : ida);
+                            const std::string  &B = (bSwap ? ida : idb);
+                            ss << "scene.materials." << id << ".material1 = " << A <<std::endl;
+                            ss << "scene.materials." << id << ".material2 = " << B <<std::endl;
+                            appendTexture(ctx,id,xmlnode,ss,constDef::amount,texManager);
+                        }
+                    }
+                    if(!bAdded)
+                    {
+                        std::cerr << "invalid mix material,degrade to grey matte material." << std::endl;
+                        ss.clear();
+                    }
                 }
-                appendTexture(ctx,id,xmlnode,ss,constDef::amount,texManager);
                 break;
             case slg::NULLMAT:
                 break;

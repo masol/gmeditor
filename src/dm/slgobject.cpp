@@ -599,7 +599,7 @@ ExtraObjectManager::importSpScene(const std::string &path,ObjectNode &parentNode
             try{
                 doc.parse<flag>(buffer);
                 boost::filesystem::path tmp = boost::filesystem::canonical(path);
-                doc.append_attribute(doc.allocate_attribute(constDef::file,tmp.parent_path().string().c_str()));
+                doc.append_attribute(allocate_attribute(&doc,constDef::file,tmp.parent_path().string()));
                 count = findAndImportObject(doc,parentNode,ctx);
             }catch(std::exception &e)
             {

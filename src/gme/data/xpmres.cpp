@@ -16,22 +16,24 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_DM_DOCOBJ_H
-#define  GME_DM_DOCOBJ_H
+#include "config.h"
+#include "xpmres.h"
 
-
-#include "dm/doc.h"
-#include "dm/objectnode.h"
+#include "bitmap/cut.xpm"
+#include "bitmap/delete.xpm"
+#include "bitmap/help.xpm"
+#include "bitmap/open.xpm"
+#include "bitmap/save.xpm"
 
 namespace gme{
 
-class DocObj : public DocScopeLocker
-{
-public:
-    ObjectNode&   getRootObject();
-};
+namespace xpm{
 
-}
+type_xpm cut = cut_xpm;
+type_xpm _delete = delete_xpm;
+type_xpm help = help_xpm;
+type_xpm open = open_xpm;
+type_xpm save = save_xpm;
 
-#endif //GME_DM_DOCOBJ_H
-
+} //end namespace xpm
+} //end namepsace gme

@@ -120,6 +120,8 @@ public:
         return m_matid;
     }
 	inline	const std::string&		name(void)const{
+        if(m_name.length() == 0)
+            return m_id;
 		return m_name;
 	}
 	inline  void    name(const std::string &n){

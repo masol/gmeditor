@@ -23,13 +23,10 @@
 #include "stringutil.h"
 #include "cmdids.h"
 #include "dm/docio.h"
+#include "dm/docobj.h"
 #include <boost/locale.hpp>
 #include "propgrid.h"
-
-#include "data/bitmap/open.xpm"
-#include "data/bitmap/save.xpm"
-#include "data/bitmap/help.xpm"
-#include "data/bitmap/delete.xpm"
+#include "data/xpmres.h"
 
 namespace gme{
 
@@ -67,18 +64,18 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
     wxTextCtrl *text2 = new wxTextCtrl(this, -1, gmeWXT("Pane 2 - sample text"),
                   wxDefaultPosition, wxSize(200,150),
                   wxNO_BORDER | wxTE_MULTILINE);
-
+	wxLog::SetActiveTarget(new wxLogTextCtrl(text2));
     m_objectView = new ObjectView(this,wxID_ANY,wxDefaultPosition,wxSize(200,450));
 
     // add the panes to the manager
 	wxMBConvUTF8	conv;
     m_mgr.AddPane(m_objectView, wxLEFT, gmeWXT("模型一览"));
     m_mgr.AddPane(text2, wxBOTTOM, gmeWXT("Pane Number Two"));
-	
+
 
     RenderView        *mainView = new RenderView(this);
     m_mgr.AddPane(mainView, wxCENTER);
-	
+
 	int propFrameStyle = wxNO_BORDER | \
 						 wxCLIP_CHILDREN;
 	// create and show propery pane
@@ -119,7 +116,7 @@ MainFrame::createMenubar()
 
         pMenuBar->Append(pEditMenu, gmeWXT("编辑(&E)"));
     }
-	
+
 	{// view menu
 		wxMenu *pViewMenu = new wxMenu();
 		pViewMenu->Append(cmd::GID_PROP, gmeWXT("属性设置(&P)"), gmeWXT("显示属性面板"));
@@ -144,16 +141,16 @@ MainFrame::createToolbar()
 
 	wxToolBar *pToolBar = CreateToolBar();
 
-	wxBitmap bmpOpen(open_xpm);
-	wxBitmap bmpSave(save_xpm);
-	wxBitmap bmpHelp(help_xpm);
-	wxBitmap bmpDel(delete_xpm);
+	wxBitmap bmpOpen(xpm::open);
+	wxBitmap bmpSave(xpm::save);
+	wxBitmap bmpHelp(xpm::help);
+	wxBitmap bmpDel(xpm::_delete);
 
 	pToolBar->AddTool(wxID_OPEN,bmpOpen,gmeWXT("打开&O"),gmeWXT("打开已有场景"));
 	pToolBar->AddTool(cmd::GID_IMPORT,bmpOpen,gmeWXT("导入(&I)"),gmeWXT("从文件中导入模型到当前场景"));
 	pToolBar->AddSeparator();
 
-	
+
 	pToolBar->AddTool(wxID_SAVE,bmpSave,gmeWXT("保存&S"),gmeWXT("保存已有场景"));
 	pToolBar->AddTool(cmd::GID_EXPORT,bmpSave,gmeWXT("导出(&E)"),gmeWXT("导出现有场景"));
 	pToolBar->AddSeparator();
@@ -205,7 +202,18 @@ MainFrame::onMenuFileImport(wxCommandEvent &event)
 	if ( OpenDialog->ShowModal() == wxID_OK )
 	{
         gme::DocIO  dio;
-        dio.importScene(boost::locale::conv::utf_to_utf<char>(OpenDialog->GetPath().ToStdWstring()),NULL);
+		gme::DocObj	obj;
+		std::string id;
+		gme::ObjectNode *pParent = NULL;
+		if(this->m_objectView->getSelection(id))
+            pParent = obj.getRootObject().findObject(id);
+		if(dio.importScene(boost::locale::conv::utf_to_utf<char>(OpenDialog->GetPath().ToStdWstring()),pParent))
+        {
+            if(id.length())
+                this->m_objectView->refresh(id);
+            else
+                this->m_objectView->refreshAll();
+		}
 	}
 	OpenDialog->Close(); // Or OpenDialog->Destroy() ?
 }
@@ -219,6 +227,7 @@ MainFrame::onMenuFileOpen(wxCommandEvent &event)
 	{
         gme::DocIO  dio;
         dio.loadScene(boost::locale::conv::utf_to_utf<char>(OpenDialog->GetPath().ToStdWstring()));
+        this->m_objectView->refreshAll();
 	}
 	OpenDialog->Close(); // Or OpenDialog->Destroy() ?
 }
@@ -280,7 +289,7 @@ MainFrame::onMenuHelpAbout(wxCommandEvent &event)
                        wxOK | wxICON_INFORMATION);
 }
 
-void 
+void
 MainFrame::onShowPropertyPane(wxCommandEvent &event)
 {
 	m_mgr.GetPane(m_propFrame).Show();

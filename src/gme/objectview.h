@@ -47,11 +47,15 @@ protected:
     void OnItemContextMenu(wxTreeListEvent& event);
     void addChild(wxTreeListItem& parent,const ObjectNode &pNode,DocMat &pobjop);
     void refresh(void);
+	wxTreeListItem FindItem(const std::string &id,const wxTreeListItem &parent);
 public:
     /** @brief 返回当前选择对象的id.
     **/
     bool    getSelection(std::string &id);
 	bool	delSelection();
+
+    void    refreshAll(void);
+	void	refresh(const std::string &parent);
 
     ObjectView(wxWindow* parent, wxWindowID id,const wxPoint& pos, const wxSize& size);
     ~ObjectView();
