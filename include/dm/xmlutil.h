@@ -67,6 +67,15 @@ namespace gme
 		static  const char* index;
 		static  const char* n;
 		static  const char* k;
+		static  const char* camera;
+		static  const char* active;
+		static  const char* target;
+		static  const char* up;
+		static  const char* fieldOfView;
+		static  const char* clipHither;
+		static  const char* clipYon;
+		static  const char* lensRadius;
+		static  const char* focalDistance;
     };
 
     inline const char* getFilepathFromDocument(const type_xml_node &node)

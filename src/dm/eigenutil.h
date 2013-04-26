@@ -21,13 +21,14 @@
 
 #include <Eigen/Core>
 #include "slg/rendersession.h"
+#include <boost/format.hpp>
 
 namespace gme{
 
 class EigenUtil
 {
 public:
-    static  inline  void    AssignFromSlgMatrix(Eigen::Matrix4f &mat,const luxrays::Matrix4x4 &luxmat)
+    static  inline  void    AssignFromSlg(Eigen::Matrix4f &mat,const luxrays::Matrix4x4 &luxmat)
     {
         for(int col = 0; col < 4; col++)
         {
@@ -37,6 +38,41 @@ public:
             }
         }
     }
+    static  inline  void    AssignFromSlg(Eigen::Vector3f &v,const luxrays::Point &pt)
+    {
+        v[0] = pt.x;
+        v[1] = pt.y;
+        v[2] = pt.z;
+    }
+    static  inline  void    AssignFromSlg(Eigen::Vector3f &v,const luxrays::Vector &vec)
+    {
+        v[0] = vec[0];
+        v[1] = vec[1];
+        v[2] = vec[2];
+    }
+
+    static  inline  void    AssignToSlg(const Eigen::Vector3f &vec,luxrays::Vector &v)
+    {
+        v[0] = vec[0];
+        v[1] = vec[1];
+        v[2] = vec[2];
+    }
+    static  inline  void    AssignToSlg(const Eigen::Vector3f &v,luxrays::Point &pt)
+    {
+        pt.x = v[0];
+        pt.y = v[1];
+        pt.z = v[2];
+    }
+
+    ///@brief may throw exception!
+    static  inline  void    AssignFromString(Eigen::Vector3f &v,const std::string value)
+    {
+        std::vector<float> va = luxrays::Properties::ConvertToFloatVector(value);
+        v[0] = va[0];
+        v[1] = va[1];
+        v[2] = va[2];
+    }
+
     static  inline  void    OutputLuxmat(std::ostream &o,const luxrays::Matrix4x4 &luxmat)
     {
         for(int col = 0; col < 4; col++)
@@ -48,6 +84,11 @@ public:
                 o << boost::lexical_cast<std::string>(luxmat.m[row][col]);
             }
         }
+    }
+
+    static  inline  std::string   Vector2String(const Eigen::Vector3f &v)
+    {
+        return boost::str(boost::format("%.3f %.3f %.3f") % v[0] % v[1] % v[2]);
     }
 };
 

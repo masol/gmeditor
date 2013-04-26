@@ -24,6 +24,7 @@
 #include "cmdids.h"
 #include "dm/docio.h"
 #include "dm/docobj.h"
+#include "dm/docctl.h"
 #include <boost/locale.hpp>
 #include "propgrid.h"
 #include "data/xpmres.h"
@@ -39,6 +40,12 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_MENU(wxID_DELETE, MainFrame::onMenuEditDelete)
 	EVT_MENU(wxID_ABOUT, MainFrame::onMenuHelpAbout)
 	EVT_MENU(cmd::GID_PROP, MainFrame::onShowPropertyPane)
+	EVT_MENU(cmd::GID_RENDER_START,MainFrame::onRenderStart)
+	EVT_MENU(cmd::GID_RENDER_STOP,MainFrame::onRenderStop)
+	EVT_MENU(cmd::GID_RENDER_PAUSE,MainFrame::onRenderPause)
+	EVT_UPDATE_UI(wxID_DELETE,MainFrame::onUpdateMenuEditDelete)
+	EVT_UPDATE_UI(cmd::GID_RENDER_START,MainFrame::onUpdateRenderStart)
+	EVT_UPDATE_UI(cmd::GID_RENDER_STOP,MainFrame::onUpdateRenderStop)	
 	EVT_SIZE(MainFrame::onSize)
 	EVT_CLOSE(MainFrame::onClose)
 
@@ -113,6 +120,10 @@ MainFrame::createMenubar()
     {//Edit
         wxMenu *pEditMenu = new wxMenu();
         pEditMenu->Append(wxID_DELETE, gmeWXT("删除(&D)"), gmeWXT("删除选中模型"));
+		pEditMenu->AppendSeparator();
+		pEditMenu->Append(cmd::GID_RENDER_START,gmeWXT("开始渲染"),gmeWXT("开始渲染当前场景"));
+		pEditMenu->Append(cmd::GID_RENDER_STOP,gmeWXT("结束渲染"),gmeWXT("结束当前场景的渲染"));
+		pEditMenu->Append(cmd::GID_RENDER_PAUSE,gmeWXT("暂停渲染"),gmeWXT("暂停渲染当前场景"));
 
         pMenuBar->Append(pEditMenu, gmeWXT("编辑(&E)"));
     }
@@ -139,28 +150,62 @@ MainFrame::createToolbar()
 {
 	DECLARE_WXCONVERT;
 
-	wxToolBar *pToolBar = CreateToolBar();
+	{//File Toolbar
+		wxAuiToolBar *pFileTbr = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+                                                  wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW| wxAUI_TB_HORIZONTAL);
 
-	wxBitmap bmpOpen(xpm::open);
-	wxBitmap bmpSave(xpm::save);
-	wxBitmap bmpHelp(xpm::help);
-	wxBitmap bmpDel(xpm::_delete);
+		wxBitmap bmpOpen(xpm::open);
+		wxBitmap bmpSave(xpm::save);
+		wxBitmap bmpImport(xpm::import);
+		wxBitmap bmpExport(xpm::_export);
 
-	pToolBar->AddTool(wxID_OPEN,bmpOpen,gmeWXT("打开&O"),gmeWXT("打开已有场景"));
-	pToolBar->AddTool(cmd::GID_IMPORT,bmpOpen,gmeWXT("导入(&I)"),gmeWXT("从文件中导入模型到当前场景"));
-	pToolBar->AddSeparator();
+		//pToolBar->InsertTool(0,wxID_OPEN,gmeWXT(""),bmpOpen,wxNullBitmap,wxITEM_NORMAL,gmeWXT("打开"),gmeWXT("打开已有场景"));
+		pFileTbr->AddTool(wxID_OPEN,gmeWXT("File"),bmpOpen,gmeWXT("打开"));
+		pFileTbr->AddTool(cmd::GID_IMPORT,gmeWXT("File"),bmpImport,gmeWXT("导入"));
+		pFileTbr->AddSeparator();
+		pFileTbr->AddTool(wxID_SAVE,gmeWXT("File"),bmpSave,gmeWXT("保存"));
+		pFileTbr->AddTool(cmd::GID_EXPORT,gmeWXT("File"),bmpExport,gmeWXT("导出"));
+		
+		pFileTbr->Realize();	
+		
+		m_mgr.AddPane(pFileTbr,wxAuiPaneInfo().Name(gmeWXT("filetoolbar")).Caption(gmeWXT("文件操作工具栏")).
+                       ToolbarPane().Top());
+	}
+	
+	{//Edit ToolBar
+		wxAuiToolBar *pEditTbr = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+												  wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW| wxAUI_TB_HORIZONTAL);
 
+		wxBitmap bmpDel(xpm::_delete);
+		wxBitmap bmpStart(xpm::start);
+		wxBitmap bmpStop(xpm::stop);
+		wxBitmap bmpPause(xpm::pause);
 
-	pToolBar->AddTool(wxID_SAVE,bmpSave,gmeWXT("保存&S"),gmeWXT("保存已有场景"));
-	pToolBar->AddTool(cmd::GID_EXPORT,bmpSave,gmeWXT("导出(&E)"),gmeWXT("导出现有场景"));
-	pToolBar->AddSeparator();
+		pEditTbr->AddTool(wxID_DELETE,gmeWXT("Edit"),bmpDel,gmeWXT("删除"));
+		pEditTbr->AddSeparator();
+		pEditTbr->AddTool(cmd::GID_RENDER_START,gmeWXT("RenderCtrl"),bmpStart,gmeWXT("开始渲染"));
+		pEditTbr->AddTool(cmd::GID_RENDER_STOP,gmeWXT("RenderCtrl"),bmpStop,gmeWXT("结束渲染"));
+		pEditTbr->AddTool(cmd::GID_RENDER_PAUSE,gmeWXT("RenderCtrl"),bmpPause,gmeWXT("暂停渲染"));
+		pEditTbr->Realize();
 
-	pToolBar->AddTool(wxID_DELETE,bmpDel,gmeWXT("删除(&D)"),gmeWXT("删除选中的模型"));
+		m_mgr.AddPane(pEditTbr,wxAuiPaneInfo().Name(gmeWXT("edittoolbar")).Caption(gmeWXT("编辑场景工具栏")).
+			ToolbarPane().Top().Position(1));
+	}
 
-	pToolBar->AddStretchableSpace();
-    pToolBar->AddTool(wxID_ABOUT,bmpHelp,gmeWXT("关于&A"),gmeWXT("关于我们"));
+	{//Help Toolbar
+		wxAuiToolBar *pHelpTbr = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+                                                  wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW| wxAUI_TB_HORIZONTAL);
 
-	pToolBar->Realize();
+		wxBitmap bmpHelp(xpm::help);
+
+		pHelpTbr->AddTool(wxID_ABOUT,gmeWXT("Help"),bmpHelp,gmeWXT("关于(&A)"));
+
+		pHelpTbr->Realize();
+
+		m_mgr.AddPane(pHelpTbr,wxAuiPaneInfo().Name(gmeWXT("helptoolbar")).Caption(gmeWXT("帮助工具栏")).
+			ToolbarPane().Top().Right());
+	}
+
 }
 
 void
@@ -292,9 +337,68 @@ MainFrame::onMenuHelpAbout(wxCommandEvent &event)
 void
 MainFrame::onShowPropertyPane(wxCommandEvent &event)
 {
-	m_mgr.GetPane(m_propFrame).Show();
+	this->showPropFrame();
+}
 
+PropFrame*
+MainFrame::getPropFrame()
+{
+	return this->m_propFrame;
+}
+
+// 显示属性面板
+void
+MainFrame::showPropFrame()
+{
+	m_mgr.GetPane(m_propFrame).Show();
 	m_mgr.Update();
+}
+
+void
+MainFrame::onRenderStart(wxCommandEvent &event)
+{
+	DocCtl dctl;
+	if(!dctl.isRuning())
+	{
+		dctl.start();
+	}
+}
+
+void 
+MainFrame::onRenderStop(wxCommandEvent &event)
+{
+	DocCtl dctl;
+	if(dctl.isRuning())
+	{
+		dctl.stop();
+	}
+}
+
+void 
+MainFrame::onRenderPause(wxCommandEvent &event)
+{
+
+
+}
+
+void
+MainFrame::onUpdateRenderStart(wxUpdateUIEvent& event)
+{
+	DocCtl dctl;
+	event.Enable(!dctl.isRuning());
+}
+
+void 
+MainFrame::onUpdateRenderStop(wxUpdateUIEvent& event)
+{
+	DocCtl dctl;
+	event.Enable(dctl.isRuning());
+}
+
+void 
+MainFrame::onUpdateMenuEditDelete(wxUpdateUIEvent& event)
+{
+	event.Enable(this->m_objectView->isSelected());
 }
 
 } //namespace gme

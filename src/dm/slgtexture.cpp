@@ -26,6 +26,7 @@
 #include "luxrays/core/exttrianglemesh.h"
 #include <boost/filesystem.hpp>
 #include "utils/MD5.h"
+#include "utils/strext.h"
 #include "slgutils.h"
 #include <boost/format.hpp>
 
@@ -1092,6 +1093,31 @@ ExtraTextureManager::createTexture(ImportContext &ctx,type_xml_node &self)
     }
     return result;
 }
+
+
+bool
+ExtraTextureManager::defineImageMapTexture(ImportContext &ctx,const std::string &src,std::string &id)
+{
+    std::string fullpath = ctx.findFile(src,true);
+    if(fullpath.length())
+    {
+        std::stringstream   tex;
+        if(id.length() == 0)
+            id = string::uuid_to_string(boost::uuids::random_generator()());
+
+        tex << "scene.textures." << id << ".type = imagemap" << std::endl;
+        tex << "scene.textures." << id << ".file = " << fullpath << std::endl;
+        ctx.scene()->DefineTextures(tex.str());
+
+        m_slgname2filepath_map[id] = fullpath;
+        m_tex2id[ctx.scene()->texDefs.GetTexture(id)] = id;
+
+        ctx.addAction(slg::IMAGEMAPS_EDIT);
+        return true;
+    }
+    return false;
+}
+
 
 
 }

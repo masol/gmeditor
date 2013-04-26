@@ -27,6 +27,7 @@
 #@FIXME: wxWidgets_LIBRARIES will been overwrite by some instruction.
 set(wxWidgets_LIBRARIES_Cache ${wxWidgets_LIBRARIES})
 set(GME_SRCS
+	property.cpp
 	propgrid.cpp
     renderview.cpp
     objectview.cpp

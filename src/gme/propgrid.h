@@ -23,6 +23,8 @@
 #include <wx/aui/aui.h>
 #include <wx/propgrid/propgrid.h>
 #include <boost/shared_ptr.hpp>
+#include <boost/unordered_map.hpp>
+#include "dm/docsetting.h"
 
 namespace gme{
 
@@ -73,9 +75,14 @@ private:
     void OnIdle( wxIdleEvent& event );
 
 public:
-    //bool RunTests( bool fullTest, bool interactive = false );
-	void updateDate();
+	// update properties value
+	void updateProps();
+	void showMatProps(const std::string &matId);
+
 private:
+	DocSettingHelper	m_docsettingHelper;
+	std::string			m_filmPgName;
+	std::string			m_matPgName;
     DECLARE_EVENT_TABLE()
 };
 

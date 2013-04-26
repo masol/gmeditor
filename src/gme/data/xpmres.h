@@ -26,9 +26,14 @@ namespace xpm{
 typedef const char *const *type_xpm;
 extern  type_xpm cut;
 extern  type_xpm _delete;
+extern  type_xpm _export;
 extern  type_xpm help;
+extern  type_xpm import;
 extern  type_xpm open;
+extern  type_xpm pause;
 extern  type_xpm save;
+extern  type_xpm start;
+extern  type_xpm stop;
 
 } //end namespace xpm
 } //end namepsace gme

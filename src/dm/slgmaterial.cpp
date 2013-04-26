@@ -569,11 +569,40 @@ ExtraMaterialManager::createGrayMaterial(ImportContext &ctx,const std::string &i
     ctx.addAction(slg::MATERIAL_TYPES_EDIT);
 }
 
+
 void
 ExtraMaterialManager::createMatteMaterial(ImportContext &ctx,const std::string& id,const std::string &kdpath,const char* emissionPath,const char* normalPath)
 {
-//    slg::Material   *pMat;
-    createGrayMaterial(ctx,id);
+    BOOST_ASSERT(id.length() > 0);
+    std::cerr << "createMatteMaterial = " << kdpath << std::endl;
+
+    std::string  kdId;
+    ExtraTextureManager &texManager = Doc::instance().pDocData->texManager;
+    if(texManager.defineImageMapTexture(ctx,kdpath,kdId))
+    {
+        std::stringstream       ss;
+        ss << "scene.materials." << id << ".type = matte" << std::endl;
+        ss << "scene.materials." << id << ".kd = " << kdId << std::endl;
+
+        std::string  emID;
+        if(emissionPath && texManager.defineImageMapTexture(ctx,emissionPath,emID))
+        {
+            ss << "scene.materials." << id << ".emission = " << emID << std::endl;
+        }
+
+        std::string normalId;
+        if(normalPath && texManager.defineImageMapTexture(ctx,normalPath,normalId))
+        {
+            ss << "scene.materials." << id << ".normaltex = " << normalId << std::endl;
+        }
+        ctx.scene()->DefineMaterials(ss.str());
+        m_mat2id[ctx.scene()->matDefs.GetMaterial(id)] = id;
+        ctx.addAction(slg::MATERIALS_EDIT);
+        ctx.addAction(slg::MATERIAL_TYPES_EDIT);
+    }
+    else{
+        createGrayMaterial(ctx,id);
+    }
 }
 
 

@@ -23,6 +23,8 @@
 #include "slg/slg.h"
 #include "slg/sdl/scene.h"
 #include "slg/editaction.h"
+#include <boost/filesystem.hpp>
+#include <boost/algorithm/string/replace.hpp>
 
 namespace gme{
 
@@ -34,11 +36,77 @@ class ImportContext
 private:
     slg::Scene      *m_scene;
     int             m_editAction;
+    std::string     m_docBasePath;
+    bool fileFiles(const boost::filesystem::path &filename,const boost::filesystem::path &dir,boost::filesystem::path &result)
+    {
+        boost::filesystem::path pathfile = dir / filename;
+        if(boost::filesystem::exists(pathfile) && boost::filesystem::is_regular_file(pathfile))
+        {
+            result = pathfile;
+            return true;
+        }
+        boost::filesystem::directory_iterator   end_iter;
+        for(boost::filesystem::directory_iterator dir_iter(dir);dir_iter != end_iter ; ++dir_iter)
+        {
+            if(boost::filesystem::is_directory(*dir_iter))
+            {
+                if(fileFiles(filename,*dir_iter,result))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    static  inline char    getSeparator(void)
+    {
+#ifdef WIN32
+        return '\\';
+#else
+        return '/';
+#endif
+    }
+    static  inline  void  replaceSeparator(std::string &srcPath)
+    {
+#ifdef WIN32
+        boost::replace_all(srcPath,"/","\\");
+#else
+        boost::replace_all(srcPath,"\\","/");
+#endif
+    }
 public:
-    ImportContext(slg::Scene* s)
+    inline std::string  findFile(const std::string &srcpath,bool bSearch)
+    {
+        if(srcpath.length() == 0)
+            return srcpath;
+        boost::filesystem::path fsPath;
+        std::string path = srcpath;
+        try{
+            replaceSeparator(path);
+            fsPath = boost::filesystem::canonical(path,m_docBasePath);
+            if(boost::filesystem::exists(fsPath) && boost::filesystem::is_regular_file(fsPath))
+            {
+                return fsPath.string();
+            }
+        }catch(std::exception &e)
+        {
+        }
+        boost::filesystem::path filename = boost::filesystem::path(path).filename();
+        if(bSearch && fileFiles(filename,m_docBasePath,fsPath))
+        {// search file in m_docBasePath.
+            return fsPath.string();
+        }
+        return "";
+    }
+    inline const std::string&  docBasepath(void)const
+    {
+        return m_docBasePath;
+    }
+    ImportContext(slg::Scene* s,const std::string &srcFile)
     {
         m_scene = s;
         m_editAction = 0;
+        m_docBasePath = boost::filesystem::canonical(srcFile).parent_path().string();
     }
     inline void addAction(const slg::EditAction a)
     {

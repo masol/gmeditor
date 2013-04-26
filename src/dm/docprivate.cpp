@@ -47,6 +47,7 @@ DocPrivate::closeScene(void)
     objManager.clear();
     matManager.clear();
     texManager.clear();
+    camManager.clear();
 }
 
 

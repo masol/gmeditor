@@ -21,6 +21,8 @@
 #include "stringutil.h"
 #include "dm/docobj.h"
 #include <wx/sizer.h>
+#include "propgrid.h"
+#include "mainframe.h"
 
 
 namespace gme{
@@ -183,13 +185,28 @@ ObjectView::delSelection()
     return false;
 }
 
+bool
+ObjectView::isSelected()
+{
+	if(m_treelist->GetSelection()!= NULL)
+		return true ;
+	else 
+		return false;
+}
+
 
 
 
 void
 ObjectView::OnSelectionChanged(wxTreeListEvent& event)
 {
-
+	// 当选中item时，显示mat对应的属性
+	wxTreeListItem  item = m_treelist->GetSelection();
+	const wxString &mat = m_treelist->GetItemText(item, 1);
+	std::string matId = std::string(mat.mb_str());
+	MainFrame *mainFram = (MainFrame *)this->GetParent();
+	PropFrame *propFrame = mainFram->getPropFrame();
+	propFrame->showMatProps(matId);
 }
 
 void

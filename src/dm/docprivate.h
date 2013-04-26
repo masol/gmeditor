@@ -23,6 +23,7 @@
 #include "slgtexture.h"
 #include "slgmaterial.h"
 #include "slgobject.h"
+#include "slgcamera.h"
 #include <boost/shared_ptr.hpp>
 
 namespace gme{
@@ -44,6 +45,7 @@ public:
 	ExtraTextureManager               texManager;
 	ExtraMaterialManager              matManager;
 	ExtraObjectManager                objManager;
+	ExtraCameraManager                camManager;
 public:
     //关闭当前打开场景。
     void    closeScene(void);

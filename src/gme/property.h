@@ -16,24 +16,48 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_DM_DOCCTL_H
-#define  GME_DM_DOCCTl_H
+#ifndef GME_PROPERTY_H
+#define GME_PROPERTY_H
 
-
-#include "dm/doc.h"
+#include <wx/propgrid/propgrid.h>
+#include "dm/xmlutil.h"
 
 namespace gme{
 
-class DocCtl : public DocScopeLocker
+class PropertyBase
 {
 public:
-    bool    isRuning();
-    bool    start();
-    bool    stop();
-    bool    pause();
+	PropertyBase(){};
+	~PropertyBase(){};
+	
+	virtual void create(wxPGProperty *parent, type_xml_node *pNode) = 0;
+private:
+
 };
 
+class MaterialProperty : public PropertyBase
+{
+public:
+	MaterialProperty();
+	~MaterialProperty(){};
+	
+	void	 create(wxPGProperty *parent, type_xml_node *pNode);
+
+private:
+	wxPGChoices m_soc;
+};
+
+class TexProperty : public PropertyBase
+{
+public:
+	TexProperty();
+	~TexProperty(){};
+	
+	void create(wxPGProperty *parent, type_xml_node *pNode);
+private:
+	wxPGChoices m_soc;
+};
+
+
 }
-
-#endif //GME_DM_DOCIO_H
-
+#endif // GME_PROPERTY_H

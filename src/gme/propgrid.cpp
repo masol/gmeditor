@@ -20,9 +20,9 @@
 #include "wx/wxprec.h"
 #include "wx/wx.h"
 #include <wx/numdlg.h>
+#include <boost/lexical_cast.hpp>
 
 // -----------------------------------------------------------------------
-
 // Main propertygrid header.
 #include <wx/propgrid/propgrid.h>
 // Extra property classes.
@@ -34,7 +34,8 @@
 
 #include <wx/artprov.h>
 #include "stringutil.h"
-#include "dm/docsetting.h"
+#include "property.h"
+#include "mainframe.h"
 
 namespace gme{
 
@@ -185,17 +186,16 @@ void PropFrame::OnPropertyGridChanging( wxPropertyGridEvent& event )
 void PropFrame::OnPropertyGridChange( wxPropertyGridEvent& event )
 {
     wxPGProperty* property = event.GetProperty();
-	const wxString& clientName = property->GetName();
-	if(clientName == property->GetLabel())
+	const wxString& propName = property->GetName();
+	if(property->IsCategory() || (propName == property->GetLabel()))
 		return;
 	DECLARE_WXCONVERT;
 	// get clientData
 	wxStringClientData *clientObj = (wxStringClientData *)property->GetClientObject();
 	if((clientObj != NULL)&&(clientObj->GetData() == gmeWXT("type")))
 	{
-		wxLogMessage(gmeWXT("tonemap type changed"));
 		wxAny value = property->GetValue();
-		if(clientName == gmeWXT("film.tonemap"))
+		if(propName == gmeWXT("film.tonemap"))
 		{
 			int index = wxANY_AS(value, int);
 			if(index == 0)
@@ -207,7 +207,6 @@ void PropFrame::OnPropertyGridChange( wxPropertyGridEvent& event )
 			{
 				property->DeleteChildren();
 				wxPGProperty* reinhard02 = new  wxEnumProperty(gmeWXT("混合曝光"), wxPG_LABEL);
-				reinhard02->SetValue(gmeWXT(""));
 				m_pPropGridManager->SetPropertyReadOnly(reinhard02);
 				reinhard02->AppendChild( new wxFloatProperty(gmeWXT("混合值"), gmeWXT("reinhard02.burn")));
 				reinhard02->AppendChild( new wxFloatProperty(gmeWXT("postscale"), wxPG_LABEL));
@@ -226,17 +225,11 @@ void PropFrame::OnPropertyGridChange( wxPropertyGridEvent& event )
 		// Don't handle 'unspecified' values
 		if ( value.IsNull() )
 			return;
-		float floatValue;
-		gme::DocSetting docSetting;
-		if ( clientName == gmeWXT("film.tonemap.linear.scale") )
-		{
-			floatValue = wxANY_AS(value, float);
-			docSetting.setLinearScale(floatValue);
-			// @todo:set linear scale by doc
-		}
-		else if ( clientName == gmeWXT("film.tonemap.reinhard02.burn") )
-			//@todo: set burn by doc
-			floatValue = wxANY_AS(value, float);
+		wxPropertyGridManager* pgman = m_pPropGridManager;
+		pgman->Refresh();
+		//std::string strName = std::string(propName.mb_str());
+		//std::string strValue = std::string(wxANY_AS(value, wxString).mb_str());
+		//this->m_docsettingHelper.setToneMapProperty(strName, strValue);
 	}
 }
 
@@ -304,35 +297,10 @@ void PropFrame::PopulateWithScene ()
 {
 	DECLARE_WXCONVERT;
     wxPropertyGridManager* pgman = m_pPropGridManager;
-    wxPropertyGridPage* pg = pgman->GetPage(gmeWXT("Scene Setting"));
+	wxPropertyGridPage* pg = pgman->GetPage(gmeWXT(m_matPgName.c_str()));
 
-	// camera setting
-	wxPGProperty* pCamera = pg->Append( new wxPropertyCategory(gmeWXT("camera"),wxPG_LABEL) );
-	pg->AppendIn( pCamera, new wxStringProperty( gmeWXT("fieldofview"), gmeWXT("fieldofview") ) );
-	pg->AppendIn( pCamera, new wxStringProperty( gmeWXT("focaldistance"), gmeWXT("focaldistance") ) );
-	pg->AppendIn( pCamera, new wxStringProperty( gmeWXT("lensradius"), gmeWXT("lensradius") ) );
-	pg->AppendIn( pCamera, new wxStringProperty( gmeWXT("lookat"), gmeWXT("lookat") ) );
-	pg->AppendIn( pCamera, new wxStringProperty( gmeWXT("up"), gmeWXT("up") ) );
-
-	// infinitelight setting
-	wxPGProperty* pInfLight = pg->Append( new wxPropertyCategory(gmeWXT("infinitelight"),gmeWXT("infinitelight")) );
-	pg->AppendIn( pInfLight, new wxStringProperty( gmeWXT("gain"), gmeWXT("infinitelight.gain") ) );
-    pg->AppendIn( pInfLight, new wxStringProperty( gmeWXT("shift"), gmeWXT("infinitelight.shift") ) );
-
-
-	// skylight setting
-	wxPGProperty* pSkyLight = pg->Append( new wxPropertyCategory(gmeWXT("skylight"),gmeWXT("skylight")) );
-	pg->AppendIn( pSkyLight, new wxStringProperty( gmeWXT("dir"), gmeWXT("skylight.dir") ) );
-    pg->AppendIn( pSkyLight, new wxStringProperty( gmeWXT("gain"), gmeWXT("skylight.gain") ) );
-	pg->AppendIn( pSkyLight, new wxStringProperty( gmeWXT("turbidity"), gmeWXT("skylight.turbidity") ) );
-
-	// sunlight setting
-	wxPGProperty* pSunLight = pg->Append( new wxPropertyCategory(gmeWXT("sunlight"),gmeWXT("sunlight")) );
-	pg->AppendIn( pSunLight, new wxStringProperty( gmeWXT("dir"), gmeWXT("sunlight.dir") ) );
-    pg->AppendIn( pSunLight, new wxStringProperty( gmeWXT("gain"), gmeWXT("sunlight.gain") ) );
-	pg->AppendIn( pSunLight, new wxStringProperty( gmeWXT("relsize"), gmeWXT("sunlight.relsize") ) );
-	pg->AppendIn( pSunLight, new wxStringProperty( gmeWXT("turbidity"), gmeWXT("sunlight.turbidity") ) );
-
+	// scene meterial properties
+	wxPGProperty* pMat = pg->Append(new wxPropertyCategory(gmeWXT("材质"),gmeWXT("scene.materials")));
 
 }
 
@@ -342,30 +310,17 @@ void PropFrame::PopulateWithFilm ()
 {
 	DECLARE_WXCONVERT;
     wxPropertyGridManager* pgman = m_pPropGridManager;
-    wxPropertyGridPage* pg = pgman->GetPage(gmeWXT("Film Setting"));
+	wxPropertyGridPage* pg = pgman->GetPage(gmeWXT(m_filmPgName.c_str()));
 
+	// append film tonemap
+	wxPGProperty* pf = pg->Append(new wxPropertyCategory(gmeWXT("图像"),gmeWXT("film")));
     // Append is ideal way to add items to wxPropertyGrid.
-
 	wxPGChoices soc;
 	soc.Add( gmeWXT("linear"));
     soc.Add( gmeWXT("reinhard02"));
 	wxPGProperty* pid = new wxEnumProperty(gmeWXT("图像映射"),gmeWXT("film.tonemap"), soc);
 	pid->SetClientObject(new wxStringClientData(gmeWXT("type")));
-	//wxPGProperty* pid = pg->Append( new wxEnumProperty(gmeWXT("图像映射"),wxPG_LABEL, soc));
-	pid->AppendChild( new wxFloatProperty(gmeWXT("线性映射"),gmeWXT("linear.scale")) );
-	/*
-	{
-		//wxPGProperty* reinhard02 = pid->AppendChild( new wxPropertyCategory(gmeWXT("莱因哈德"), wxPG_LABEL)) ;
-		wxPGProperty* reinhard02 = new wxFloatProperty(gmeWXT("莱因哈德"), wxPG_LABEL);
-		//reinhard02->SetClientObject( new wxStringClientData(gmeWXT("reinhard02")));
-		reinhard02->AppendChild( new wxFloatProperty(gmeWXT("曝光"), gmeWXT("reinhard02.burn")));
-		reinhard02->AppendChild( new wxFloatProperty(gmeWXT("postscale"), wxPG_LABEL));
-		reinhard02->AppendChild( new wxFloatProperty(gmeWXT("prescale"), wxPG_LABEL));
-
-		pid->AppendChild(reinhard02);
-	}
-	*/
-	pg->Append(pid);
+	pg->AppendIn(pf, pid);
 
 }
 
@@ -497,13 +452,13 @@ void PropFrame::PopulateGrid()
 	DECLARE_WXCONVERT;
     wxPropertyGridManager* pgman = m_pPropGridManager;
 
-    pgman->AddPage(gmeWXT("Film Setting"));
+	pgman->AddPage(gmeWXT(this->m_filmPgName.c_str()));
 
     PopulateWithFilm();
 
     // Use wxMyPropertyGridPage (see above) to test the
     // custom wxPropertyGridPage feature.
-    pgman->AddPage(gmeWXT("Scene Setting"));
+	pgman->AddPage(gmeWXT(this->m_matPgName.c_str()));
 
     PopulateWithScene();
 
@@ -569,11 +524,11 @@ void PropFrame::CreateGrid( int style, int extraStyle )
 
     //
     // Set somewhat different unspecified value appearance
-    wxPGCell cell;
+/*    wxPGCell cell;
     cell.SetText("Unspecified");
     cell.SetFgCol(*wxLIGHT_GREY);
     m_propGrid->SetUnspecifiedValueAppearance(cell);
-
+*/
     PopulateGrid();
 
     // Change some attributes in all properties
@@ -602,7 +557,8 @@ PropFrame::PropFrame(wxFrame *parent, wxWindowID id, const wxPoint& pos, const w
            wxScrolledWindow(parent, id, pos, size, style)
 {
     //SetIcon(wxICON(sample));
-
+	m_filmPgName = "Film Setting";
+	m_matPgName = "Material Properties";
     m_propGrid = NULL;
     m_panel = NULL;
 /*
@@ -636,13 +592,75 @@ PropFrame::PropFrame(wxFrame *parent, wxWindowID id, const wxPoint& pos, const w
                 //| wxPG_EX_NATIVE_DOUBLE_BUFFERING
                 //| wxPG_EX_HELP_AS_TOOLTIPS
               );
-	updateDate();
+	updateProps();
 
 }
 
-void PropFrame::updateDate()
+void PropFrame::updateProps()
 {
 	// update property date from doc
+	DECLARE_WXCONVERT;
+    wxPropertyGridManager* pgman = m_pPropGridManager;
+	wxPropertyGridPage* pg = pgman->GetPage(gmeWXT(this->m_filmPgName.c_str()));
+	
+	// update film tonemap properties
+	boost::unordered_map< std::string, boost::unordered_map<std::string, std::string> > propMap;
+	bool result = this->m_docsettingHelper.getToneMap(propMap);
+	if(result)
+	{
+		// clear previous data
+		wxPGProperty *pToneMap = pg->GetProperty(gmeWXT("film.tonemap"));
+		pToneMap->DeleteChildren();
+		// show
+		boost::unordered_map< std::string, boost::unordered_map<std::string, std::string> >::iterator mit;
+		mit = propMap.begin();
+		if(mit != propMap.end())
+		{
+			std::string toneMapType = mit->first;
+			boost::unordered_map<std::string, std::string> paramMap = mit->second;
+			if(toneMapType == "linear")
+			{
+				wxPGProperty *pToneMap = pg->GetProperty(gmeWXT("film.tonemap"));
+				pToneMap->DeleteChildren();
+				wxPGProperty* plin = new wxEnumProperty(gmeWXT("线性映射"),gmeWXT("linear"));
+				pg->SetPropertyReadOnly(plin);
+				boost::unordered_map<std::string, std::string>::iterator mit;
+				for(mit = paramMap.begin(); mit != paramMap.end(); mit++)
+				{
+					if(mit->first == "scale")
+					{
+						plin->AppendChild( new wxFloatProperty(gmeWXT("映射值"),gmeWXT(mit->first.c_str()), boost::lexical_cast<float>(mit->second)));
+					}
+				}
+				pToneMap->AppendChild(plin);
+			}
+		}
+	}
+}
+
+void 
+PropFrame::showMatProps(const std::string &matId)
+{
+	DECLARE_WXCONVERT;
+    wxPropertyGridManager* pgman = m_pPropGridManager;
+	wxPropertyGridPage* pgScene = pgman->GetPage(gmeWXT(this->m_matPgName.c_str()));
+	wxPGProperty *pMats = pgScene->GetProperty(gmeWXT("scene.materials"));
+	
+	// 如果属性面板没有显示，则显示面板，并切换至scene页面
+	MainFrame *mainFram = (MainFrame *)this->GetParent();
+	mainFram->showPropFrame();
+	pgman->SelectPage(gmeWXT(this->m_matPgName.c_str()));
+	// 清空之前的数据
+	pMats->DeleteChildren();
+	// update scene metarial
+	// set a specified metarial to test (chair)
+	type_xml_doc    xmldoc;
+	type_xml_node *pNode = m_docsettingHelper.getMaterial(matId, xmldoc);
+	//type_xml_node *pNode = m_docsettingHelper.getMaterial("chair", *pScene);
+	
+	MaterialProperty matProp;
+	matProp.create(pMats, pNode);
+	pgman->RefreshGrid();
 }
 
 void PropFrame::FinalizeFramePosition()

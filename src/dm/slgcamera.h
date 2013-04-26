@@ -16,24 +16,48 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_DM_DOCCTL_H
-#define  GME_DM_DOCCTl_H
+#ifndef  GME_DM_SLGCAMERA_H
+#define  GME_DM_SLGCAMERA_H
 
-
-#include "dm/doc.h"
+#include "dm/doccamera.h"
+#include "slg/slg.h"
 
 namespace gme{
 
-class DocCtl : public DocScopeLocker
-{
+class ExtraCameraManager{
+    friend class DocCamera;
+private:
+    type_cam_vector     m_cam_vector;
+    int                 m_current_select;
 public:
-    bool    isRuning();
-    bool    start();
-    bool    stop();
-    bool    pause();
+    ExtraCameraManager(){
+        m_current_select = -1;
+    }
+    inline  void    clear(void)
+    {
+        m_cam_vector.clear();
+        m_current_select = -1;
+    }
+    Camera* getSelected(void)
+    {
+        if(m_current_select >= 0)
+            return &m_cam_vector[m_current_select];
+        return NULL;
+    }
+    inline int getSelect(void)const
+    {
+        return m_current_select;
+    }
+    inline void setSelect(int sel)
+    {
+        m_current_select = sel;
+    }
+    int findAndImportCamera(type_xml_node &node);
+    int dumpAll(type_xml_node &parent);
+public:
+    static void saveTo(slg::RenderSession *session,Camera &cam);
 };
 
 }
 
-#endif //GME_DM_DOCIO_H
-
+#endif  //GME_DM_SLGCAMERA_H

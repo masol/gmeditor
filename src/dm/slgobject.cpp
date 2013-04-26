@@ -308,6 +308,40 @@ ExtraObjectManager::importCTMObj(const std::string& path,ObjectNode &obj,ImportC
     return bAdd;
 }
 
+void
+ExtraObjectManager::importAiMaterial(aiMaterial *pMat,const std::string &id,ImportContext &ctx)
+{
+    aiString    diffusePath;
+    aiString    normalPath;
+    aiString    emmisionPath;
+    unsigned int matCount = pMat->GetTextureCount(aiTextureType_DIFFUSE);
+    if(!matCount || (pMat->GetTexture(aiTextureType_DIFFUSE, 0, &diffusePath, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) )
+    {
+        diffusePath.Clear();
+    }
+
+    matCount = pMat->GetTextureCount(aiTextureType_NORMALS);
+    if(!matCount || (pMat->GetTexture(aiTextureType_NORMALS, 0, &normalPath, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) )
+    {
+        normalPath.Clear();
+    }
+
+    matCount = pMat->GetTextureCount(aiTextureType_EMISSIVE);
+    if(!matCount || (pMat->GetTexture(aiTextureType_EMISSIVE, 0, &emmisionPath, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) )
+    {
+        emmisionPath.Clear();
+    }
+
+//    matCount = pMat->GetTextureCount(aiTextureType_REFLECTION);
+//    if(matCount && (pMat->GetTexture(aiTextureType_EMISSIVE, 0, &emmisionPath, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS) )
+//    {//metal material.
+//    }
+
+//    type_xml_node   *pNode = doc->allocate_node(NS_RAPIDXML::node_element,)
+    Doc::instance().pDocData->matManager.createMatteMaterial(ctx,id,diffusePath.C_Str(),emmisionPath.C_Str(),normalPath.C_Str());
+}
+
+
 bool
 ExtraObjectManager::importAiMesh(const aiScene *assimpScene,aiMesh* pMesh,ObjectNode &obj,ImportContext &ctx)
 {
@@ -327,28 +361,7 @@ ExtraObjectManager::importAiMesh(const aiScene *assimpScene,aiMesh* pMesh,Object
                 ///@todo add material name if exist.
                 aiMaterial *pMat = assimpScene->mMaterials[pMesh->mMaterialIndex];
 
-                aiString    diffusePath;
-                aiString    normalPath;
-                aiString    emmisionPath;
-                unsigned int matCount = pMat->GetTextureCount(aiTextureType_DIFFUSE);
-                if(!matCount || (pMat->GetTexture(aiTextureType_DIFFUSE, 0, &diffusePath, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) )
-                {
-                    diffusePath.Clear();
-                }
-
-                matCount = pMat->GetTextureCount(aiTextureType_NORMALS);
-                if(!matCount || (pMat->GetTexture(aiTextureType_NORMALS, 0, &normalPath, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) )
-                {
-                    normalPath.Clear();
-                }
-
-                matCount = pMat->GetTextureCount(aiTextureType_EMISSIVE);
-                if(!matCount || (pMat->GetTexture(aiTextureType_EMISSIVE, 0, &emmisionPath, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) )
-                {
-                    emmisionPath.Clear();
-                }
-
-                Doc::instance().pDocData->matManager.createMatteMaterial(ctx,obj.matid(),diffusePath.C_Str(),emmisionPath.C_Str(),normalPath.C_Str());
+                importAiMaterial(pMat,obj.matid(),ctx);
             }else{
                 Doc::instance().pDocData->matManager.createGrayMaterial(ctx,obj.matid());
             }
@@ -395,6 +408,12 @@ ExtraObjectManager::importAiMesh(const aiScene *assimpScene,aiMesh* pMesh,Object
                 }
                 break;
             }
+        }
+
+        if(pMesh->HasNormals())
+        {
+            normal = new luxrays::Normal[pMesh->mNumVertices];
+            memcpy(normal,pMesh->mNormals,sizeof(luxrays::Normal) * pMesh->mNumVertices);
         }
 
         ///@fixme : 这里加入matrix导入.
@@ -598,9 +617,23 @@ ExtraObjectManager::importSpScene(const std::string &path,ObjectNode &parentNode
             const int flag = NS_RAPIDXML::parse_no_element_values | NS_RAPIDXML::parse_trim_whitespace;
             try{
                 doc.parse<flag>(buffer);
-                boost::filesystem::path tmp = boost::filesystem::canonical(path);
-                doc.append_attribute(allocate_attribute(&doc,constDef::file,tmp.parent_path().string()));
-                count = findAndImportObject(doc,parentNode,ctx);
+                doc.append_attribute(allocate_attribute(&doc,constDef::file,ctx.docBasepath()));
+
+                type_xml_node   *pScene = doc.first_node("scene");
+                type_xml_node   *pObjects = NULL;
+                if(pScene)
+                {
+                    pObjects = pScene->first_node("objects");
+                    type_xml_node *pCamera = pScene->first_node("cameras");
+                    if(pCamera)
+                    {//load camera database.
+                        Doc::instance().pDocData->camManager.findAndImportCamera(*pCamera);
+                    }
+                }
+                ///@brief load object library here.
+                if(!pObjects)
+                    pObjects = &doc;
+                count = findAndImportObject(*pObjects,parentNode,ctx);
             }catch(std::exception &e)
             {
                 (void)e;
@@ -628,18 +661,20 @@ ExtraObjectManager::importObjects(const std::string& path,ObjectNode &obj,Import
     //使用assimp加载其它数据。
         Assimp::Importer importer;
 
+//        std::cerr << "importer.GetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE) = " << importer.GetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE) <<std::endl;
+//        importer.SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE,80.f);
+
         const aiScene* assimpScene = importer.ReadFile( path,
                 aiProcess_ValidateDataStructure  |
                 aiProcess_GenSmoothNormals       |
-                aiProcess_CalcTangentSpace       |
                 aiProcess_Triangulate            |
                 aiProcess_JoinIdenticalVertices  |
                 aiProcess_ImproveCacheLocality   |
-                aiProcess_FixInfacingNormals     |
+//                aiProcess_FixInfacingNormals     |
                 aiProcess_FindDegenerates        |
                 aiProcess_FindInvalidData        |
-                aiProcess_GenUVCoords            |
                 aiProcess_OptimizeMeshes         |
+                aiProcess_OptimizeGraph          |
                 aiProcess_Debone                 |
                 aiProcess_SortByPType);
         if(assimpScene && assimpScene->HasMeshes())
@@ -670,9 +705,15 @@ luxrays::ExtMesh*
 ExtraObjectManager::getExtMesh(const std::string &objid)
 {
     slg::RenderSession* session = Doc::instance().pDocData->getSession();
+    luxrays::ExtMesh* ret = NULL;
     if(session && session->renderConfig->scene)
     {
-        return session->renderConfig->scene->meshDefs.GetExtMesh(objid);
+        try{
+            ret = session->renderConfig->scene->meshDefs.GetExtMesh(objid);
+        }catch(std::runtime_error &e)
+        {
+            ret = NULL;
+        }
     }
     return NULL;
 }

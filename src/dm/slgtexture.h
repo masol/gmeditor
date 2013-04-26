@@ -110,6 +110,7 @@ public:
 	std::string    createTexture(ImportContext &ctx,type_xml_node &self);
 public:
     static std::string getBondnameFromType(slg::MasonryBond type);
+    bool defineImageMapTexture(ImportContext &ctx,const std::string &src,std::string &id);
 private:
     inline const std::string&  defineAndUpdate(const std::string &id,slg::Scene *scene,const std::string &sceneDef)
     {

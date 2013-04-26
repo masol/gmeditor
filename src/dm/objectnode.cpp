@@ -133,7 +133,15 @@ const char* constDef::d = "d";
 const char* constDef::index = "index";
 const char* constDef::n = "n";
 const char* constDef::k = "k";
-
+const char* constDef::camera = "camera";
+const char* constDef::active = "active";
+const char* constDef::target = "target";
+const char* constDef::up = "up";
+const char* constDef::fieldOfView = "fieldOfView";
+const char* constDef::clipHither = "clipHither";
+const char* constDef::clipYon = "clipYon";
+const char* constDef::lensRadius = "lensRadius";
+const char* constDef::focalDistance = "focalDistance";
 
 
 

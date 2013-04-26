@@ -97,11 +97,13 @@ private:
     /** @brief 将指定xml node加载到objNode(node必须为object节点)。
     **/
     static  int   importObjects(type_xml_node &node,ObjectNode &objNode,ImportContext &ctx);
-    /** @brief 搜索pNode下的所有子节点，并加入到parentNode中。 
+    /** @brief 搜索pNode下的所有子节点，并加入到parentNode中。
      * @return the object count of successfully imported.
     **/
     static  int   findAndImportObject(type_xml_node &pNode,ObjectNode &parentNode,ImportContext &ctx);
     static  bool   importAiNode(const aiScene *assimpScene,aiNode* pNode,ObjectNode &objNode,ImportContext &ctx);
+
+    static  void   importAiMaterial(aiMaterial *pMat,const std::string &id,ImportContext &ctx);
     /** @brief only load self.no child.
     **/
     static  bool   importAiMesh(const aiScene *assimpScene,aiMesh* pMesh,ObjectNode &objNode,ImportContext &ctx);

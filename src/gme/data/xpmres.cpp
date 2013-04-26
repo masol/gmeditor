@@ -21,9 +21,16 @@
 
 #include "bitmap/cut.xpm"
 #include "bitmap/delete.xpm"
+#include "bitmap/export.xpm"
 #include "bitmap/help.xpm"
+#include "bitmap/import.xpm"
 #include "bitmap/open.xpm"
+#include "bitmap/pause.xpm"
 #include "bitmap/save.xpm"
+#include "bitmap/start.xpm"
+#include "bitmap/stop.xpm"
+
+
 
 namespace gme{
 
@@ -31,9 +38,14 @@ namespace xpm{
 
 type_xpm cut = cut_xpm;
 type_xpm _delete = delete_xpm;
+type_xpm _export = export_xpm;
 type_xpm help = help_xpm;
+type_xpm import = import_xpm;
 type_xpm open = open_xpm;
+type_xpm pause = pause_xpm;
 type_xpm save = save_xpm;
+type_xpm start = start_xpm;
+type_xpm stop = stop_xpm;
 
 } //end namespace xpm
 } //end namepsace gme

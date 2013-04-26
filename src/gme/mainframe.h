@@ -35,6 +35,8 @@ public:
     virtual ~MainFrame();
 	void onClose(wxCloseEvent& event);
 public:
+	PropFrame*	 getPropFrame();
+	void		 showPropFrame();
     void onSize(wxSizeEvent& event);
 
 	/** Processes menu File|Open */
@@ -55,6 +57,24 @@ public:
 	void onMenuHelpAbout(wxCommandEvent &event);
 	
 	void onShowPropertyPane(wxCommandEvent &event);
+	
+	/** Processes Render Start**/
+	void onRenderStart(wxCommandEvent &event);
+
+	/** Processes Render Stop**/
+	void onRenderStop(wxCommandEvent &event);
+
+	/** Processes Render Pause**/
+	void onRenderPause(wxCommandEvent &event);
+
+	/** Updata Render Menu Edit Delete UI**/
+	void onUpdateMenuEditDelete(wxUpdateUIEvent& event);
+
+	/** Updata Render Start UI**/
+	void onUpdateRenderStart(wxUpdateUIEvent& event);
+
+	/** Updata Render Stop UI**/
+	void onUpdateRenderStop(wxUpdateUIEvent& event);
 
 	enum{
 		SFP_INFO = 0,

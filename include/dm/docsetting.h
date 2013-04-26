@@ -20,6 +20,9 @@
 #define  GME_DM_DOCSETTING_H
 
 #include "dm/doc.h"
+#include "dm/xmlutil.h"
+#include <boost/unordered_map.hpp>
+#include "dm/docmat.h"
 
 namespace gme
 {
@@ -30,6 +33,9 @@ class DocSetting : public DocScopeLocker
 {
 public:
     //film 接口:
+	type_xml_node*   getToneMap(type_xml_node &parent);
+
+	std::string   getToneMapTypeNameByName(int type);
     bool   getImageSize(unsigned long &width,unsigned long &height);
     bool   setImageSize(unsigned long w,unsigned long h);
 	bool   getLinearScale(float &ls);
@@ -43,6 +49,41 @@ public:
 //    int    getUsedCPU(void);
 //    int    getOpenclPlatformId(void);
 //    void   getUsedGPU(std::string &gpu);
+private:
+
+};
+
+class XmlNodeToProps
+{
+public:
+	XmlNodeToProps(){};
+	~XmlNodeToProps(){};
+	
+	// convert xmlNode to propMap
+	void	ToToneMapProps(type_xml_node* pNode,
+							boost::unordered_map< std::string, boost::unordered_map<std::string, std::string> > &propMap);
+private:
+
+};
+
+class DocSettingHelper
+{
+public:
+	DocSettingHelper(){};
+	~DocSettingHelper(){};
+	
+	// get toneMap properties
+	bool getToneMap(boost::unordered_map< std::string, boost::unordered_map<std::string, std::string> > &propMap);
+
+	// set properties
+	bool setToneMapProperty(const std::string &propName, const std::string &propValue);
+
+	// get material properties by id
+	type_xml_node*   getMaterial(const std::string &id, type_xml_node &parent);
+private:
+	DocSetting		m_docSetting;
+	XmlNodeToProps	m_nodeToProps;
+	DocMat			m_docMat;
 };
 
 }

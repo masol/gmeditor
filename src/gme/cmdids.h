@@ -27,9 +27,12 @@ enum{
     GID_BEGIN = wxID_HIGHEST+1,
     GID_REFRESH_OBJVIEW,
     GID_EXPORT,
-    GID_IMPORT,
-    GID_MAX,
-	GID_PROP
+    GID_IMPORT,    
+	GID_PROP,
+	GID_RENDER_START,
+	GID_RENDER_STOP,
+	GID_RENDER_PAUSE,
+	GID_MAX
 };
 
 } //end namespace cmd

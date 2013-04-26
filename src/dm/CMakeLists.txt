@@ -36,6 +36,7 @@ set(DM_SRCS
     slgobject.cpp
     slgmaterial.cpp
     slgtexture.cpp
+    slgcamera.cpp
     setting.cpp
     localsetting.cpp
     docsetting.cpp

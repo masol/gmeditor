@@ -28,6 +28,7 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/scope_exit.hpp>
 #include <boost/format.hpp>
+#include <boost/foreach.hpp>
 #include <fstream>
 #include "eigenutil.h"
 #include "slgutils.h"
@@ -43,6 +44,29 @@
 #else
 #include <CL/cl.hpp>
 #endif
+
+static  inline
+void    initCamera(slg::Scene *scene,const gme::Camera &cam)
+{
+    std::stringstream ss;
+    ss << "scene.camera.lookat = " << boost::str(boost::format("%f %f %f  %f %f %f")
+                            % cam.orig[0] % cam.orig[1]% cam.orig[2]
+                            % cam.target[0] % cam.target[1] % cam.target[2] ) << std::endl;
+    ss << "scene.camera.up = " << boost::format("%f %f %f") % cam.up[0] % cam.up[1]% cam.up[2] << std::endl;
+
+    if(!cam.isDefaultFieldOfView())
+        ss <<"scene.camera.fieldofview = " << cam.fieldOfView << std::endl;
+    if(!cam.isDefaultClipHither())
+        ss <<"scene.camera.cliphither = " << cam.clipHither << std::endl;
+    if(!cam.isDefaultClipYon())
+        ss <<"scene.camera.clipyon = " << cam.clipYon << std::endl;
+    if(!cam.isDefaultLensRadius())
+        ss <<"scene.camera.lensradius = " << cam.lensRadius << std::endl;
+    if(!cam.isDefaultFocalDistance())
+        ss <<"scene.camera.focaldistance = " << cam.focalDistance << std::endl;
+
+    scene->CreateCamera(ss.str());
+}
 
 /** @brief 初始化时如果未定义摄像机，则显示全部内容。
 **/
@@ -123,7 +147,7 @@ DocIO::loadExtraFromScene(void)
         luxrays::ExtInstanceTriangleMesh* pinst = dynamic_cast<luxrays::ExtInstanceTriangleMesh*>(extmesh);
         if(pinst)
         {
-            EigenUtil::AssignFromSlgMatrix(obj.m_transformation,pinst->GetTransformation().m);
+            EigenUtil::AssignFromSlg(obj.m_transformation,pinst->GetTransformation().m);
         }
 
         pDocData->objManager.getRoot().addChild(obj);
@@ -182,6 +206,82 @@ DocIO::loadSlgScene(const std::string &path)
 }
 
 bool
+DocIO::loadAssimpScene(const std::string &path)
+{
+    try
+    {
+        pDocData->closeScene();
+
+        slg::Scene *scene = new slg::Scene();
+
+        ImportContext   ctx(scene,path);
+
+        ObjectNode  obj;
+        //首先，尝试将path指定的资源加载。
+        int count = ExtraObjectManager::importObjects(path,obj,ctx);
+
+        if(count > 0)
+        {//如果加载数量大于0才继续。
+            if(count > 1)
+            {
+                BOOST_ASSERT_MSG(obj.name().length() == 0,"loading panic!!");
+                ObjectNode &root = pDocData->objManager.getRoot();
+                BOOST_FOREACH( ObjectNode &node, obj.m_children )
+                {
+                    root.addChild(node);
+                }
+            }else{
+                pDocData->objManager.getRoot().addChild(obj);
+            }
+
+            Camera *pLoadedCam = pDocData->camManager.getSelected();
+            if(pLoadedCam && pLoadedCam->isValid())
+            {//camera already loaded.
+                initCamera(scene,*pLoadedCam);
+            }else{ // create default camera.
+                initViewAllCamera(scene,60.0f);
+            }
+
+            scene->AddSkyLight(
+                    "scene.skylight.dir = 0.166974 0.59908 0.783085\n"
+                    "scene.skylight.turbidity = 2.2\n"
+                    "scene.skylight.gain = 0.8 0.8 0.8\n"
+                    );
+            scene->AddSunLight(
+                    "scene.sunlight.dir = 0.166974 0.59908 0.783085\n"
+                    "scene.sunlight.turbidity = 2.2\n"
+                    "scene.sunlight.gain = 0.8 0.8 0.8\n"
+                    );
+
+            slg::RenderConfig *config = new slg::RenderConfig(
+				"image.width = 640\n"
+				"image.height = 480\n"
+				"opencl.platform.index = 0\n"
+				"opencl.cpu.use = 0\n"
+				"opencl.gpu.use = 1\n"
+				"opencl.gpu.workgroup.size = 64\n"
+				"path.maxdepth = 8\n"
+				"path.russianroulette.depth = 5\n"
+				"batch.halttime = 0\n",
+				*scene);
+            pDocData->m_session.reset(new slg::RenderSession(config));
+            pDocData->m_session->Start();
+            pDocData->m_started = true;
+            return true;
+        }else{
+            delete scene;
+        }
+    }
+    catch(cl::Error err)
+    {
+        std::cerr << err.what() << "(" << err.err() << ")" << std::endl;
+        pDocData->m_session.reset();
+    }
+    return false;
+}
+
+
+bool
 DocIO::loadSpsScene(const std::string &path)
 {
     try
@@ -190,20 +290,20 @@ DocIO::loadSpsScene(const std::string &path)
 
         slg::Scene *scene = new slg::Scene();
 
-		// Setup the camera
-//		scene->CreateCamera(
-//			"scene.camera.lookat = 1.0 6.0 3.0  0.0 0.0 0.5\n"
-//			"scene.camera.fieldofview = 60.0\n"
-//			);
-
-        ImportContext   ctx(scene);
+        ImportContext   ctx(scene,path);
 
         //首先，尝试将path指定的资源加载。
         int count = ExtraObjectManager::importSpScene(path,pDocData->objManager.getRoot(),ctx);
 
         if(count > 0)
         {//如果加载数量大于0才继续。
-            initViewAllCamera(scene,60.0f);
+            Camera *pLoadedCam = pDocData->camManager.getSelected();
+            if(pLoadedCam && pLoadedCam->isValid())
+            {//camera already loaded.
+                initCamera(scene,*pLoadedCam);
+            }else{ // create default camera.
+                initViewAllCamera(scene,60.0f);
+            }
 
             scene->AddSkyLight(
                     "scene.skylight.dir = 0.166974 0.59908 0.783085\n"
@@ -296,6 +396,7 @@ DocIO::loadScene(const std::string &path)
     }else if(boost::iends_with(path,".ctm"))
     {//load open ctm format.
     }else{
+        return loadAssimpScene(path);
     //load assimp format.
     }
     return false;
@@ -325,16 +426,15 @@ DocIO::exportSpoloScene(const std::string &pathstring,bool bExportRes)
 //        ofstream << "<settings>" << std::endl;
 //        ofstream << "</settings>" << std::endl;
 //
-//        //write camera.
 //        //write tone-mapping.
 //        //write light.
-//        //write object.
         {
             std::ostream_iterator<char>   oit(ofstream);
             type_xml_doc    xmldoc;
+
+            //dump object.
             type_xml_node * pNode = xmldoc.allocate_node(NS_RAPIDXML::node_element,"objects");
             xmldoc.append_node(pNode);
-
             int flags = dumpContext::DUMP_NORMAL;
             if(bExportRes)
             {
@@ -342,6 +442,22 @@ DocIO::exportSpoloScene(const std::string &pathstring,bool bExportRes)
             }
             dumpContext     ctx(flags);
             pDocData->objManager.dump(*pNode,ctx);
+
+            //dump camera.
+            type_xml_node * pCameras = xmldoc.allocate_node(NS_RAPIDXML::node_element,"cameras");
+            xmldoc.append_node(pCameras);
+            if(pDocData->camManager.getSelect() != -1)
+            {
+                pDocData->camManager.dumpAll(*pCameras);
+            }else{
+                Camera  cam;
+                cam.name = "default";
+                ExtraCameraManager::saveTo(pDocData->m_session.get(),cam);
+                DocCamera::dumpOne(*pCameras,cam);
+                pCameras->append_attribute(allocate_attribute(&xmldoc,constDef::active,"0"));
+            }
+
+
             rapidxml::print(oit,xmldoc);
         }
         ofstream << "</scene>" << std::endl;
@@ -384,7 +500,8 @@ DocIO::exportScene(const std::string &pathstring,bool bExportResource)
 bool
 DocIO::importScene(const std::string &path,ObjectNode *pParent)
 {
-    ImportContext   ctx(pDocData->m_session->renderConfig->scene);
+    ImportContext   ctx(pDocData->m_session->renderConfig->scene,path);
+
     SlgUtil::Editor editor(pDocData->m_session.get());
     if(!pParent)
     {

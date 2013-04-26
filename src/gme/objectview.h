@@ -53,6 +53,7 @@ public:
     **/
     bool    getSelection(std::string &id);
 	bool	delSelection();
+	bool    isSelected();
 
     void    refreshAll(void);
 	void	refresh(const std::string &parent);
