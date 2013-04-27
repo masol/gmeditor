@@ -28,6 +28,7 @@
 
 namespace gme{
 
+class   ObjectView;
 class PropFrame : public wxScrolledWindow
 {
 public:
@@ -79,6 +80,14 @@ public:
 	void updateProps();
 	void showMatProps(const std::string &matId);
 
+    void establishConnect(ObjectView *pov);
+protected:
+    void OnSelectedObjectChanged(const std::string &oid,const std::string &matid)
+    {
+        ///@todo check visible here.
+        //bugy... need fix it!
+        //showMatProps(matid);
+    }
 private:
 	DocSettingHelper	m_docsettingHelper;
 	std::string			m_filmPgName;

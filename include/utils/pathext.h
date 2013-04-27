@@ -21,6 +21,8 @@
 
 //#define BOOST_FILESYSTEM_VERSION 3
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string/replace.hpp>
+
 /**
  * @file        pathext.h
  * @brief       扩展了boost::path，增加了link友好的canonicalize方法。
@@ -46,6 +48,23 @@ namespace gme_ext{
 	/** @brief 获取指定路径的后缀。
 	**/
 	std::string   get_extension(const std::string &path);
+
+    inline char    getSeparator(void)
+    {
+#ifdef WIN32
+        return '\\';
+#else
+        return '/';
+#endif
+    }
+    inline  void  replaceSeparator(std::string &srcPath)
+    {
+#ifdef WIN32
+        boost::replace_all(srcPath,"/","\\");
+#else
+        boost::replace_all(srcPath,"\\","/");
+#endif
+    }
 
 }//gme_ext
 }//boost

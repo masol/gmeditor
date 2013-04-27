@@ -22,6 +22,7 @@
 #include <Eigen/Core>
 #include "slg/rendersession.h"
 #include <boost/format.hpp>
+#include <boost/any.hpp>
 
 namespace gme{
 
@@ -90,9 +91,37 @@ public:
     {
         return boost::str(boost::format("%.3f %.3f %.3f") % v[0] % v[1] % v[2]);
     }
+
+    static  inline  Eigen::Vector3f String2Vector(const std::string &strvalue)
+    {
+         std::vector< float > 	vec = luxrays::Properties::ConvertToFloatVector(strvalue);
+         if(vec.size() < 3)
+         {
+            throw std::runtime_error("invalid value");
+         }
+         Eigen::Vector3f ret;
+         ret[0] = vec[0];
+         ret[1] = vec[1];
+         ret[2] = vec[2];
+         return ret;
+    }
 };
 
 }
+
+
+//namespace boost{
+//
+//    ///@biref 对Eigen::Vector3f特化。
+//    template<>
+//    Eigen::Vector3f any_cast(any & operand)
+//    {
+//        std::string  str = any_cast<std::string>(operand);
+//        return gme::EigenUtil::String2Vector(str);
+//    }
+//
+//}
+//
 
 #endif //GME_DM_EIGENUTIL_H
 

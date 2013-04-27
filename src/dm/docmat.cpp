@@ -278,7 +278,7 @@ DocMat::getMaterial(const std::string &id,type_xml_node &parent)
     slg::Material* pMat = ExtraMaterialManager::getSlgMaterial(id);
     if(pMat)
     {
-        dumpContext   ctx(dumpContext::DUMP_NORMAL);
+        dumpContext   ctx(dumpContext::DUMP_NORMAL,boost::filesystem::current_path());
         return pDocData->matManager.dump(parent,pMat,ctx);
     }
     return NULL;

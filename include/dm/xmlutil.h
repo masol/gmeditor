@@ -169,7 +169,7 @@ namespace gme
             return (flags & DUMP_SAVECTM) != 0;
         }
     public:
-        dumpContext(int f) : flags(f)
+        dumpContext(int f,const boost::filesystem::path &t) : target(t),flags(f)
         {
         }
     };

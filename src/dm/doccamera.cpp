@@ -22,8 +22,98 @@
 #include "docprivate.h"
 #include <boost/foreach.hpp>
 #include "eigenutil.h"
+#include "utils/option.h"
 
 namespace gme{
+
+
+template<class T>
+static  inline  void
+assignIfExist(gme::Option &option,const std::string &key,T &result)
+{
+    boost::optional<T> opt = Option::instance().get_optional<T>(key);
+    if(opt.is_initialized())
+        result = *opt;
+}
+
+Camera
+Camera::getDefault(void)
+{
+    Camera  cam;
+    boost::optional<char> up_opt = Option::instance().get_optional<char>("scene.camera.up");
+    if(up_opt.is_initialized())
+    {
+        switch(*up_opt)
+        {
+        case 'X':
+        case 'x':
+            cam.up << 0.1f,0.0f,0.0f;
+            break;
+        case 'Y':
+        case 'y':
+            cam.up << 0.0f,0.1f,0.0f;
+            break;
+        }
+    }
+
+
+    gme::Option     &option = gme::Option::instance();
+    assignIfExist(option,"scene.camera.fieldofview",cam.fieldOfView);
+    assignIfExist(option,"scene.camera.cliphither",cam.clipHither);
+    assignIfExist(option,"scene.camera.clipyon",cam.clipYon);
+    assignIfExist(option,"scene.camera.lensradius",cam.lensRadius);
+    assignIfExist(option,"scene.camera.focaldistance",cam.focalDistance);
+
+    return cam;
+}
+
+template<class T>
+static  inline  void
+putOrErase(gme::Option &option,bool bDefault,const std::string &key,T value)
+{
+    if(!bDefault)
+    {
+        option.put(key,value);
+    }else{
+        option.erase(key);
+    }
+}
+
+void
+Camera::setDefault(const Camera &cam)
+{
+    {
+        Eigen::Vector3f     v;
+        v.UnitZ();
+        float zdot = v.norm() - v.dot(cam.up);
+
+        v.UnitY();
+        float ydot = v.norm() - v.dot(cam.up);
+
+        v.UnitX();
+        float xdot = v.norm() - v.dot(cam.up);
+
+        if(xdot <= zdot && xdot <= ydot)
+        {// up is X
+            gme::Option::instance().put("scene.camera.up",'X');
+        }else if(ydot <= zdot && ydot <= xdot )
+        {//up is y.
+            gme::Option::instance().put("scene.camera.up",'Y');
+        }else
+        {//up is z.
+        }
+    }
+
+    gme::Option &option = gme::Option::instance();
+    putOrErase(option,cam.isDefaultFieldOfView(),"scene.camera.fieldofview",cam.fieldOfView);
+    putOrErase(option,cam.isDefaultClipHither(),"scene.camera.cliphither",cam.clipHither);
+    putOrErase(option,cam.isDefaultClipYon(),"scene.camera.clipyon",cam.clipYon);
+    putOrErase(option,cam.isDefaultLensRadius(),"scene.camera.lensradius",cam.lensRadius);
+    putOrErase(option,cam.isDefaultFocalDistance(),"scene.camera.focaldistance",cam.focalDistance);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 
 bool
 DocCamera::rotate(int distX,int distY,float optRotateStep)

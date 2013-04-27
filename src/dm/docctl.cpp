@@ -57,6 +57,7 @@ DocCtl::stop()
 bool
 DocCtl::pause()
 {
+    ///@todo save current film to docdata then stop.
     BOOST_ASSERT_MSG(false,"NOT IMPLEMNT");
     return false;
 }

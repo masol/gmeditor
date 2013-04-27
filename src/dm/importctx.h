@@ -24,7 +24,7 @@
 #include "slg/sdl/scene.h"
 #include "slg/editaction.h"
 #include <boost/filesystem.hpp>
-#include <boost/algorithm/string/replace.hpp>
+#include "utils/pathext.h"
 
 namespace gme{
 
@@ -58,22 +58,6 @@ private:
         }
         return false;
     }
-    static  inline char    getSeparator(void)
-    {
-#ifdef WIN32
-        return '\\';
-#else
-        return '/';
-#endif
-    }
-    static  inline  void  replaceSeparator(std::string &srcPath)
-    {
-#ifdef WIN32
-        boost::replace_all(srcPath,"/","\\");
-#else
-        boost::replace_all(srcPath,"\\","/");
-#endif
-    }
 public:
     inline std::string  findFile(const std::string &srcpath,bool bSearch)
     {
@@ -82,14 +66,15 @@ public:
         boost::filesystem::path fsPath;
         std::string path = srcpath;
         try{
-            replaceSeparator(path);
-            fsPath = boost::filesystem::canonical(path,m_docBasePath);
+            boost::filesystem::gme_ext::replaceSeparator(path);
+            fsPath = boost::filesystem::absolute(path,m_docBasePath);
             if(boost::filesystem::exists(fsPath) && boost::filesystem::is_regular_file(fsPath))
             {
                 return fsPath.string();
             }
-        }catch(std::exception &e)
+        }catch(std::exception e)
         {
+            (void)e;
         }
         boost::filesystem::path filename = boost::filesystem::path(path).filename();
         if(bSearch && fileFiles(filename,m_docBasePath,fsPath))
@@ -106,7 +91,8 @@ public:
     {
         m_scene = s;
         m_editAction = 0;
-        m_docBasePath = boost::filesystem::canonical(srcFile).parent_path().string();
+        m_docBasePath = srcFile;
+        m_docBasePath = boost::filesystem::canonical(m_docBasePath).parent_path().string();
     }
     inline void addAction(const slg::EditAction a)
     {

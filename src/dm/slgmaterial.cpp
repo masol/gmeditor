@@ -571,7 +571,7 @@ ExtraMaterialManager::createGrayMaterial(ImportContext &ctx,const std::string &i
 
 
 void
-ExtraMaterialManager::createMatteMaterial(ImportContext &ctx,const std::string& id,const std::string &kdpath,const char* emissionPath,const char* normalPath)
+ExtraMaterialManager::createMatteMaterial(ImportContext &ctx,const std::string& id,const std::string& name,const std::string &kdpath,const char* emissionPath,const char* normalPath)
 {
     BOOST_ASSERT(id.length() > 0);
     std::cerr << "createMatteMaterial = " << kdpath << std::endl;
@@ -597,6 +597,8 @@ ExtraMaterialManager::createMatteMaterial(ImportContext &ctx,const std::string& 
         }
         ctx.scene()->DefineMaterials(ss.str());
         m_mat2id[ctx.scene()->matDefs.GetMaterial(id)] = id;
+        if(name.length())
+            m_id2name[id] = name;
         ctx.addAction(slg::MATERIALS_EDIT);
         ctx.addAction(slg::MATERIAL_TYPES_EDIT);
     }

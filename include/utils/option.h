@@ -108,8 +108,6 @@ namespace gme{
             return boost::any_cast<Type>( m_ptree.get<boost::any>(path) );
         }
 
-
-
         /**
          * @brief           获取属性的值。
          * @param path      [IN], 属性的路径
@@ -137,6 +135,14 @@ namespace gme{
             return boost::optional<Type>();
         }
 
+        template<typename Type>
+        inline Type get(const std::string &path,Type defaultValue)
+        {
+            boost::optional<Type> opt_value = get_optional<Type>(path);
+            if(opt_value.is_initialized())
+                return *opt_value;
+            return defaultValue;
+        }
 
 
         /**

@@ -263,7 +263,9 @@ ExtraObjectManager::importCTMObj(const std::string& path,ObjectNode &obj,ImportC
             if(uvid < CTM_UV_MAP_1 || uvid > CTM_UV_MAP_8)
                 uvid = CTM_UV_MAP_1;
             uvarray = ctmGetFloatArray(context,uvid);
-            diffuse_file = ctmGetUVMapString(context,uvid,CTM_FILE_NAME);
+            const char * ctm_diff_file = ctmGetUVMapString(context,uvid,CTM_FILE_NAME);
+            if(ctm_diff_file)
+                diffuse_file = ctm_diff_file;
         }
 
         if(obj.matid().length() == 0)
@@ -271,7 +273,7 @@ ExtraObjectManager::importCTMObj(const std::string& path,ObjectNode &obj,ImportC
             ///只有在没有给出材质信息时，我们才尝试加载贴图文件.否则我们使用ctm作为geometry data.没有索引的贴图文件信息。
             obj.m_matid = string::uuid_to_string(gen());
             if(diffuse_file.length())
-                Doc::instance().pDocData->matManager.createMatteMaterial(ctx,obj.matid(),diffuse_file);
+                Doc::instance().pDocData->matManager.createMatteMaterial(ctx,obj.matid(),"",diffuse_file);
             else
                 Doc::instance().pDocData->matManager.createGrayMaterial(ctx,obj.matid());
         }
@@ -309,7 +311,7 @@ ExtraObjectManager::importCTMObj(const std::string& path,ObjectNode &obj,ImportC
 }
 
 void
-ExtraObjectManager::importAiMaterial(aiMaterial *pMat,const std::string &id,ImportContext &ctx)
+ExtraObjectManager::importAiMaterial(aiMaterial *pMat,const std::string &id,const std::string &name,ImportContext &ctx)
 {
     aiString    diffusePath;
     aiString    normalPath;
@@ -338,7 +340,7 @@ ExtraObjectManager::importAiMaterial(aiMaterial *pMat,const std::string &id,Impo
 //    }
 
 //    type_xml_node   *pNode = doc->allocate_node(NS_RAPIDXML::node_element,)
-    Doc::instance().pDocData->matManager.createMatteMaterial(ctx,id,diffusePath.C_Str(),emmisionPath.C_Str(),normalPath.C_Str());
+    Doc::instance().pDocData->matManager.createMatteMaterial(ctx,id,name,diffusePath.C_Str(),emmisionPath.C_Str(),normalPath.C_Str());
 }
 
 
@@ -349,6 +351,7 @@ ExtraObjectManager::importAiMesh(const aiScene *assimpScene,aiMesh* pMesh,Object
     if(pMesh->mPrimitiveTypes & aiPrimitiveType_TRIANGLE)
     {//只输出三角形面。
         boost::uuids::random_generator  gen;
+        std::string mat_name;
         if(obj.id().length() == 0)
         {
             obj.m_id = string::uuid_to_string(gen());
@@ -361,15 +364,26 @@ ExtraObjectManager::importAiMesh(const aiScene *assimpScene,aiMesh* pMesh,Object
                 ///@todo add material name if exist.
                 aiMaterial *pMat = assimpScene->mMaterials[pMesh->mMaterialIndex];
 
-                importAiMaterial(pMat,obj.matid(),ctx);
+                //如果mesh名字为空，则采用material名字。
+                aiString name;
+                pMat->Get(AI_MATKEY_NAME,name);
+                if(name.length)
+                {
+                    mat_name = name.C_Str();
+                }
+
+                importAiMaterial(pMat,obj.matid(),mat_name,ctx);
             }else{
                 Doc::instance().pDocData->matManager.createGrayMaterial(ctx,obj.matid());
             }
         }
 
-        if(obj.name().length() == 0)
+        if(obj.m_name.length() == 0)
         {
-            obj.m_name = pMesh->mName.C_Str();
+            if(pMesh->mName.length >  0)
+                obj.m_name = pMesh->mName.C_Str();
+            else if(mat_name.length() > 0)
+                obj.m_name = mat_name;
         }
         //这里的内存会被luxrays管理。因此不能被释放。
         luxrays::Point  *pPoint = new luxrays::Point[pMesh->mNumVertices];
@@ -391,6 +405,7 @@ ExtraObjectManager::importAiMesh(const aiScene *assimpScene,aiMesh* pMesh,Object
                 pTri[realFace].v[2] = pMesh->mFaces[i].mIndices[2];
                 realFace++;
             }else{
+                //ignore non-triangle.
                 BOOST_ASSERT_MSG(false,"can not support non-triangle now.");
             }
         }
@@ -484,19 +499,11 @@ ExtraObjectManager::importObjects(type_xml_node &node,ObjectNode &objNode,Import
     int ret = 0;
     if(boost::iequals(constDef::object,node.name()))
     {
-        std::string     basepath;
         type_xml_doc    *pDoc = node.document();
         BOOST_ASSERT_MSG(pDoc,"invalid document.");
-        type_xml_attr*  pAttr = pDoc->first_attribute(constDef::file);
-        if(pAttr)
-        {
-            basepath = pAttr->value();
-        }
-        if(basepath.length() == 0)
-            basepath = boost::filesystem::current_path().string();
 
 		const char* transform = NULL;
-		pAttr = node.first_attribute();
+		type_xml_attr*  pAttr = node.first_attribute();
 		while(pAttr)
 		{
             if(boost::iequals(constDef::id,pAttr->name()))
@@ -507,7 +514,7 @@ ExtraObjectManager::importObjects(type_xml_node &node,ObjectNode &objNode,Import
                 objNode.m_name = pAttr->value();
             }else if(boost::iequals(constDef::file,pAttr->name()))
             {
-                objNode.m_filepath = boost::filesystem::canonical(pAttr->value(),basepath).string();
+                objNode.m_filepath = ctx.findFile(pAttr->value(),false);//boost::filesystem::canonical(pAttr->value(),basepath).string();
             }else if(boost::iequals(constDef::transformation,pAttr->name()))
             {
                 transform = pAttr->value();
@@ -617,7 +624,7 @@ ExtraObjectManager::importSpScene(const std::string &path,ObjectNode &parentNode
             const int flag = NS_RAPIDXML::parse_no_element_values | NS_RAPIDXML::parse_trim_whitespace;
             try{
                 doc.parse<flag>(buffer);
-                doc.append_attribute(allocate_attribute(&doc,constDef::file,ctx.docBasepath()));
+                //doc.append_attribute(allocate_attribute(&doc,constDef::file,ctx.docBasepath()));
 
                 type_xml_node   *pScene = doc.first_node("scene");
                 type_xml_node   *pObjects = NULL;
@@ -712,10 +719,11 @@ ExtraObjectManager::getExtMesh(const std::string &objid)
             ret = session->renderConfig->scene->meshDefs.GetExtMesh(objid);
         }catch(std::runtime_error &e)
         {
+            (void)e;
             ret = NULL;
         }
     }
-    return NULL;
+    return ret;
 }
 
 void

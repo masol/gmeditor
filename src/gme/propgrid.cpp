@@ -21,6 +21,9 @@
 #include "wx/wx.h"
 #include <wx/numdlg.h>
 #include <boost/lexical_cast.hpp>
+#include <boost/bind.hpp>
+#include "objectview.h"
+#include "propgrid.h"
 
 // -----------------------------------------------------------------------
 // Main propertygrid header.
@@ -29,8 +32,6 @@
 #include <wx/propgrid/advprops.h>
 // This defines wxPropertyGridManager.
 #include <wx/propgrid/manager.h>
-
-#include "propgrid.h"
 
 #include <wx/artprov.h>
 #include "stringutil.h"
@@ -637,6 +638,14 @@ void PropFrame::updateProps()
 		}
 	}
 }
+
+void
+PropFrame::establishConnect(ObjectView *pov)
+{
+    ObjectView::type_callback f = boost::bind(&PropFrame::OnSelectedObjectChanged,this,_1,_2);
+    pov->addEventListen(ObjectView::EVT_SELECTION_CHANGED,f);
+}
+
 
 void 
 PropFrame::showMatProps(const std::string &matId)

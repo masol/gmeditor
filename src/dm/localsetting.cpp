@@ -17,11 +17,26 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "config.h"
-#include "localsetting.h"
+#include "dm/localsetting.h"
+#include "eigenutil.h"
 
 
 namespace gme
 {
+namespace LocalSetting{
+
+    Eigen::Vector3f     String2Vector(const std::string &value)
+    {
+        return gme::EigenUtil::String2Vector(value);
+    }
+
+    std::string         Vector2String(const Eigen::Vector3f& vec)
+    {
+        return gme::EigenUtil::Vector2String(vec);
+    }
+
+
+}
 
 }
 

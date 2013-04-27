@@ -93,7 +93,7 @@ public:
     **/
     static slg::Material* getSlgMaterial(const std::string &id);
 
-    void createMatteMaterial(ImportContext &ctx,const std::string& id,const std::string &kdpath,const char* emissionPath = NULL,const char* normalPath = NULL);
+    void createMatteMaterial(ImportContext &ctx,const std::string& id,const std::string& name,const std::string &kdpath,const char* emissionPath = NULL,const char* normalPath = NULL);
     void createGrayMaterial(ImportContext &ctx,const std::string& id);
     ///@fixme : 使用rapidxml接口来导入导出材质。
     /** @brief 从xmlnode中定义一个材质。如果id未指定，尝试从xmlnode中读入，否则会自动创建一个随机id.

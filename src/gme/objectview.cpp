@@ -31,8 +31,9 @@ class ObjectViewClientData : public wxClientData
 {
 public:
     const std::string      m_objid;
+    const std::string      m_matid;
 public:
-    ObjectViewClientData(const std::string &id) : m_objid(id)
+    ObjectViewClientData(const std::string &id,const std::string &mat) : m_objid(id),m_matid(mat)
     {
     }
 };
@@ -118,9 +119,10 @@ void
 ObjectView::addChild(wxTreeListItem& parent,const ObjectNode &node,DocMat &objop)
 {
 	wxTreeListItem item = m_treelist->AppendItem(parent,node.name());
+    //here,we set item text to materail name,not matid!
     m_treelist->SetItemText(item, 1, objop.getMatName(node.matid()));
     m_treelist->SetItemText(item, 2, "");
-    m_treelist->SetItemData(item,new ObjectViewClientData(node.id()));
+    m_treelist->SetItemData(item,new ObjectViewClientData(node.id(),node.matid()));
     ObjectNode::type_child_container::const_iterator it = node.begin();
     while(it != node.end())
     {
@@ -157,7 +159,7 @@ ObjectView::~ObjectView()
 }
 
 bool
-ObjectView::getSelection(std::string &id)
+ObjectView::getSelection(std::string &id,std::string *pmatid)
 {
     wxTreeListItem  item = m_treelist->GetSelection();
     if(item.IsOk())
@@ -167,6 +169,8 @@ ObjectView::getSelection(std::string &id)
         if(pvd)
         {
             id = pvd->m_objid;
+            if(pmatid)
+                *pmatid = pvd->m_matid;
             return true;
         }
     }
@@ -201,12 +205,19 @@ void
 ObjectView::OnSelectionChanged(wxTreeListEvent& event)
 {
 	// 当选中item时，显示mat对应的属性
+    std::string     objID,matid;
+    if(getSelection(objID,&matid))
+    {
+        this->m_eventListen.fire(EVT_SELECTION_CHANGED,objID,matid);
+    }
+#if 0
 	wxTreeListItem  item = m_treelist->GetSelection();
 	const wxString &mat = m_treelist->GetItemText(item, 1);
 	std::string matId = std::string(mat.mb_str());
 	MainFrame *mainFram = (MainFrame *)this->GetParent();
 	PropFrame *propFrame = mainFram->getPropFrame();
 	propFrame->showMatProps(matId);
+#endif
 }
 
 void

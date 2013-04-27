@@ -43,7 +43,7 @@ public:
 public:
     Camera()
     {
-        up.UnitZ();
+        up << 0.0f,0.0f,0.1f;
         fieldOfView = 45.0f;
         clipHither = 1e-3f;
         clipYon = 1e30f;
@@ -83,6 +83,10 @@ public:
         assignFrom(ref);
         return *this;
     }
+public:
+    ///@brief get/set the default camera.the orig,target and name are ignored.
+    static  Camera     getDefault(void);
+    static  void       setDefault(const Camera &cam);
 private:
     void    assignFrom(const Camera &ref)
     {

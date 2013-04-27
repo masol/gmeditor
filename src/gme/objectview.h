@@ -22,6 +22,7 @@
 #include <wx/wx.h>
 #include <wx/treelist.h>
 #include "dm/docmat.h"
+#include "utils/eventlisten.h"
 
 class wxTreeListCtrl;
 class wxSizer;
@@ -33,6 +34,9 @@ class DocObj;
 
 class ObjectView : public wxPanel
 {
+public:
+    typedef boost::function<void (const std::string &,const std::string &) > type_callback;
+private:
     typedef wxPanel inherited;
 protected:
     wxTreeListCtrl      *m_treelist;
@@ -48,10 +52,23 @@ protected:
     void addChild(wxTreeListItem& parent,const ObjectNode &pNode,DocMat &pobjop);
     void refresh(void);
 	wxTreeListItem FindItem(const std::string &id,const wxTreeListItem &parent);
+
+    EventListen<int,type_callback >      m_eventListen;
 public:
+    enum{
+        EVT_SELECTION_CHANGED,
+        EVT_ITEMEXPANDING,
+        EVT_ITEMEXPANDED
+    };
+
+    template<class T>
+    inline void    addEventListen(int id,T &v)
+    {
+        m_eventListen.addEventListen(id,v);
+    }
     /** @brief 返回当前选择对象的id.
     **/
-    bool    getSelection(std::string &id);
+    bool    getSelection(std::string &id,std::string *pmatid = NULL);
 	bool	delSelection();
 	bool    isSelected();
 

@@ -103,7 +103,7 @@ private:
     static  int   findAndImportObject(type_xml_node &pNode,ObjectNode &parentNode,ImportContext &ctx);
     static  bool   importAiNode(const aiScene *assimpScene,aiNode* pNode,ObjectNode &objNode,ImportContext &ctx);
 
-    static  void   importAiMaterial(aiMaterial *pMat,const std::string &id,ImportContext &ctx);
+    static  void   importAiMaterial(aiMaterial *pMat,const std::string &id,const std::string &name,ImportContext &ctx);
     /** @brief only load self.no child.
     **/
     static  bool   importAiMesh(const aiScene *assimpScene,aiMesh* pMesh,ObjectNode &objNode,ImportContext &ctx);

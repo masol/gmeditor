@@ -37,6 +37,7 @@
 #include "slgmaterial.h"
 #include "slgtexture.h"
 #include "dm/setting.h"
+#include "dm/localsetting.h"
 
 #define __CL_ENABLE_EXCEPTIONS 1
 #if defined(__APPLE__) || defined(__MACOSX)
@@ -52,7 +53,14 @@ void    initCamera(slg::Scene *scene,const gme::Camera &cam)
     ss << "scene.camera.lookat = " << boost::str(boost::format("%f %f %f  %f %f %f")
                             % cam.orig[0] % cam.orig[1]% cam.orig[2]
                             % cam.target[0] % cam.target[1] % cam.target[2] ) << std::endl;
-    ss << "scene.camera.up = " << boost::format("%f %f %f") % cam.up[0] % cam.up[1]% cam.up[2] << std::endl;
+    if(cam.up.norm() == 0.0f)
+    {
+        std::cerr << "error : cam up is invalid!";
+        ss << "scene.camera.up = 0.0 0.0 0.1" << std::endl;
+    }else
+    {
+        ss << "scene.camera.up = " << boost::format("%f %f %f") % cam.up[0] % cam.up[1]% cam.up[2] << std::endl;
+    }
 
     if(!cam.isDefaultFieldOfView())
         ss <<"scene.camera.fieldofview = " << cam.fieldOfView << std::endl;
@@ -65,13 +73,14 @@ void    initCamera(slg::Scene *scene,const gme::Camera &cam)
     if(!cam.isDefaultFocalDistance())
         ss <<"scene.camera.focaldistance = " << cam.focalDistance << std::endl;
 
+    std::cerr <<  ss.str();
     scene->CreateCamera(ss.str());
 }
 
 /** @brief 初始化时如果未定义摄像机，则显示全部内容。
 **/
 static  inline
-void    initViewAllCamera(slg::Scene *scene,float fov = 60.0f)
+void    initViewAllCamera(slg::Scene *scene,float width,float height)
 {
     BOOST_ASSERT_MSG(scene->dataSet == NULL, "wrong usage initViewAllCamera");
     luxrays::BBox   box;
@@ -84,15 +93,22 @@ void    initViewAllCamera(slg::Scene *scene,float fov = 60.0f)
     luxrays::BSphere    bs = box.BoundingSphere();
     std::stringstream   ss;
 
-    float aspect = 640.0f / 480.0f;
+    gme::Camera defCam = gme::Camera::getDefault();
+    float aspect = width / height;
     float aspectradius = bs.rad / (aspect < 1.0f ? 1.0f : aspect);
-    ///@fixme can not get aspect here,how to do?
-    float  radius = aspectradius / std::tan(((fov / 180.0 ) * boost::math::constants::pi<float>() ) / 2.0);
-    ss <<"scene.camera.lookat = " << boost::format("%f %f %f  %f %f %f")
-                            % (bs.center.x  + radius) % (bs.center.y  + radius)% (bs.center.z  + radius)
-                            % bs.center.x % bs.center.y % bs.center.z << std::endl;
-    ss << "scene.camera.fieldofview = " << fov <<std::endl;
-    scene->CreateCamera(ss.str());
+    float  radius = aspectradius / std::tan(((defCam.fieldOfView / 180.0 ) * boost::math::constants::pi<float>() ) / 2.0);
+
+    defCam.orig[0] = (bs.center.x  + radius);
+    defCam.orig[1] = (bs.center.y  + radius);
+    defCam.orig[2] = (bs.center.z  + radius);
+
+    defCam.target[0] = bs.center.x;
+    defCam.target[1] = bs.center.y;
+    defCam.target[2] = bs.center.z;
+
+    defCam.focalDistance = std::abs( (defCam.target - defCam.orig).norm()) / 2;
+
+    initCamera(scene,defCam);
 }
 
 namespace gme
@@ -205,6 +221,103 @@ DocIO::loadSlgScene(const std::string &path)
     return false;
 }
 
+void
+DocIO::initAndStartScene(slg::Scene *scene)
+{
+    Camera *pLoadedCam = pDocData->camManager.getSelected();
+
+    float width,height;
+    gme::LocalSetting::Film::getSize(width,height);
+    if(pLoadedCam && pLoadedCam->isValid())
+    {//camera already loaded.
+        initCamera(scene,*pLoadedCam);
+    }else{ // create default camera.
+        initViewAllCamera(scene,width,height);
+    }
+
+
+    bool    hasLight = false;
+    gme::LocalSetting::EnvironmentHDR::setFile("/home/gmeditor/build/scenes/simple-mat/arch.exr");
+    if(gme::LocalSetting::EnvironmentHDR::hasHDR())
+    {
+        std::stringstream   ss;
+
+        ss << "scene.infinitelight.file = " << gme::LocalSetting::EnvironmentHDR::getFile() << std::endl;
+        float gamma = gme::LocalSetting::EnvironmentHDR::getGamma();
+        if(!gme::LocalSetting::EnvironmentHDR::isDefaultGamma(gamma))
+        {
+            ss << "scene.infinitelight.gamma = " << gamma << std::endl;
+        }
+        ss << "scene.infinitelight.gain = " << gme::LocalSetting::EnvironmentHDR::getGain() << std::endl;
+        scene->AddInfiniteLight(ss.str());
+        hasLight = true;
+    }
+
+    if(gme::LocalSetting::EnvironmentSky::hasSky())
+    {
+        std::stringstream   ss;
+
+        ss << "scene.skylight.dir = " << gme::LocalSetting::EnvironmentSky::getDir() << std::endl;
+        float t = gme::LocalSetting::EnvironmentSky::getTurbidity();
+        if(!gme::LocalSetting::EnvironmentSky::isDefaultTurbidity(t))
+        {
+            ss << "scene.skylight.turbidity = " << t << std::endl;
+        }
+        ss << "scene.skylight.gain = " << gme::LocalSetting::EnvironmentSky::getGain() << std::endl;
+        scene->AddSkyLight(ss.str());
+        hasLight = true;
+    }
+
+    if(gme::LocalSetting::EnvironmentSun::hasSun())
+    {
+        std::stringstream   ss;
+
+        ss << "scene.sunlight.dir = " << gme::LocalSetting::EnvironmentSun::getDir() << std::endl;
+        float t = gme::LocalSetting::EnvironmentSun::getTurbidity();
+        if(!gme::LocalSetting::EnvironmentSun::isDefaultTurbidity(t))
+        {
+            ss << "scene.sunlight.turbidity = " << t << std::endl;
+        }
+        ss << "scene.sunlight.gain = " << gme::LocalSetting::EnvironmentSun::getGain() << std::endl;
+        scene->AddSunLight(ss.str());
+        hasLight = true;
+    }
+
+
+    if(!hasLight)
+    {
+        scene->AddSkyLight(
+                "scene.skylight.dir = 1.0 1.0 1.0\n"
+                "scene.skylight.turbidity = 2.2\n"
+                "scene.skylight.gain = 1.0 1.0 1.0\n"
+                );
+//        scene->AddSunLight(
+//                "scene.sunlight.dir = 0.166974 0.59908 0.783085\n"
+//                "scene.sunlight.turbidity = 2.2\n"
+//                "scene.sunlight.gain = 0.8 0.8 0.8\n"
+//                );
+    }
+
+    std::stringstream     confgSS;
+
+    confgSS << "image.width = " << (int)width << std::endl;
+    confgSS << "image.height = " << (int)height << std::endl;
+    confgSS << "opencl.platform.index = " << -1 << std::endl;
+    confgSS << "opencl.cpu.use = " << 0 << std::endl;
+    confgSS << "opencl.gpu.use = " << 1 << std::endl;
+    //confgSS << "opencl.gpu.workgroup.size = " << 64 << std::endl;
+    confgSS << "path.maxdepth = " << 8 << std::endl;
+    confgSS << "path.russianroulette.depth = " << 5 << std::endl;
+    confgSS << "batch.halttime = 0" << std::endl;
+
+    std::cerr << confgSS.str();
+    slg::RenderConfig *config = new slg::RenderConfig(confgSS.str(),*scene);
+    pDocData->m_session.reset(new slg::RenderSession(config));
+    pDocData->m_session->Start();
+    pDocData->m_started = true;
+}
+
+
 bool
 DocIO::loadAssimpScene(const std::string &path)
 {
@@ -222,9 +335,9 @@ DocIO::loadAssimpScene(const std::string &path)
 
         if(count > 0)
         {//如果加载数量大于0才继续。
-            if(count > 1)
-            {
-                BOOST_ASSERT_MSG(obj.name().length() == 0,"loading panic!!");
+            if(obj.matid().length() == 0)
+            {//只是组节点，将孩子加入root.
+                //BOOST_ASSERT_MSG(obj.name().length() == 0,"loading panic!!");
                 ObjectNode &root = pDocData->objManager.getRoot();
                 BOOST_FOREACH( ObjectNode &node, obj.m_children )
                 {
@@ -234,39 +347,7 @@ DocIO::loadAssimpScene(const std::string &path)
                 pDocData->objManager.getRoot().addChild(obj);
             }
 
-            Camera *pLoadedCam = pDocData->camManager.getSelected();
-            if(pLoadedCam && pLoadedCam->isValid())
-            {//camera already loaded.
-                initCamera(scene,*pLoadedCam);
-            }else{ // create default camera.
-                initViewAllCamera(scene,60.0f);
-            }
-
-            scene->AddSkyLight(
-                    "scene.skylight.dir = 0.166974 0.59908 0.783085\n"
-                    "scene.skylight.turbidity = 2.2\n"
-                    "scene.skylight.gain = 0.8 0.8 0.8\n"
-                    );
-            scene->AddSunLight(
-                    "scene.sunlight.dir = 0.166974 0.59908 0.783085\n"
-                    "scene.sunlight.turbidity = 2.2\n"
-                    "scene.sunlight.gain = 0.8 0.8 0.8\n"
-                    );
-
-            slg::RenderConfig *config = new slg::RenderConfig(
-				"image.width = 640\n"
-				"image.height = 480\n"
-				"opencl.platform.index = 0\n"
-				"opencl.cpu.use = 0\n"
-				"opencl.gpu.use = 1\n"
-				"opencl.gpu.workgroup.size = 64\n"
-				"path.maxdepth = 8\n"
-				"path.russianroulette.depth = 5\n"
-				"batch.halttime = 0\n",
-				*scene);
-            pDocData->m_session.reset(new slg::RenderSession(config));
-            pDocData->m_session->Start();
-            pDocData->m_started = true;
+            initAndStartScene(scene);
             return true;
         }else{
             delete scene;
@@ -297,39 +378,7 @@ DocIO::loadSpsScene(const std::string &path)
 
         if(count > 0)
         {//如果加载数量大于0才继续。
-            Camera *pLoadedCam = pDocData->camManager.getSelected();
-            if(pLoadedCam && pLoadedCam->isValid())
-            {//camera already loaded.
-                initCamera(scene,*pLoadedCam);
-            }else{ // create default camera.
-                initViewAllCamera(scene,60.0f);
-            }
-
-            scene->AddSkyLight(
-                    "scene.skylight.dir = 0.166974 0.59908 0.783085\n"
-                    "scene.skylight.turbidity = 2.2\n"
-                    "scene.skylight.gain = 0.8 0.8 0.8\n"
-                    );
-            scene->AddSunLight(
-                    "scene.sunlight.dir = 0.166974 0.59908 0.783085\n"
-                    "scene.sunlight.turbidity = 2.2\n"
-                    "scene.sunlight.gain = 0.8 0.8 0.8\n"
-                    );
-
-            slg::RenderConfig *config = new slg::RenderConfig(
-				"image.width = 640\n"
-				"image.height = 480\n"
-				"opencl.platform.index = 0\n"
-				"opencl.cpu.use = 0\n"
-				"opencl.gpu.use = 1\n"
-				"opencl.gpu.workgroup.size = 64\n"
-				"path.maxdepth = 8\n"
-				"path.russianroulette.depth = 5\n"
-				"batch.halttime = 0\n",
-				*scene);
-            pDocData->m_session.reset(new slg::RenderSession(config));
-            pDocData->m_session->Start();
-            pDocData->m_started = true;
+            initAndStartScene(scene);
             return true;
         }else{
             delete scene;
@@ -440,7 +489,7 @@ DocIO::exportSpoloScene(const std::string &pathstring,bool bExportRes)
             {
                 flags = (dumpContext::DUMP_SAVECTM | dumpContext::DUMP_COPYRES);
             }
-            dumpContext     ctx(flags);
+            dumpContext     ctx(flags,boost::filesystem::path(pathstring).parent_path());
             pDocData->objManager.dump(*pNode,ctx);
 
             //dump camera.

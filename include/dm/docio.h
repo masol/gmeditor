@@ -23,6 +23,10 @@
 #include "dm/doc.h"
 #include "dm/xmlutil.h"
 
+namespace slg{
+class Scene;
+}
+
 namespace gme{
 
 class ObjectNode;
@@ -45,6 +49,8 @@ protected:
     /** @brief load assimp foramt implement.
     **/
     bool    loadAssimpScene(const std::string &path);
+    ///@brief after scene loaded, init and create scene.
+    void    initAndStartScene(slg::Scene *scene);
 public:
     bool    loadScene(const std::string &path);
     /** @brief 从制定文件加载场景，并加入到pParent指定的节点下。

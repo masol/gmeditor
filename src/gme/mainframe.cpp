@@ -87,6 +87,7 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
 						 wxCLIP_CHILDREN;
 	// create and show propery pane
 	m_propFrame = new PropFrame(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, propFrameStyle);
+    m_propFrame->establishConnect(m_objectView);
 	m_mgr.AddPane(m_propFrame, wxRIGHT, gmeWXT("属性设置"));
 	m_mgr.GetPane(m_propFrame).Hide();
     // tell the manager to "commit" all the changes just made
