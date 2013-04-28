@@ -16,55 +16,36 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_DM_DOCPRIVATE_H
-#define  GME_DM_DOCPRIVATE_H
+#ifndef  GME_GLRENDERVIEW_H
+#define  GME_GLRENDERVIEW_H
 
-#include "slg/rendersession.h"
-#include "slgtexture.h"
-#include "slgmaterial.h"
-#include "slgobject.h"
-#include "slgcamera.h"
-#include <boost/shared_ptr.hpp>
-#include "utils/eventlisten.h"
-#include <boost/function.hpp>
+#include <wx/wx.h>
+#include <boost/any.hpp>
 
 namespace gme{
 
-class DocPrivate
+class GlRenderFrame;
+class GlRenderView : public wxScrolledWindow
 {
+public:
+    static  const char*    vm_opt_path;
 private:
-    friend  class Doc;
-    DocPrivate(void);
-    ~DocPrivate(void);
+    typedef wxScrolledWindow    inherited;
+    GlRenderFrame       *m_glframe;
+    wxBoxSizer          *m_sizer;
+protected:
+    void onDocumentSizeChanged(int w,int h);
+    bool onEditModeChanged(const boost::any &nvar);
+    void updateViewmode(int viewModeCmds);
+    void setViewmode(int m);
 public:
-    typedef boost::function<void (int,int)>     type_imagesize_handler;
-    ///@todo: 需要一个材质转化专家系统来支持材质转化。
-	//
-    boost::shared_ptr<slg::RenderSession>   m_session;
-    /** @fixme: slg的started为保护成员。
-    **/
-    bool                                    m_started;
-
-	ExtraTextureManager               texManager;
-	ExtraMaterialManager              matManager;
-	ExtraObjectManager                objManager;
-	ExtraCameraManager                camManager;
-    SingleEventListen<type_imagesize_handler>   imageSize_Evt;
-public:
-    //关闭当前打开场景。
-    void    closeScene(void);
-    inline slg::RenderSession*  getSession(void){
-        return m_session.get();
-    }
-
-    inline  void    fireSizeChanged(void)
-    {
-        imageSize_Evt.fire(m_session->film->GetWidth(),m_session->film->GetHeight());
-    }
+    GlRenderView(wxFrame* parent);
+    virtual ~GlRenderView();
+    void    setViewmodeFromCmd(int cmds);
+protected:
+//    DECLARE_EVENT_TABLE()
 };
 
-}
+} //end namespace gme
 
-
-
-#endif  //GME_DM_DOC_H
+#endif //GME_GLRENDERVIEW_H

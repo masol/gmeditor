@@ -28,6 +28,7 @@
 #include <boost/locale.hpp>
 #include "propgrid.h"
 #include "data/xpmres.h"
+#include "glrenderview.h"
 
 namespace gme{
 
@@ -43,9 +44,10 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_MENU(cmd::GID_RENDER_START,MainFrame::onRenderStart)
 	EVT_MENU(cmd::GID_RENDER_STOP,MainFrame::onRenderStop)
 	EVT_MENU(cmd::GID_RENDER_PAUSE,MainFrame::onRenderPause)
+    EVT_MENU_RANGE(cmd::GID_VM_BEGIN,cmd::GID_VM_END,MainFrame::onViewmodeChanged)
 	EVT_UPDATE_UI(wxID_DELETE,MainFrame::onUpdateMenuEditDelete)
 	EVT_UPDATE_UI(cmd::GID_RENDER_START,MainFrame::onUpdateRenderStart)
-	EVT_UPDATE_UI(cmd::GID_RENDER_STOP,MainFrame::onUpdateRenderStop)	
+	EVT_UPDATE_UI(cmd::GID_RENDER_STOP,MainFrame::onUpdateRenderStop)
 	EVT_SIZE(MainFrame::onSize)
 	EVT_CLOSE(MainFrame::onClose)
 
@@ -80,8 +82,8 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
     m_mgr.AddPane(text2, wxBOTTOM, gmeWXT("Pane Number Two"));
 
 
-    RenderView        *mainView = new RenderView(this);
-    m_mgr.AddPane(mainView, wxCENTER);
+    m_renderView = new GlRenderView(this);
+    m_mgr.AddPane(m_renderView, wxCENTER);
 
 	int propFrameStyle = wxNO_BORDER | \
 						 wxCLIP_CHILDREN;
@@ -133,6 +135,12 @@ MainFrame::createMenubar()
 		wxMenu *pViewMenu = new wxMenu();
 		pViewMenu->Append(cmd::GID_PROP, gmeWXT("属性设置(&P)"), gmeWXT("显示属性面板"));
 
+		pViewMenu->AppendSeparator();
+		pViewMenu->Append(cmd::GID_VM_ADJDOC, gmeWXT("校正文档(&A)"), gmeWXT("根据显示区域的大小自动设置渲染文档的尺寸。"));
+		pViewMenu->Append(cmd::GID_VM_DOCSIZE, gmeWXT("实际尺寸(&P)"), gmeWXT("按照文档的实际尺寸显示。"));
+		pViewMenu->Append(cmd::GID_VM_FULLWINDOW, gmeWXT("全屏缩放(&P)"), gmeWXT("自动缩放以充满全屏。"));
+		pViewMenu->Append(cmd::GID_VM_SCALEWITHASPECT, gmeWXT("等比缩放(&P)"), gmeWXT("自动缩放到全屏并保持文档的横纵必不变。"));
+
 		pMenuBar->Append(pViewMenu, gmeWXT("视图(&V)"));
 	}
 
@@ -166,13 +174,13 @@ MainFrame::createToolbar()
 		pFileTbr->AddSeparator();
 		pFileTbr->AddTool(wxID_SAVE,gmeWXT("File"),bmpSave,gmeWXT("保存"));
 		pFileTbr->AddTool(cmd::GID_EXPORT,gmeWXT("File"),bmpExport,gmeWXT("导出"));
-		
-		pFileTbr->Realize();	
-		
+
+		pFileTbr->Realize();
+
 		m_mgr.AddPane(pFileTbr,wxAuiPaneInfo().Name(gmeWXT("filetoolbar")).Caption(gmeWXT("文件操作工具栏")).
                        ToolbarPane().Top());
 	}
-	
+
 	{//Edit ToolBar
 		wxAuiToolBar *pEditTbr = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
 												  wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW| wxAUI_TB_HORIZONTAL);
@@ -240,6 +248,13 @@ MainFrame::onSize(wxSizeEvent& event)
     //adjust status bar size.
     updateProgressbar();
 }
+
+void
+MainFrame::onViewmodeChanged(wxCommandEvent &event)
+{
+    this->m_renderView->setViewmodeFromCmd(event.GetId());
+}
+
 
 void
 MainFrame::onMenuFileImport(wxCommandEvent &event)
@@ -365,7 +380,7 @@ MainFrame::onRenderStart(wxCommandEvent &event)
 	}
 }
 
-void 
+void
 MainFrame::onRenderStop(wxCommandEvent &event)
 {
 	DocCtl dctl;
@@ -375,7 +390,7 @@ MainFrame::onRenderStop(wxCommandEvent &event)
 	}
 }
 
-void 
+void
 MainFrame::onRenderPause(wxCommandEvent &event)
 {
 
@@ -389,14 +404,14 @@ MainFrame::onUpdateRenderStart(wxUpdateUIEvent& event)
 	event.Enable(!dctl.isRuning());
 }
 
-void 
+void
 MainFrame::onUpdateRenderStop(wxUpdateUIEvent& event)
 {
 	DocCtl dctl;
 	event.Enable(dctl.isRuning());
 }
 
-void 
+void
 MainFrame::onUpdateMenuEditDelete(wxUpdateUIEvent& event)
 {
 	event.Enable(this->m_objectView->isSelected());

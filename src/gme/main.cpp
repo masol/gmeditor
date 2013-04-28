@@ -39,7 +39,7 @@ public:
         //initionlize config.
         ///@FIXME: 根据valgrind报告，如果使用wx提供的argv自动转化，其数据在进程销毁时才会清理。因此下文自行处理utf8转化。
         {
-            typedef const char*   str_point;
+            typedef char*   str_point;
             str_point*   mb_args = new str_point[argc];
             for(int i = 0; i < argc;i++)
             {
@@ -54,10 +54,17 @@ public:
                 }
                 delete[] mb_args;
 	        }BOOST_SCOPE_EXIT_END
-            
+
         	if(!gme::Option::instance().initFromArgs(argc,mb_args ))
 		        return false;
         }
+        m_mainFrame = new gme::MainFrame(NULL);
+        SetTopWindow(m_mainFrame);
+        m_mainFrame->Maximize();
+        m_mainFrame->Show();
+        //before init openCL,we must init openGL first.
+
+
 	    std::string source("document.source");
 	    if(gme::Option::instance().is_existed(source))
 	    {
@@ -72,10 +79,6 @@ public:
             }
         }
 
-        m_mainFrame = new gme::MainFrame(NULL);
-        SetTopWindow(m_mainFrame);
-        m_mainFrame->Maximize();
-        m_mainFrame->Show();
         return true;
     }
 };

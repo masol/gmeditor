@@ -21,6 +21,8 @@
 
 
 #include "dm/doc.h"
+#include "utils/eventlisten.h"
+#include <boost/function.hpp>
 
 namespace gme{
 
@@ -72,10 +74,18 @@ struct ImageDataScroll : public ImageDataBase
 
 class DocImg : public DocScopeLocker
 {
+public:
+    typedef boost::function<void (int,int)>     type_imagesize_handler;
 protected:
     bool    getData(ImageDataScale *pdata,int w, int h,const float* pixels);
 public:
     bool    getSize(int &w,int &h);
+    bool    setSize(int w,int h);
+    void    onImagesizeChanged(type_imagesize_handler handler);
+
+    ///@brief for glrender.
+    const float*    getPixels(void);
+    ///@brief for software render.
     bool    getData(ImageDataBase *pdata);
 };
 

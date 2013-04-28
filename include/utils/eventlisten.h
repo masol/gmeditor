@@ -30,12 +30,79 @@
 namespace gme
 {
 
+template<class type_func>
+class SingleEventListen
+{
+protected:
+    typedef std::vector<type_func>                                  type_callback_vector;
+
+    type_callback_vector            m_callback_data;
+public:
+    typedef typename type_callback_vector::size_type     size_type;
+    inline size_type   size(void){
+        return m_callback_data.size();
+    }
+    template<class T1>
+    void    fire(T1 v1)
+    {
+        BOOST_FOREACH(type_func &f,m_callback_data)
+        {
+            f(v1);
+        }
+    }
+
+    template<class T1,class T2>
+    void    fire(T1 v1,T2 v2)
+    {
+        BOOST_FOREACH(type_func &f,m_callback_data)
+        {
+            f(v1,v2);
+        }
+    }
+
+    template<class T1,class T2,class T3>
+    void    fire(T1 v1,T2 v2,T3 v3)
+    {
+        BOOST_FOREACH(type_func &f,m_callback_data)
+        {
+            f(v1,v2,v3);
+        }
+    }
+
+    template<class T1,class T2,class T3,class T4>
+    void    fire(T1 v1,T2 v2,T3 v3,T4 v4)
+    {
+        BOOST_FOREACH(type_func &f,m_callback_data)
+        {
+            f(v1,v2,v3,v4);
+        }
+    }
+
+    void    addEventListen(type_func &func)
+    {
+        m_callback_data.push_back(func);
+    }
+
+    void    removeEventListen(type_func &func)
+    {
+        typename type_callback_vector::iterator vec_it = m_callback_data.begin();
+        while(vec_it != m_callback_data.end())
+        {
+            if(*vec_it == func)
+            {
+                m_callback_data.erase(vec_it);
+            }
+            vec_it++;
+        }
+    }
+};
+
+
 template<class type_evt_id,class type_func>
 class EventListen
 {
 protected:
-    typedef std::vector<type_func>                                  type_callback_vector;
-    typedef boost::unordered_map<type_evt_id,type_callback_vector>  type_callback;
+    typedef boost::unordered_map<type_evt_id,SingleEventListen<type_func> >  type_callback;
 
     type_callback       m_callback_data;
 public:
@@ -45,10 +112,7 @@ public:
         typename type_callback::iterator it = m_callback_data.find(id);
         if(it != m_callback_data.end())
         {
-            BOOST_FOREACH(type_func &f,it->second)
-            {
-                f(v1);
-            }
+            it->second.fire(v1);
         }
     }
 
@@ -58,10 +122,7 @@ public:
         typename type_callback::iterator it = m_callback_data.find(id);
         if(it != m_callback_data.end())
         {
-            BOOST_FOREACH(type_func &f,it->second)
-            {
-                f(v1,v2);
-            }
+            it->second.fire(v1,v2);
         }
     }
 
@@ -71,10 +132,7 @@ public:
         typename type_callback::iterator it = m_callback_data.find(id);
         if(it != m_callback_data.end())
         {
-            BOOST_FOREACH(type_func &f,it->second)
-            {
-                f(v1,v2,v3);
-            }
+            it->second.fire(v1,v2,v3);
         }
     }
 
@@ -84,22 +142,13 @@ public:
         typename type_callback::iterator it = m_callback_data.find(id);
         if(it != m_callback_data.end())
         {
-            BOOST_FOREACH(type_func &f,it->second)
-            {
-                f(v1,v2);
-            }
+            it->second.fire(v1,v2,v3,v4);
         }
     }
 
     void    addEventListen(type_evt_id id,type_func &func)
     {
-        typename type_callback::iterator it = m_callback_data.find(id);
-        if(it != m_callback_data.end())
-        {
-            it->second.push_back(func);
-        }else{
-            m_callback_data[id].push_back(func);
-        }
+        m_callback_data[id].addEventListen(func);
     }
 
     void    removeEventListen(type_evt_id id,type_func &func)
@@ -107,19 +156,9 @@ public:
         typename type_callback::iterator it = m_callback_data.find(id);
         if(it != m_callback_data.end())
         {
-            typename type_callback_vector::iterator vec_it = it->second.begin();
-            while(vec_it != it->second.end())
-            {
-                if(*vec_it == func)
-                {
-                    it->second.erase(vec_it);
-                    if(it->second.size() == 0)
-                    {
-                        m_callback_data.erase(it);
-                    }
-                }
-                vec_it++;
-            }
+            it->second.removeEventListen(func);
+            if(it->second.size() == 0)
+            m_callback_data.erase(it);
         }
     }
 };

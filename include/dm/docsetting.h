@@ -36,8 +36,6 @@ public:
 	type_xml_node*   getToneMap(type_xml_node &parent);
 
 	std::string   getToneMapTypeNameByName(int type);
-    bool   getImageSize(unsigned long &width,unsigned long &height);
-    bool   setImageSize(unsigned long w,unsigned long h);
 	bool   getLinearScale(float &ls);
 	bool   setLinearScale(float ls);
     //engine 接口:
@@ -58,7 +56,7 @@ class XmlNodeToProps
 public:
 	XmlNodeToProps(){};
 	~XmlNodeToProps(){};
-	
+
 	// convert xmlNode to propMap
 	void	ToToneMapProps(type_xml_node* pNode,
 							boost::unordered_map< std::string, boost::unordered_map<std::string, std::string> > &propMap);
@@ -71,7 +69,7 @@ class DocSettingHelper
 public:
 	DocSettingHelper(){};
 	~DocSettingHelper(){};
-	
+
 	// get toneMap properties
 	bool getToneMap(boost::unordered_map< std::string, boost::unordered_map<std::string, std::string> > &propMap);
 

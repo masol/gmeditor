@@ -90,8 +90,7 @@ namespace gme{
 		 * @return 是否不需要退出，返回true需要继续执行。返回false发生了参数错误或者执行了帮助显示。
 		 * @exception  NULL.
 		**/
-		bool	initFromArgs(int argc,const char* argv[]);
-		bool    initFromArgs(int argc,const wchar_t* argv[]);
+		bool	initFromArgs(int argc,char** argv);
 
         /**
          * @brief           获取属性的值。
@@ -159,7 +158,7 @@ namespace gme{
 #endif
 
             /*如果属性名不存在的话，直接让抛异常 */
-            m_ptree.get<boost::any>(path);
+            //m_ptree.get<boost::any>(path);
 
             /*检查该属性是否有监视函数, 如果有，返回 */
             boost::optional<slottype> old = m_slots.get_optional<slottype>(path);

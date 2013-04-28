@@ -36,6 +36,41 @@ DocImg::getSize(int &w,int &h)
     return false;
 }
 
+void
+DocImg::onImagesizeChanged(type_imagesize_handler handler)
+{
+    pDocData->imageSize_Evt.addEventListen(handler);
+}
+
+
+bool
+DocImg::setSize(int w,int h)
+{
+    if(pDocData->m_session && pDocData->m_session->film)
+    {
+        slg::RenderSession  *session = pDocData->m_session.get();
+        int ow = session->film->GetWidth ();
+        int oh = session->film->GetHeight ();
+        if(ow != w && oh != h)
+        {
+            // RTPATHOCL doesn't support FILM_EDIT so I use a stop/start here
+            session->Stop();
+
+            session->renderConfig->scene->camera->Update(w,h);
+            session->film->Init(session->renderConfig->scene->camera->GetFilmWeight(),
+                    session->renderConfig->scene->camera->GetFilmHeight());
+
+            session->Start();
+
+            pDocData->imageSize_Evt.fire(w,h);
+
+        }
+        return true;
+    }
+    return false;
+}
+
+
 bool
 DocImg::getData(ImageDataScale *pdata,int w, int h,const float* pixels)
 {
@@ -121,6 +156,20 @@ DocImg::getData(ImageDataScale *pdata,int w, int h,const float* pixels)
     return false;
 }
 
+
+const float*
+DocImg::getPixels(void)
+{
+    slg::RenderSession* session = pDocData->getSession();
+
+    if(session && session->film)
+    {
+        session->renderEngine->UpdateFilm();
+	    session->film->UpdateScreenBuffer();
+	    return session->film->GetScreenBuffer();
+    }
+    return NULL;
+}
 
 bool
 DocImg::getData(ImageDataBase *pdata)

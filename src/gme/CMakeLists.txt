@@ -35,19 +35,27 @@ set(GME_SRCS
 	main.cpp
 	data/xpmres.cpp
    )
+   
+set(GME_GL_SRC
+    glrenderview.cpp
+  	glrender/glrenderframe.cpp
+  )
+
 
 if(wxWidgets_CXX_FLAGS)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${wxWidgets_CXX_FLAGS}")
     Message(STATUS "wxWidgets_CXX_FLAGS=${wxWidgets_CXX_FLAGS}")
 endif(wxWidgets_CXX_FLAGS)
 
-add_executable(gmeditor ${GME_SRCS})
+add_executable(gmeditor ${GME_SRCS} ${GME_GL_SRC})
 
 IF (WIN32)
 TARGET_LINK_LIBRARIES(gmeditor
  dm
  utils
  openctm
+# ${GLEW_LIBRARY}
+# ${GLUT_LIBRARY}
  ${ASSIMP_LIBRARIES}
  ${FreeImage_LIBRARIES}
  ${SLG_LIBRARY}
@@ -62,6 +70,8 @@ TARGET_LINK_LIBRARIES(gmeditor
   dm
   utils
   openctm
+#  ${GLEW_LIBRARY}
+#  ${GLUT_LIBRARY}
   ${ASSIMP_LIBRARIES}
   ${wxWidgets_LIBRARIES_Cache}
   ${FreeImage_LIBRARIES}

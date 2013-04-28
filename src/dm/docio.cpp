@@ -211,6 +211,7 @@ DocIO::loadSlgScene(const std::string &path)
         }
         pDocData->m_session->Start();
         pDocData->m_started = true;
+        pDocData->fireSizeChanged();
         return true;
     }
     catch(cl::Error err)
@@ -237,7 +238,7 @@ DocIO::initAndStartScene(slg::Scene *scene)
 
 
     bool    hasLight = false;
-    gme::LocalSetting::EnvironmentHDR::setFile("/home/gmeditor/build/scenes/simple-mat/arch.exr");
+    //gme::LocalSetting::EnvironmentHDR::setFile("/home/gmeditor/build/scenes/simple-mat/arch.exr");
     if(gme::LocalSetting::EnvironmentHDR::hasHDR())
     {
         std::stringstream   ss;
@@ -314,6 +315,8 @@ DocIO::initAndStartScene(slg::Scene *scene)
     slg::RenderConfig *config = new slg::RenderConfig(confgSS.str(),*scene);
     pDocData->m_session.reset(new slg::RenderSession(config));
     pDocData->m_session->Start();
+
+    pDocData->fireSizeChanged();
     pDocData->m_started = true;
 }
 

@@ -27,6 +27,7 @@ namespace gme{
 class MainView;
 class ObjectView;
 class PropFrame;
+class GlRenderView;
 
 class MainFrame : public wxFrame {
     typedef  wxFrame   inherited;
@@ -55,9 +56,9 @@ public:
 
 	/** Processes menu About|Info */
 	void onMenuHelpAbout(wxCommandEvent &event);
-	
+
 	void onShowPropertyPane(wxCommandEvent &event);
-	
+
 	/** Processes Render Start**/
 	void onRenderStart(wxCommandEvent &event);
 
@@ -75,6 +76,9 @@ public:
 
 	/** Updata Render Stop UI**/
 	void onUpdateRenderStop(wxUpdateUIEvent& event);
+
+	/** Processes Render Pause**/
+	void onViewmodeChanged(wxCommandEvent &event);
 
 	enum{
 		SFP_INFO = 0,
@@ -97,6 +101,7 @@ private:
 //not need free members.
     wxGauge         *m_pGauge;
     ObjectView      *m_objectView;
+    GlRenderView    *m_renderView;
 	PropFrame       *m_propFrame;
     void    createMenubar();
 	void    createToolbar();

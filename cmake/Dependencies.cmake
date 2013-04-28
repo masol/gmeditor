@@ -57,22 +57,22 @@ endif ()
 
 
 #set(wxWidgets_USE_STATIC 1)
-find_package(wxWidgets 2.9 COMPONENTS propgrid aui stc html adv core base REQUIRED)
+find_package(wxWidgets 2.9 COMPONENTS propgrid gl aui stc html adv core base REQUIRED)
 if (wxWidgets_FOUND)
     set(wxUSE_UNICODE_DEFINE "wxUSE_UNICODE=1")
-#    set(wxUSE_STATIC_DEFINE "wxUSE_STATIC=1")    
+#    set(wxUSE_STATIC_DEFINE "wxUSE_STATIC=1")
  	IF(MSVC)
  		include_directories( ${wxWidgets_ROOT_DIR}/include/msvc )
- 	ENDIF(MSVC)    
+ 	ENDIF(MSVC)
    	include_directories(SYSTEM ${wxWidgets_INCLUDE_DIRS})
-	
+
 	if(WIN32)
 		set(wxWidgets_LIBRARY_DIRS "${wxWidgets_ROOT_DIR}/lib/vc_lib")
 	endif()
 	link_directories(${wxWidgets_LIBRARY_DIRS})
 
 	STRING(REGEX REPLACE ";" ";-D" wxWidgets_DEFINITIONS "${wxWidgets_DEFINITIONS}")
-	SET(wxWidgets_DEFINITIONS "-D${wxWidgets_DEFINITIONS}")	
+	SET(wxWidgets_DEFINITIONS "-D${wxWidgets_DEFINITIONS}")
 #    Message(STATUS "wxWidgets_DEFINITIONS : ${wxWidgets_DEFINITIONS}")
 #    Message(STATUS "wxWidgets_LIBRARY : ${wxWidgets_LIBRARIES}")
 #    mark_as_advanced(wxWidgets_LIBRARIES)
@@ -108,6 +108,22 @@ find_package(OpenCL)
 if (OPENCL_FOUND)
 	include_directories(SYSTEM ${OPENCL_INCLUDE_DIR} ${OPENCL_C_INCLUDE_DIR})
 endif ()
+
+## GLEW
+#set(GLEW_ROOT                  "${GLEW_SEARCH_PATH}")
+#if(NOT APPLE)
+#	find_package(GLEW)
+#endif()
+#if (GLEW_FOUND)
+#	include_directories(${GLEW_INCLUDE_PATH})
+#endif ()
+#
+## GLUT
+#set(GLUT_ROOT                  "${GLUT_SEARCH_PATH}")
+#find_package(GLUT)
+#if (GLUT_FOUND)
+#	include_directories(${GLUT_INCLUDE_PATH})
+#endif ()
 
 
 find_package(SLG)

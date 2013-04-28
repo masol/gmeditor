@@ -88,12 +88,6 @@ DocSetting::getToneMapTypeNameByName(int type)
 }
 
 bool
-DocSetting::getImageSize(unsigned long &width,unsigned long &height)
-{
-    return false;
-}
-
-bool
 DocSetting::getLinearScale(float &ls)
 {
 	bool ret = false;
@@ -130,7 +124,7 @@ DocSetting::setLinearScale(float ls)
 
 //==========================================================
 
-bool 
+bool
 DocSettingHelper::getToneMap(boost::unordered_map< std::string, boost::unordered_map<std::string, std::string> > &propMap)
 {
 	type_xml_doc    xmldoc;
@@ -146,7 +140,7 @@ DocSettingHelper::getToneMap(boost::unordered_map< std::string, boost::unordered
 }
 
 bool
-DocSettingHelper::setToneMapProperty(const std::string &propName, 
+DocSettingHelper::setToneMapProperty(const std::string &propName,
 									 const std::string &propValue)
 {
 	bool ret = false;
@@ -158,7 +152,7 @@ DocSettingHelper::setToneMapProperty(const std::string &propName,
 	return ret;
 }
 
-type_xml_node*   
+type_xml_node*
 DocSettingHelper::getMaterial(const std::string &id, type_xml_node &parent)
 {
 	return	m_docMat.getMaterial(id, parent);
@@ -167,7 +161,7 @@ DocSettingHelper::getMaterial(const std::string &id, type_xml_node &parent)
 //==========================================================
 
 void
-XmlNodeToProps::ToToneMapProps(type_xml_node* pNode, 
+XmlNodeToProps::ToToneMapProps(type_xml_node* pNode,
 							   boost::unordered_map< std::string, boost::unordered_map<std::string, std::string> > &propMap)
 {
 	boost::unordered_map<std::string, std::string> valueMap;

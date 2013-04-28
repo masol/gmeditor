@@ -60,7 +60,7 @@ RenderView::~RenderView()
 void
 RenderView::onIdle(wxIdleEvent &event)
 {
-    this->Refresh(false);
+    this->Update();
 }
 
 /*

@@ -66,6 +66,8 @@ IF (NOT GME_NO_DEFAULT_CONFIG)
         SET(ASSIMP_INC_SEARCH_PATH          "${GME_DEP_DIRS}/Assimp/include/assimp")
         SET(ASSIMP_LIB_SEARCH_PATH          "${GME_DEP_DIRS}/Assimp/build/code/Debug")
         SET(ASSIMP_PKGC_LIBRARY_DIRS        "${GME_DEP_DIRS}/Assimp/build/code/Release")
+        SET(GLEW_SEARCH_PATH        		"${GME_DEP_DIRS}/glew-1.9.0")
+        SET(GLUT_SEARCH_PATH        		"${GME_DEP_DIRS}/freeglut-2.8.0")
     ENDIF(DEFINED ENV{GMEDITOR_DEP_DIRS})
 
   ELSE(WIN32)

@@ -297,11 +297,11 @@ void PropFrame::OnPropertyGridKeyEvent( wxKeyEvent& WXUNUSED(event) )
 void PropFrame::PopulateWithScene ()
 {
 	DECLARE_WXCONVERT;
-    wxPropertyGridManager* pgman = m_pPropGridManager;
-	wxPropertyGridPage* pg = pgman->GetPage(gmeWXT(m_matPgName.c_str()));
+//    wxPropertyGridManager* pgman = m_pPropGridManager;
+//	wxPropertyGridPage* pg = pgman->GetPage(gmeWXT(m_matPgName.c_str()));
 
 	// scene meterial properties
-	wxPGProperty* pMat = pg->Append(new wxPropertyCategory(gmeWXT("材质"),gmeWXT("scene.materials")));
+	//wxPGProperty* pMat = pg->Append(new wxPropertyCategory(gmeWXT("材质"),gmeWXT("scene.materials")));
 
 }
 
@@ -603,7 +603,7 @@ void PropFrame::updateProps()
 	DECLARE_WXCONVERT;
     wxPropertyGridManager* pgman = m_pPropGridManager;
 	wxPropertyGridPage* pg = pgman->GetPage(gmeWXT(this->m_filmPgName.c_str()));
-	
+
 	// update film tonemap properties
 	boost::unordered_map< std::string, boost::unordered_map<std::string, std::string> > propMap;
 	bool result = this->m_docsettingHelper.getToneMap(propMap);
@@ -647,14 +647,14 @@ PropFrame::establishConnect(ObjectView *pov)
 }
 
 
-void 
+void
 PropFrame::showMatProps(const std::string &matId)
 {
 	DECLARE_WXCONVERT;
     wxPropertyGridManager* pgman = m_pPropGridManager;
 	wxPropertyGridPage* pgScene = pgman->GetPage(gmeWXT(this->m_matPgName.c_str()));
 	wxPGProperty *pMats = pgScene->GetProperty(gmeWXT("scene.materials"));
-	
+
 	// 如果属性面板没有显示，则显示面板，并切换至scene页面
 	MainFrame *mainFram = (MainFrame *)this->GetParent();
 	mainFram->showPropFrame();
@@ -666,7 +666,7 @@ PropFrame::showMatProps(const std::string &matId)
 	type_xml_doc    xmldoc;
 	type_xml_node *pNode = m_docsettingHelper.getMaterial(matId, xmldoc);
 	//type_xml_node *pNode = m_docsettingHelper.getMaterial("chair", *pScene);
-	
+
 	MaterialProperty matProp;
 	matProp.create(pMats, pNode);
 	pgman->RefreshGrid();
