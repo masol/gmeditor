@@ -16,54 +16,29 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef GME_PROPGRID_H
-#define GME_PROPGRID_H
+#ifndef  GME_PROPERTY_HDRPAGE_H
+#define  GME_PROPERTY_HDRPAGE_H
 
 #include <wx/wx.h>
-#include <wx/aui/aui.h>
-#include <wx/propgrid/propgrid.h>
-#include <boost/shared_ptr.hpp>
-#include <boost/unordered_map.hpp>
-#include "dm/docsetting.h"
+#include <wx/propgrid/manager.h>
+#include "gmeproppage.h"
 
 namespace gme{
 
-class   ObjectView;
-class   GmePropPage;
-class PropFrame : public wxScrolledWindow
+class HDRPage : public GmePropPage
 {
+    typedef GmePropPage inherit;
 public:
-    PropFrame(wxFrame *parent, wxWindowID id, const wxPoint& pos, const wxSize& size , const long& style);
-    ~PropFrame();
-
-    wxPropertyGridManager   *m_pPropGridManager;
-    GmePropPage             *m_pLastShownPage;
-private:
-    /// @brief set the default propertyview size.
-    void setDefaultFramePosition();
-
-//    enum{
-//        PGID_POSTPROCESS = 0,
-//        PGID_MATERIAL,
-//        PGID_ENVIRONMENT,
-//        PGID_MAX
-//    };
-    /// @brief all all pages here.
-    void initPages(void);
-public:
-    void establishConnect(ObjectView *pov);
+    HDRPage();
+    virtual ~HDRPage();
 protected:
-    void OnPropertyGridPageChange( wxPropertyGridEvent& event );
-    void OnSelectedObjectChanged(const std::string &oid,const std::string &matid)
-    {
-        ///@todo check visible here.
-        //bugy... need fix it!
-        //showMatProps(matid);
-    }
+    void OnPropertySelect( wxPropertyGridEvent& event );
+    void OnPropertyChanging( wxPropertyGridEvent& event );
+    void OnPropertyChange( wxPropertyGridEvent& event );
 private:
     DECLARE_EVENT_TABLE()
 };
 
-} //end namespace gme
+}
 
-#endif // GME_PROPGRID_H
+#endif //GME_PROPERTY_HDRPAGE_H

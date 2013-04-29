@@ -91,7 +91,7 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
 	m_propFrame = new PropFrame(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, propFrameStyle);
     m_propFrame->establishConnect(m_objectView);
 	m_mgr.AddPane(m_propFrame, wxRIGHT, gmeWXT("属性设置"));
-	m_mgr.GetPane(m_propFrame).Hide();
+	//m_mgr.GetPane(m_propFrame).Hide();
     // tell the manager to "commit" all the changes just made
     m_mgr.Update();
 }
@@ -353,20 +353,12 @@ MainFrame::onMenuHelpAbout(wxCommandEvent &event)
 void
 MainFrame::onShowPropertyPane(wxCommandEvent &event)
 {
-	this->showPropFrame();
-}
-
-PropFrame*
-MainFrame::getPropFrame()
-{
-	return this->m_propFrame;
-}
-
-// 显示属性面板
-void
-MainFrame::showPropFrame()
-{
-	m_mgr.GetPane(m_propFrame).Show();
+    if(m_mgr.GetPane(m_propFrame).IsShown())
+    {
+        m_mgr.GetPane(m_propFrame).Hide();
+    }else{
+        m_mgr.GetPane(m_propFrame).Show();
+    }
 	m_mgr.Update();
 }
 

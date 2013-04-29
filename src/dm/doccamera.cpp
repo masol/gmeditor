@@ -116,7 +116,58 @@ Camera::setDefault(const Camera &cam)
 ////////////////////////////////////////////////////////////////////////////////
 
 bool
-DocCamera::rotate(int distX,int distY,float optRotateStep)
+DocCamera::translate(int distx,int disty,float optTranslateFactor)
+{
+    if(!pDocData->m_started)
+        return false;
+    slg::RenderSession* session = pDocData->getSession();
+    if(session && session->film)
+    {
+        BOOST_ASSERT_MSG(session->renderConfig->scene->dataSet != NULL,"why no dateSet? scene not init!");
+	    session->BeginEdit();
+
+        float basic_step = ( session->renderConfig->scene->dataSet->GetBSphere().rad ) * optTranslateFactor ;
+
+        float distxInWorld = ((float)distx / (float)session->renderConfig->scene->camera->GetFilmWeight()) * basic_step;
+        float distyInWorld = ((float)disty / (float)session->renderConfig->scene->camera->GetFilmHeight()) * basic_step;
+
+        session->renderConfig->scene->camera->TranslateLeft(distxInWorld);
+        session->renderConfig->scene->camera->Translate(luxrays::Normalize(session->renderConfig->scene->camera->up) * distyInWorld);
+
+
+	    session->renderConfig->scene->camera->Update(session->film->GetWidth(), session->film->GetHeight());
+	    session->editActions.AddAction(slg::CAMERA_EDIT);
+	    session->EndEdit();
+	    return true;
+	}
+	return false;
+}
+
+bool
+DocCamera::straightTranslate(float factor)
+{
+    if(!pDocData->m_started)
+        return false;
+    slg::RenderSession* session = pDocData->getSession();
+    if(session && session->film)
+    {
+        BOOST_ASSERT_MSG(session->renderConfig->scene->dataSet != NULL,"why no dateSet? scene not init!");
+	    session->BeginEdit();
+
+        float basic_step = ( session->renderConfig->scene->dataSet->GetBSphere().rad / 10.0f ) * factor ;
+
+        session->renderConfig->scene->camera->TranslateForward(basic_step);
+
+	    session->renderConfig->scene->camera->Update(session->film->GetWidth(), session->film->GetHeight());
+	    session->editActions.AddAction(slg::CAMERA_EDIT);
+	    session->EndEdit();
+	    return true;
+	}
+	return false;
+}
+
+bool
+DocCamera::targetRotate(int distx,int disty,float optRotateFactor)
 {
     if(!pDocData->m_started)
         return false;
@@ -125,8 +176,40 @@ DocCamera::rotate(int distX,int distY,float optRotateStep)
     {
 	    session->BeginEdit();
 
-	    session->renderConfig->scene->camera->RotateUp(0.04f * distY * optRotateStep);
-	    session->renderConfig->scene->camera->RotateLeft(0.04f * distX * optRotateStep);
+	    slg::PerspectiveCamera  *camera = session->renderConfig->scene->camera;
+
+        float xangle = ((float)distx / (float)camera->GetFilmWeight()) * ( 180.0f * optRotateFactor);
+        float yangle = ((float)disty / (float)camera->GetFilmHeight()) * ( 180.0f * optRotateFactor);
+
+
+	    ExtraCameraManager::targetRotateUp(camera,yangle);
+	    ExtraCameraManager::targetRotateLeft(camera,xangle);
+
+	    session->renderConfig->scene->camera->Update(session->film->GetWidth(), session->film->GetHeight());
+	    session->editActions.AddAction(slg::CAMERA_EDIT);
+	    session->EndEdit();
+	    return true;
+	}
+	return false;
+}
+
+
+
+bool
+DocCamera::rotate(int distX,int distY,float optRotateFactor)
+{
+    if(!pDocData->m_started)
+        return false;
+    slg::RenderSession* session = pDocData->getSession();
+    if(session && session->film)
+    {
+	    session->BeginEdit();
+
+        float xangle = ((float)distX / (float)session->renderConfig->scene->camera->GetFilmWeight()) * ( 180.0f * optRotateFactor);
+        float yangle = ((float)distY / (float)session->renderConfig->scene->camera->GetFilmHeight()) * ( 180.0f * optRotateFactor);
+
+	    session->renderConfig->scene->camera->RotateUp(yangle);
+	    session->renderConfig->scene->camera->RotateLeft(xangle);
 
 
 	    session->renderConfig->scene->camera->Update(session->film->GetWidth(), session->film->GetHeight());

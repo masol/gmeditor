@@ -41,13 +41,18 @@ set(GME_GL_SRC
   	glrender/glrenderframe.cpp
   )
 
+set(GME_PROP_SRC
+    property/hdrpage.cpp
+    property/materialpage.cpp
+  )
+
 
 if(wxWidgets_CXX_FLAGS)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${wxWidgets_CXX_FLAGS}")
     Message(STATUS "wxWidgets_CXX_FLAGS=${wxWidgets_CXX_FLAGS}")
 endif(wxWidgets_CXX_FLAGS)
 
-add_executable(gmeditor ${GME_SRCS} ${GME_GL_SRC})
+add_executable(gmeditor ${GME_SRCS} ${GME_GL_SRC} ${GME_PROP_SRC})
 
 IF (WIN32)
 TARGET_LINK_LIBRARIES(gmeditor

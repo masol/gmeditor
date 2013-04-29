@@ -38,6 +38,7 @@ private:
     ~DocPrivate(void);
 public:
     typedef boost::function<void (int,int)>     type_imagesize_handler;
+    typedef boost::function<void (void)>        type_state_handler;
     ///@todo: 需要一个材质转化专家系统来支持材质转化。
 	//
     boost::shared_ptr<slg::RenderSession>   m_session;
@@ -50,11 +51,23 @@ public:
 	ExtraObjectManager                objManager;
 	ExtraCameraManager                camManager;
     SingleEventListen<type_imagesize_handler>   imageSize_Evt;
+    EventListen<int,type_state_handler>         state_Evt;
 public:
     //关闭当前打开场景。
     void    closeScene(void);
     inline slg::RenderSession*  getSession(void){
         return m_session.get();
+    }
+
+    enum{
+        STATE_OPEN,
+        STATE_CLOSE,
+        STATE_MAX
+    };
+
+    inline  void    fireStateChanged(int state)
+    {
+        state_Evt.fire(state);
     }
 
     inline  void    fireSizeChanged(void)

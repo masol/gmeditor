@@ -22,6 +22,7 @@
 #include <wx/wx.h>
 #include "wx/glcanvas.h"
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <Eigen/Core>
 
 //include OpenGL
 #ifdef __WXMAC__
@@ -63,15 +64,53 @@ protected:
     int      m_action;
     enum{
         ACTION_INVALID,
-        ACTION_CAM_ROTATE
+        ACTION_CAM_ROTATE,
+        ACTION_CAM_TRANSLATE,
+        ACTION_MAX
     };
+    inline float  getFactor(wxMouseEvent& event)
+    {
+        float factor = 1.0f;
+        if(event.ShiftDown())
+            factor = 10.0f;
+        else if(event.ControlDown())
+            factor = 0.1f;
+        return factor;
+    }
     void    rotateCam(wxMouseEvent& event);
+    void    translateCam(wxMouseEvent& event);
+
+    ///@brief virtual coord to document coord translate. update after background draw called.
+    ///@detail our coord transform no rotation.
+    Eigen::Vector2f     m_v2dTranslate;
+    ///@brief virtual coord to document coord scale. update after background draw called.
+    Eigen::Vector2f     m_v2dScale;
+
+    inline int  XDiffV2D(int diff)
+    {
+        return diff / m_v2dScale[0];
+    }
+    inline int  YDiffV2D(int diff)
+    {
+        return diff / m_v2dScale[1];
+    }
+
+    inline wxPoint     V2D(const wxPoint &pt)
+    {
+        return wxPoint((pt.x + m_v2dTranslate[0]) / m_v2dScale[0],(pt.y + m_v2dTranslate[1]) / m_v2dScale[1]);
+    }
+    inline wxPoint     D2V(const wxPoint &pt)
+    {
+        return wxPoint((pt.x * m_v2dScale[0] - m_v2dTranslate[0]),(pt.y * m_v2dScale[1] - m_v2dTranslate[1]));
+    }
 
     int         m_viewMode;
     int         m_docWidth;
     int         m_docHeight;
     ///@brief 指示下次绘制时是否需要清背景。
     bool        m_needClearColor;
+    ///@brief 指示旋转模式是否绕中心点旋转。如果是false则绕位置点旋转。缺省是false.
+    bool        m_rorateAroundTarget;
 protected:
     void    drawBackground(const wxSize &winsize,const float *pixels);
 public:
@@ -111,8 +150,10 @@ protected:
     // some useful events
     void mouseMoved(wxMouseEvent& event);
     void mouseLeftDown(wxMouseEvent& event);
-    void mouseWheelMoved(wxMouseEvent& event);
     void mouseLeftReleased(wxMouseEvent& event);
+    void mouseMiddleDown(wxMouseEvent& event);
+    void mouseMiddleReleased(wxMouseEvent& event);
+    void mouseWheelMoved(wxMouseEvent& event);
     void rightClick(wxMouseEvent& event);
     void mouseLeftWindow(wxMouseEvent& event);
     void keyPressed(wxKeyEvent& event);

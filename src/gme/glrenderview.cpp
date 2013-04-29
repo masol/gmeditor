@@ -112,6 +112,7 @@ GlRenderView::updateViewmode(int viewMode)
 void
 GlRenderView::onDocumentSizeChanged(int w,int h)
 {
+    ///@todo thread switch needed here!
     m_glframe->docWidth(w);
     m_glframe->docHeight(h);
     updateViewmode(this->m_glframe->viewMode());
@@ -120,6 +121,7 @@ GlRenderView::onDocumentSizeChanged(int w,int h)
 bool
 GlRenderView::onEditModeChanged(const boost::any &nvar)
 {
+    ///@todo thread switch needed here!
     int mode = boost::any_cast<int>( nvar );
     if(mode != this->m_glframe->viewMode())
     {

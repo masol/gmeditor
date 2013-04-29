@@ -36,8 +36,6 @@ public:
     virtual ~MainFrame();
 	void onClose(wxCloseEvent& event);
 public:
-	PropFrame*	 getPropFrame();
-	void		 showPropFrame();
     void onSize(wxSizeEvent& event);
 
 	/** Processes menu File|Open */

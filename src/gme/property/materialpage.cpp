@@ -16,54 +16,48 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef GME_PROPGRID_H
-#define GME_PROPGRID_H
+#include "config.h"
+#include "materialpage.h"
+#include "../stringutil.h"
 
-#include <wx/wx.h>
-#include <wx/aui/aui.h>
-#include <wx/propgrid/propgrid.h>
-#include <boost/shared_ptr.hpp>
-#include <boost/unordered_map.hpp>
-#include "dm/docsetting.h"
+BEGIN_EVENT_TABLE(gme::MaterialPage, gme::MaterialPage::inherit)
+    EVT_PG_SELECTED( wxID_ANY, gme::MaterialPage::OnPropertySelect )
+    EVT_PG_CHANGING( wxID_ANY, gme::MaterialPage::OnPropertyChanging )
+    EVT_PG_CHANGED( wxID_ANY, gme::MaterialPage::OnPropertyChange )
+END_EVENT_TABLE()
+
 
 namespace gme{
 
-class   ObjectView;
-class   GmePropPage;
-class PropFrame : public wxScrolledWindow
+MaterialPage::MaterialPage()
 {
-public:
-    PropFrame(wxFrame *parent, wxWindowID id, const wxPoint& pos, const wxSize& size , const long& style);
-    ~PropFrame();
+	// append film tonemap
+//	wxPGProperty* pf = this->Append(new wxPropertyCategory(gmeWXT("材质定义"),gmeWXT("material")));
+}
 
-    wxPropertyGridManager   *m_pPropGridManager;
-    GmePropPage             *m_pLastShownPage;
-private:
-    /// @brief set the default propertyview size.
-    void setDefaultFramePosition();
 
-//    enum{
-//        PGID_POSTPROCESS = 0,
-//        PGID_MATERIAL,
-//        PGID_ENVIRONMENT,
-//        PGID_MAX
-//    };
-    /// @brief all all pages here.
-    void initPages(void);
-public:
-    void establishConnect(ObjectView *pov);
-protected:
-    void OnPropertyGridPageChange( wxPropertyGridEvent& event );
-    void OnSelectedObjectChanged(const std::string &oid,const std::string &matid)
-    {
-        ///@todo check visible here.
-        //bugy... need fix it!
-        //showMatProps(matid);
-    }
-private:
-    DECLARE_EVENT_TABLE()
-};
+MaterialPage::~MaterialPage()
+{
+}
 
-} //end namespace gme
 
-#endif // GME_PROPGRID_H
+void MaterialPage::OnPropertySelect( wxPropertyGridEvent& WXUNUSED(event) )
+{
+    std::cerr << "MaterialPage::OnPropertySelect()" << std::endl;
+}
+
+void MaterialPage::OnPropertyChange( wxPropertyGridEvent& event )
+{
+    wxPGProperty* p = event.GetProperty();
+    std::cerr << "MaterialPage::OnPropertyChange('" << p->GetName().c_str() << "', to value '" << p->GetDisplayedString().c_str() << "')" << std::endl;
+}
+
+void MaterialPage::OnPropertyChanging( wxPropertyGridEvent& event )
+{
+    wxPGProperty* p = event.GetProperty();
+    std::cerr << "MaterialPage::OnPropertyChanging('" << p->GetName().c_str() << "', to value '" << event.GetValue().GetString().c_str() << "')" << std::endl;
+}
+
+
+}
+

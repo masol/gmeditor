@@ -96,5 +96,13 @@ ExtraCameraManager::saveTo(slg::RenderSession *session,Camera &cam)
 }
 
 
+void
+ExtraCameraManager::targetRotate(slg::PerspectiveCamera *camera,const float angle, const luxrays::Vector &axis)
+{
+    luxrays::Vector p = camera->orig - camera->target;
+    luxrays::Transform t = luxrays::Rotate(angle, axis);
+    camera->orig = camera->target + t * p;
+}
+
 }
 

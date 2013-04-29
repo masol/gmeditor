@@ -42,6 +42,15 @@ public:
     inline size_type   size(void){
         return m_callback_data.size();
     }
+
+    void    fire(void)
+    {
+        BOOST_FOREACH(type_func &f,m_callback_data)
+        {
+            f();
+        }
+    }
+
     template<class T1>
     void    fire(T1 v1)
     {
@@ -106,6 +115,15 @@ protected:
 
     type_callback       m_callback_data;
 public:
+    void    fire(type_evt_id id)
+    {
+        typename type_callback::iterator it = m_callback_data.find(id);
+        if(it != m_callback_data.end())
+        {
+            it->second.fire();
+        }
+    }
+
     template<class T1>
     void    fire(type_evt_id id,T1 v1)
     {

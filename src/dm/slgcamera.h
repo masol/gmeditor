@@ -21,6 +21,7 @@
 
 #include "dm/doccamera.h"
 #include "slg/slg.h"
+#include "slg/camera/camera.h"
 
 namespace gme{
 
@@ -56,6 +57,18 @@ public:
     int dumpAll(type_xml_node &parent);
 public:
     static void saveTo(slg::RenderSession *session,Camera &cam);
+    static void targetRotate(slg::PerspectiveCamera *camera,const float angle, const luxrays::Vector &axis);
+    static inline void targetRotateUp(slg::PerspectiveCamera *camera,const float angle)
+    {
+        targetRotate(camera,angle,camera->x);
+    }
+
+    static inline void targetRotateLeft(slg::PerspectiveCamera *camera,const float angle)
+    {
+        targetRotate(camera,angle,camera->y);
+    }
+
+
 };
 
 }

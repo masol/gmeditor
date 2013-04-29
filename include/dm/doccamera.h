@@ -108,7 +108,21 @@ typedef std::vector<Camera>     type_cam_vector;
 class DocCamera : public DocScopeLocker
 {
 public:
-    bool   rotate(int distx,int disty,float optRotateStep);
+    /** @brief rotating around target.distx and disty is in document coordinate.
+    **/
+    bool   targetRotate(int distx,int disty,float optRotateFactor);
+
+    /** @brief distx and disty is in document coordinate.
+    **/
+    bool   rotate(int distx,int disty,float optRotateFactor);
+
+    /** @brief factor.
+    **/
+    bool   straightTranslate(float factor);
+
+    /** @brief use the bounding-sphere-radius/1000 as the basic step.
+    **/
+    bool   translate(int distx,int disty,float optTranslateFactor);
     /** @brief save active camera to camera object.
     **/
     bool    saveTo(Camera &cam);

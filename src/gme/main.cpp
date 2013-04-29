@@ -25,6 +25,7 @@
 
 class MyApp : public wxApp
 {
+    typedef wxApp   inherit;
 protected:
     gme::MainFrame      *m_mainFrame;
 public:
@@ -34,6 +35,11 @@ public:
     ~MyApp()
     {
     }
+    int OnExit()
+    {
+        return inherit::OnExit();
+    }
+
     bool OnInit() 
     {
         //initionlize config.
