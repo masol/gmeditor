@@ -96,7 +96,7 @@ void    initViewAllCamera(slg::Scene *scene,float width,float height)
     gme::Camera defCam = gme::Camera::getDefault();
     float aspect = width / height;
     float aspectradius = bs.rad / (aspect < 1.0f ? 1.0f : aspect);
-    float  radius = aspectradius / std::tan(((defCam.fieldOfView / 180.0 ) * boost::math::constants::pi<float>() ) / 2.0);
+    float  radius = aspectradius / std::tan(((defCam.fieldOfView / 180.0f ) * boost::math::constants::pi<float>() ) / 2.0f);
 
     defCam.orig[0] = (bs.center.x  + radius);
     defCam.orig[1] = (bs.center.y  + radius);
@@ -209,9 +209,7 @@ DocIO::loadSlgScene(const std::string &path)
             //slg以当前路径为拼接原则，而不是相对于文件。
             loadExtraFromSlgSceneFile(boost::filesystem::canonical(scnFile/*,boost::filesystem::absolute(path.parent_path())*/).string());
         }
-        pDocData->m_session->Start();
-        pDocData->m_started = true;
-        pDocData->fireSizeChanged();
+        pDocData->startScene();
         return true;
     }
     catch(cl::Error err)
@@ -314,10 +312,7 @@ DocIO::initAndStartScene(slg::Scene *scene)
     std::cerr << confgSS.str();
     slg::RenderConfig *config = new slg::RenderConfig(confgSS.str(),*scene);
     pDocData->m_session.reset(new slg::RenderSession(config));
-    pDocData->m_session->Start();
-
-    pDocData->fireSizeChanged();
-    pDocData->m_started = true;
+    pDocData->startScene();
 }
 
 
@@ -386,44 +381,6 @@ DocIO::loadSpsScene(const std::string &path)
         }else{
             delete scene;
         }
-#if 0
-        luxrays::Properties cmdLineProp;
-        //我们需要自动应用本地的渲染配置(例如平台选择以及设备选择,未指定的话采用本地配置文件，未配置的自动使用最大集合)。
-        {
-            int	platformId = 0;
-            if(Option::instance().is_existed(Setting::OPT_PLATFORMID))
-            {
-                platformId = boost::lexical_cast<int>(Option::instance().get<std::string>(Setting::OPT_PLATFORMID));
-            }
-            cmdLineProp.SetString(Setting::OPT_PLATFORMID,boost::lexical_cast<std::string>(platformId));
-
-            if(Option::instance().is_existed(Setting::OPT_DEVICESTR))
-            {
-                cmdLineProp.SetString(Setting::OPT_DEVICESTR,Option::instance().get<std::string>(Setting::OPT_DEVICESTR));
-            }else{
-                std::string	full = clHardwareInfo::instance().getFullSelectString(platformId);
-                cmdLineProp.SetString(Setting::OPT_DEVICESTR,full);
-            }
-        }
-
-        slg::RenderConfig *config = new slg::RenderConfig(&path, &cmdLineProp);
-        pDocData->m_session.reset(new slg::RenderSession(config));
-
-        //第一步必须把反向表建立起来，后面依赖本表做数据更新。
-        pDocData->matManager.appendMat2IdFromSlg();
-        pDocData->texManager.appendTex2IdFromSlg();
-
-        loadExtraFromScene();
-        std::string scnFile = pDocData->m_session->renderConfig->cfg.GetString("scene.file","");
-        if(scnFile.length())
-        {
-            //slg以当前路径为拼接原则，而不是相对于文件。
-            loadExtraFromSlgSceneFile(boost::filesystem::canonical(scnFile/*,boost::filesystem::absolute(path.parent_path())*/).string());
-        }
-        pDocData->m_session->Start();
-        pDocData->m_started = true;
-        return true;
-#endif
     }
     catch(cl::Error err)
     {
@@ -581,11 +538,19 @@ DocIO::importScene(const std::string &path,ObjectNode *pParent)
 }
 
 
-bool
-DocIO::deleteModel(const std::string &id)
+void
+DocIO::onSceneLoaded(type_state_handler handler)
 {
-    return pDocData->objManager.removeMesh(id);
+    pDocData->state_Evt.addEventListen(DocPrivate::STATE_OPEN,handler);
 }
+
+
+void
+DocIO::onSceneClosed(type_state_handler handler)
+{
+    pDocData->state_Evt.addEventListen(DocPrivate::STATE_CLOSE,handler);
+}
+
 
 
 } //end namespace gme.

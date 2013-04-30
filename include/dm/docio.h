@@ -33,6 +33,8 @@ class ObjectNode;
 
 class DocIO : public DocScopeLocker
 {
+public:
+    typedef boost::function<void (void)>     type_state_handler;
 protected:
     /** @brief 从场景中加载额外信息。
     **/
@@ -53,16 +55,14 @@ protected:
     void    initAndStartScene(slg::Scene *scene);
 public:
     bool    loadScene(const std::string &path);
-    /** @brief 从制定文件加载场景，并加入到pParent指定的节点下。
+    /** @brief 从指定文件加载场景，并加入到pParent指定的节点下。
       * @param pParent 指示了加入的父节点。如果为空，则加入到根节点下。
     **/
     bool    importScene(const std::string &path,ObjectNode *pParent = NULL);
     bool    exportScene(const std::string &path,bool bExportResource = true);
 
-    /** @brief 删除指定模型.
-     *  @param id 指定模型的id.
-    **/
-    bool    deleteModel(const std::string &id);
+    void    onSceneLoaded(type_state_handler handler);
+    void    onSceneClosed(type_state_handler handler);
 public:
     /** @brief 更新node所指示对象的关联资源，将所有资源拷贝到指定目录，并修改node中的关联索引。
      * @details 静态方法，不需要锁定文档对象。

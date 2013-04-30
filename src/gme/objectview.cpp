@@ -208,16 +208,15 @@ ObjectView::OnSelectionChanged(wxTreeListEvent& event)
     std::string     objID,matid;
     if(getSelection(objID,&matid))
     {
-        this->m_eventListen.fire(EVT_SELECTION_CHANGED,objID,matid);
+        DocObj  obj;
+        const std::vector<std::string> &sels = obj.getSelection();
+        if(std::find(sels.begin(),sels.end(),objID) == sels.end())
+        {
+            obj.clearSelection();
+            obj.select(objID);
+        }
+        //this->m_eventListen.fire(EVT_SELECTION_CHANGED,objID,matid);
     }
-#if 0
-	wxTreeListItem  item = m_treelist->GetSelection();
-	const wxString &mat = m_treelist->GetItemText(item, 1);
-	std::string matId = std::string(mat.mb_str());
-	MainFrame *mainFram = (MainFrame *)this->GetParent();
-	PropFrame *propFrame = mainFram->getPropFrame();
-	propFrame->showMatProps(matId);
-#endif
 }
 
 void

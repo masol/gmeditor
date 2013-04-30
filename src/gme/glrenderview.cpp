@@ -130,27 +130,36 @@ GlRenderView::onEditModeChanged(const boost::any &nvar)
     return true;
 }
 
-void
-GlRenderView::setViewmodeFromCmd(int cmds)
+int
+GlRenderView::getViewmodeFromCmd(int cmdid)
 {
-    switch(cmds)
+    switch(cmdid)
     {
     case cmd::GID_VM_ADJDOC:
-        this->setViewmode(GlRenderFrame::VM_ADJDOC);
-        break;
+        return GlRenderFrame::VM_ADJDOC;
     case cmd::GID_VM_DOCSIZE:
-        this->setViewmode(GlRenderFrame::VM_DOCSIZE);
-        break;
+        return GlRenderFrame::VM_DOCSIZE;
     case cmd::GID_VM_FULLWINDOW:
-        this->setViewmode(GlRenderFrame::VM_FULLWINDOW);
-        break;
+        return GlRenderFrame::VM_FULLWINDOW;
     case cmd::GID_VM_SCALEWITHASPECT:
-        this->setViewmode(GlRenderFrame::VM_SCALEWITHASPECT);
-        break;
+        return GlRenderFrame::VM_SCALEWITHASPECT;
     default:
         BOOST_ASSERT_MSG(false,"unreachable code!");
         break;
     }
+    throw std::runtime_error("invalid position");
+}
+
+bool
+GlRenderView::isCurrentViewmodeFromCmd(int cmds)
+{
+    return (this->m_glframe->viewMode() == getViewmodeFromCmd(cmds));
+}
+
+void
+GlRenderView::setViewmodeFromCmd(int cmds)
+{
+    this->setViewmode(getViewmodeFromCmd(cmds));
 }
 
 

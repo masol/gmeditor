@@ -18,7 +18,7 @@
 
 #include "config.h"
 #include "mainframe.h"
-#include "renderview.h"
+//#include "renderview.h"
 #include "objectview.h"
 #include "stringutil.h"
 #include "cmdids.h"
@@ -40,11 +40,14 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_MENU(wxID_EXIT, MainFrame::onMenuFileQuit)
 	EVT_MENU(wxID_DELETE, MainFrame::onMenuEditDelete)
 	EVT_MENU(wxID_ABOUT, MainFrame::onMenuHelpAbout)
-	EVT_MENU(cmd::GID_PROP, MainFrame::onShowPropertyPane)
 	EVT_MENU(cmd::GID_RENDER_START,MainFrame::onRenderStart)
 	EVT_MENU(cmd::GID_RENDER_STOP,MainFrame::onRenderStop)
 	EVT_MENU(cmd::GID_RENDER_PAUSE,MainFrame::onRenderPause)
+    EVT_MENU_RANGE(cmd::GID_PANE_BEGIN, cmd::GID_PANE_END,MainFrame::onViewPane)
+    EVT_UPDATE_UI_RANGE(cmd::GID_PANE_BEGIN,cmd::GID_PANE_END,MainFrame::onUpdateViewPane)
     EVT_MENU_RANGE(cmd::GID_VM_BEGIN,cmd::GID_VM_END,MainFrame::onViewmodeChanged)
+    EVT_UPDATE_UI_RANGE(cmd::GID_VM_BEGIN,cmd::GID_VM_END,MainFrame::onUpdateViewmode)
+
 	EVT_UPDATE_UI(wxID_DELETE,MainFrame::onUpdateMenuEditDelete)
 	EVT_UPDATE_UI(cmd::GID_RENDER_START,MainFrame::onUpdateRenderStart)
 	EVT_UPDATE_UI(cmd::GID_RENDER_STOP,MainFrame::onUpdateRenderStop)
@@ -133,13 +136,16 @@ MainFrame::createMenubar()
 
 	{// view menu
 		wxMenu *pViewMenu = new wxMenu();
-		pViewMenu->Append(cmd::GID_PROP, gmeWXT("属性设置(&P)"), gmeWXT("显示属性面板"));
+		pViewMenu->AppendCheckItem(cmd::GID_PANE_OBJECTVIEW, gmeWXT("对象一览(&O)"), gmeWXT("显示/隐藏对象一览面板"));
+		pViewMenu->AppendCheckItem(cmd::GID_PANE_PROPVIEW, gmeWXT("属性设置(&P)"), gmeWXT("显示/隐藏属性面板"));
 
 		pViewMenu->AppendSeparator();
-		pViewMenu->Append(cmd::GID_VM_ADJDOC, gmeWXT("校正文档(&A)"), gmeWXT("根据显示区域的大小自动设置渲染文档的尺寸。"));
-		pViewMenu->Append(cmd::GID_VM_DOCSIZE, gmeWXT("实际尺寸(&P)"), gmeWXT("按照文档的实际尺寸显示。"));
-		pViewMenu->Append(cmd::GID_VM_FULLWINDOW, gmeWXT("全屏缩放(&P)"), gmeWXT("自动缩放以充满全屏。"));
-		pViewMenu->Append(cmd::GID_VM_SCALEWITHASPECT, gmeWXT("等比缩放(&P)"), gmeWXT("自动缩放到全屏并保持文档的横纵必不变。"));
+        wxMenu *pViewModeMenu = new wxMenu();
+		pViewModeMenu->AppendRadioItem(cmd::GID_VM_ADJDOC, gmeWXT("校正文档(&A)"), gmeWXT("根据显示区域的大小自动设置渲染文档的尺寸。"));
+		pViewModeMenu->AppendRadioItem(cmd::GID_VM_DOCSIZE, gmeWXT("实际尺寸(&P)"), gmeWXT("按照文档的实际尺寸显示。"));
+		pViewModeMenu->AppendRadioItem(cmd::GID_VM_FULLWINDOW, gmeWXT("全屏缩放(&P)"), gmeWXT("自动缩放以充满全屏。"));
+		pViewModeMenu->AppendRadioItem(cmd::GID_VM_SCALEWITHASPECT, gmeWXT("等比缩放(&P)"), gmeWXT("自动缩放到全屏并保持文档的横纵必不变。"));
+        pViewMenu->AppendSubMenu(pViewModeMenu,gmeWXT("显示方式(&M)"),gmeWXT("控制主窗口如何匹配渲染图的尺寸。"));
 
 		pMenuBar->Append(pViewMenu, gmeWXT("视图(&V)"));
 	}
@@ -257,6 +263,31 @@ MainFrame::onViewmodeChanged(wxCommandEvent &event)
 
 
 void
+MainFrame::onUpdateViewmode(wxUpdateUIEvent& event)
+{
+    event.Check(this->m_renderView->isCurrentViewmodeFromCmd(event.GetId()));
+}
+
+wxAuiPaneInfo&
+MainFrame::getPaneFromCmdID(int cmdid)
+{
+    wxWindow    *pWindow = NULL;
+    switch(cmdid)
+    {
+    case cmd::GID_PANE_OBJECTVIEW:
+        pWindow = m_objectView;
+        break;
+    case cmd::GID_PANE_PROPVIEW:
+        pWindow = m_propFrame;
+        break;
+    default:
+        BOOST_ASSERT_MSG(false,"unreachable code");
+    }
+    return m_mgr.GetPane(pWindow);
+}
+
+
+void
 MainFrame::onMenuFileImport(wxCommandEvent &event)
 {
 	wxFileDialog *OpenDialog= new wxFileDialog(this, _T("Choose a file"), _(""), _(""), _("*.*"), wxFD_OPEN);
@@ -329,11 +360,11 @@ MainFrame::onMenuFileQuit(wxCommandEvent &event)
 void
 MainFrame::onMenuEditDelete(wxCommandEvent &event)
 {
-    DocIO   dio;
+    DocObj   dobj;
     std::string id;
     if(this->m_objectView->getSelection(id))
     {
-        dio.deleteModel(id);
+        dobj.deleteModel(id);
     }
 
 	this->m_objectView->delSelection();
@@ -351,16 +382,24 @@ MainFrame::onMenuHelpAbout(wxCommandEvent &event)
 }
 
 void
-MainFrame::onShowPropertyPane(wxCommandEvent &event)
+MainFrame::onViewPane(wxCommandEvent &event)
 {
-    if(m_mgr.GetPane(m_propFrame).IsShown())
+    wxAuiPaneInfo&  pi = this->getPaneFromCmdID(event.GetId());
+    if(pi.IsShown())
     {
-        m_mgr.GetPane(m_propFrame).Hide();
+        pi.Hide();
     }else{
-        m_mgr.GetPane(m_propFrame).Show();
+        pi.Show();
     }
 	m_mgr.Update();
 }
+
+void
+MainFrame::onUpdateViewPane(wxUpdateUIEvent &event)
+{
+    event.Check(this->getPaneFromCmdID(event.GetId()).IsShown());
+}
+
 
 void
 MainFrame::onRenderStart(wxCommandEvent &event)

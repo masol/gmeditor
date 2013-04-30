@@ -27,6 +27,7 @@
 #include <boost/shared_ptr.hpp>
 #include "utils/eventlisten.h"
 #include <boost/function.hpp>
+#include <boost/foreach.hpp>
 
 namespace gme{
 
@@ -36,9 +37,24 @@ private:
     friend  class Doc;
     DocPrivate(void);
     ~DocPrivate(void);
+    std::vector<std::string>                    m_selectionVector;
 public:
     typedef boost::function<void (int,int)>     type_imagesize_handler;
     typedef boost::function<void (void)>        type_state_handler;
+    typedef boost::function<void (const std::string&)>  type_selection_handler;
+
+    enum{
+        STATE_OPEN,
+        STATE_CLOSE,
+        STATE_MAX
+    };
+
+    enum{
+        SEL_ITEMADDED,
+        SEL_ITEMREMOVED,
+        SEL_MAX
+    };
+
     ///@todo: 需要一个材质转化专家系统来支持材质转化。
 	//
     boost::shared_ptr<slg::RenderSession>   m_session;
@@ -52,18 +68,54 @@ public:
 	ExtraCameraManager                camManager;
     SingleEventListen<type_imagesize_handler>   imageSize_Evt;
     EventListen<int,type_state_handler>         state_Evt;
+    EventListen<int,type_selection_handler>     selection_Evt;
+public:
+    ///@brief selection members.
+    inline  void    clearSelection(void)
+    {
+        BOOST_FOREACH(const std::string &key,m_selectionVector)
+        {
+            fireSelection(SEL_ITEMREMOVED,key);
+        }
+        m_selectionVector.clear();
+    }
+    inline  bool    addSelection(const std::string &oid)
+    {
+        if(std::find(m_selectionVector.begin(),m_selectionVector.end(),oid) == m_selectionVector.end())
+        {
+            fireSelection(SEL_ITEMADDED,oid);
+            m_selectionVector.push_back(oid);
+            return true;
+        }
+        return false;
+    }
+    inline  const std::vector<std::string>& getSelection(void)const
+    {
+        return m_selectionVector;
+    }
+
+    inline  bool    removeSelection(const std::string &oid)
+    {
+        std::vector<std::string>::iterator  it = std::find(m_selectionVector.begin(),m_selectionVector.end(),oid);
+        if(it != m_selectionVector.end())
+        {
+            fireSelection(SEL_ITEMREMOVED,oid);
+            m_selectionVector.erase(it);
+            return true;
+        }
+        return false;
+    }
+    inline  void    fireSelection(int state,const std::string &oid)
+    {
+        selection_Evt.fire(state,oid);
+    }
 public:
     //关闭当前打开场景。
     void    closeScene(void);
+
     inline slg::RenderSession*  getSession(void){
         return m_session.get();
     }
-
-    enum{
-        STATE_OPEN,
-        STATE_CLOSE,
-        STATE_MAX
-    };
 
     inline  void    fireStateChanged(int state)
     {
@@ -73,6 +125,15 @@ public:
     inline  void    fireSizeChanged(void)
     {
         imageSize_Evt.fire(m_session->film->GetWidth(),m_session->film->GetHeight());
+    }
+
+    inline  void    startScene(void)
+    {
+        BOOST_ASSERT(m_session.get() != NULL);
+        m_session->Start();
+        m_started = true;
+        fireStateChanged(STATE_OPEN);
+        fireSizeChanged();
     }
 };
 

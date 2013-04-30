@@ -31,6 +31,7 @@ namespace gme{
 
 HDRPage::HDRPage()
 {
+    DECLARE_WXCONVERT;
 	// append film tonemap
 	wxPGProperty* pf = this->Append(new wxPropertyCategory(gmeWXT("图像"),gmeWXT("film")));
     // Append is ideal way to add items to wxPropertyGrid.

@@ -42,7 +42,10 @@ public:
     GlRenderView(wxFrame* parent);
     virtual ~GlRenderView();
     void    setViewmodeFromCmd(int cmds);
+    ///@brief 指示给定的cmdid是否是当前的viewmode.
+    bool    isCurrentViewmodeFromCmd(int cmds);
 protected:
+    int     getViewmodeFromCmd(int cmdid);
 //    DECLARE_EVENT_TABLE()
 };
 

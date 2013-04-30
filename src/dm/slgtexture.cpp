@@ -217,8 +217,8 @@ ExtraTextureManager::dumpTextureMapping3D(type_xml_node &parent,const slg::Textu
 
             pSelf->append_attribute(allocate_attribute(pDoc,constDef::transformation,trans));
 
-            md5.update(uvmapping3d.c_str(),uvmapping3d.length());
-            md5.update(trans.c_str(),trans.length());
+            md5.update(uvmapping3d.c_str(),(MD5::size_type)uvmapping3d.length());
+            md5.update(trans.c_str(),(MD5::size_type)trans.length());
         }
         break;
     case slg::GLOBALMAPPING3D:
@@ -234,8 +234,8 @@ ExtraTextureManager::dumpTextureMapping3D(type_xml_node &parent,const slg::Textu
 
             pSelf->append_attribute(allocate_attribute(pDoc,constDef::transformation,trans));
 
-            md5.update(globalmapping3d.c_str(),globalmapping3d.length());
-            md5.update(trans.c_str(),trans.length());
+            md5.update(globalmapping3d.c_str(),(MD5::size_type)globalmapping3d.length());
+            md5.update(trans.c_str(),(MD5::size_type)trans.length());
         }
         break;
     default:
@@ -381,7 +381,7 @@ ExtraTextureManager::dump(type_xml_node &parent,const std::string &tag,const slg
 
     std::string texTypeName = DocMat::texGetTypeNameFromType(pTex->GetType());
     pSelf->append_attribute(allocate_attribute(pDoc,constDef::type,texTypeName));
-    md5.update(texTypeName.c_str(),texTypeName.length());
+    md5.update(texTypeName.c_str(),(MD5::size_type)texTypeName.length());
 
     switch(pTex->GetType())
     {
@@ -435,7 +435,7 @@ ExtraTextureManager::dump(type_xml_node &parent,const std::string &tag,const slg
 
                 imageCtxMd5.update((unsigned char*)(void*)pImage->GetPixels(),pImage->GetWidth() * pImage->GetHeight() * pImage->GetChannelCount() * sizeof(float));
                 imageCtxMd5_value =imageCtxMd5.finalize().hexdigest();
-                md5.update(imageCtxMd5_value.c_str(),imageCtxMd5_value.length());
+                md5.update(imageCtxMd5_value.c_str(),(MD5::size_type)imageCtxMd5_value.length());
 
                 pSelf->append_attribute(allocate_attribute_withkey(pDoc,"imagemd5",imageCtxMd5_value));
 
@@ -635,7 +635,7 @@ ExtraTextureManager::dump(type_xml_node &parent,const std::string &tag,const slg
 			pSelf->append_attribute(allocate_attribute_withkey(pDoc,"mortarsize",boost::lexical_cast<std::string>( mortarsize )));
 			pSelf->append_attribute(allocate_attribute_withkey(pDoc,"brickrun",boost::lexical_cast<std::string>( brickrun )));
 			pSelf->append_attribute(allocate_attribute_withkey(pDoc,"brickbevel",boost::lexical_cast<std::string>( brickbevel )));
-            md5.update(brickbond.c_str(),brickbond.length());
+            md5.update(brickbond.c_str(),(MD5::size_type)brickbond.length());
             md5.update((unsigned char*)(void*)&brickwidth,sizeof(brickwidth));
             md5.update((unsigned char*)(void*)&brickheight,sizeof(brickheight));
             md5.update((unsigned char*)(void*)&brickdepth,sizeof(brickdepth));
@@ -699,7 +699,7 @@ ExtraTextureManager::dump(type_xml_node &parent,const std::string &tag,const slg
 					value_str));
 
                 md5.update((unsigned char*)(void*)&offset_value,sizeof(offset_value));
-                md5.update(value_str.c_str(),value_str.length());
+                md5.update(value_str.c_str(),(MD5::size_type)value_str.length());
             }
 
             type_xml_node *pChild1 = dump(*pSelf,"amount",pRealTex->GetAmountTexture(),ctx);

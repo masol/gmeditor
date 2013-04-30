@@ -192,7 +192,7 @@ ExtraMaterialManager::dump(type_xml_node &parent,const slg::Material* pMat,dumpC
     pSelf->append_attribute(pDoc->allocate_attribute(constDef::type,allocate_string(pDoc,type)));
 
     conditional_md5 md5(ctx);
-    md5.update(type.c_str(),type.length());
+    md5.update(type.c_str(),(MD5::size_type)type.length());
     ExtraTextureManager &texManager = Doc::instance().pDocData->texManager;
 
     if(pMat->IsLightSource())

@@ -35,6 +35,7 @@ DocPrivate::DocPrivate(void)
 void
 DocPrivate::closeScene(void)
 {
+    clearSelection();
     if(m_session)
     {
         if(m_started)
@@ -48,6 +49,7 @@ DocPrivate::closeScene(void)
     matManager.clear();
     texManager.clear();
     camManager.clear();
+    fireStateChanged(STATE_CLOSE);
 }
 
 

@@ -214,7 +214,7 @@ namespace gme
                 BOOST_ASSERT_MSG(pAttr,"invalid pAttr usage.");
                 if(pAttr)
                 {
-                    m_md5.update(pAttr->value(),pAttr->value_size());
+                    m_md5.update(pAttr->value(),(MD5::size_type)pAttr->value_size());
                     return true;
                 }
             }

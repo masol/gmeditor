@@ -31,5 +31,46 @@ DocObj::getRootObject()
     return pDocData->objManager.getRoot();
 }
 
+bool
+DocObj::deleteModel(const std::string &id)
+{
+    return pDocData->objManager.removeMesh(id);
+}
+
+void
+DocObj::clearSelection(void)
+{
+    pDocData->clearSelection();
+}
+
+bool
+DocObj::select(const std::string &id)
+{
+    return pDocData->addSelection(id);
+}
+
+bool
+DocObj::deselect(const std::string &id)
+{
+    return pDocData->removeSelection(id);
+}
+
+void
+DocObj::onSelectionAdded(type_selection_handler handler)
+{
+    pDocData->selection_Evt.addEventListen(DocPrivate::SEL_ITEMADDED,handler);
+}
+
+void
+DocObj::onSelectionRemoved(type_selection_handler handler)
+{
+    pDocData->selection_Evt.addEventListen(DocPrivate::SEL_ITEMREMOVED,handler);
+}
+
+const std::vector<std::string>&
+DocObj::getSelection(void)
+{
+    return pDocData->getSelection();
+}
 
 } //end namespace gme.

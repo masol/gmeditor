@@ -55,7 +55,8 @@ public:
 	/** Processes menu About|Info */
 	void onMenuHelpAbout(wxCommandEvent &event);
 
-	void onShowPropertyPane(wxCommandEvent &event);
+	void onViewPane(wxCommandEvent &event);
+    void onUpdateViewPane(wxUpdateUIEvent &event);
 
 	/** Processes Render Start**/
 	void onRenderStart(wxCommandEvent &event);
@@ -77,6 +78,7 @@ public:
 
 	/** Processes Render Pause**/
 	void onViewmodeChanged(wxCommandEvent &event);
+    void onUpdateViewmode(wxUpdateUIEvent &event);
 
 	enum{
 		SFP_INFO = 0,
@@ -87,6 +89,7 @@ public:
 		SFP_TOTOAL = 5
 	};
 private:
+    wxAuiPaneInfo&  getPaneFromCmdID(int cmdid);
     inline void updateProgressbar(){
         wxRect rect;
         wxStatusBar *pSB = this->GetStatusBar();
