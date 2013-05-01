@@ -50,8 +50,10 @@ public:
     };
 
     enum{
-        SEL_ITEMADDED,
-        SEL_ITEMREMOVED,
+        SEL_ITEMSELECTED,
+        SEL_ITEMDELSELECTED,
+        SEL_ITEMCHILDADDED, //指示某个ObjectNode下新添加了孩子。
+        SEL_ITEMSELFREMOVED, //指示某个ObjectNode自身被删除。
         SEL_MAX
     };
 
@@ -69,13 +71,20 @@ public:
     SingleEventListen<type_imagesize_handler>   imageSize_Evt;
     EventListen<int,type_state_handler>         state_Evt;
     EventListen<int,type_selection_handler>     selection_Evt;
+private:
+    inline  void    clearAllListen(void)
+    {
+        imageSize_Evt.clear();
+        state_Evt.clear();
+        selection_Evt.clear();
+    }
 public:
     ///@brief selection members.
     inline  void    clearSelection(void)
     {
         BOOST_FOREACH(const std::string &key,m_selectionVector)
         {
-            fireSelection(SEL_ITEMREMOVED,key);
+            fireSelection(SEL_ITEMDELSELECTED,key);
         }
         m_selectionVector.clear();
     }
@@ -83,13 +92,13 @@ public:
     {
         if(std::find(m_selectionVector.begin(),m_selectionVector.end(),oid) == m_selectionVector.end())
         {
-            fireSelection(SEL_ITEMADDED,oid);
+            fireSelection(SEL_ITEMSELECTED,oid);
             m_selectionVector.push_back(oid);
             return true;
         }
         return false;
     }
-    inline  const std::vector<std::string>& getSelection(void)const
+    inline  std::vector<std::string>& getSelection(void)
     {
         return m_selectionVector;
     }
@@ -99,7 +108,7 @@ public:
         std::vector<std::string>::iterator  it = std::find(m_selectionVector.begin(),m_selectionVector.end(),oid);
         if(it != m_selectionVector.end())
         {
-            fireSelection(SEL_ITEMREMOVED,oid);
+            fireSelection(SEL_ITEMDELSELECTED,oid);
             m_selectionVector.erase(it);
             return true;
         }

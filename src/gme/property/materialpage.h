@@ -26,7 +26,11 @@ namespace gme{
 
 class MaterialPage : public GmePropPage
 {
+private:
     typedef GmePropPage  inherit;
+    std::string         m_currentObject;
+    void    clearPage(void);
+    void    buildPage(const std::string &objid);
 public:
     MaterialPage();
     virtual ~MaterialPage();
@@ -34,6 +38,10 @@ protected:
     void OnPropertySelect( wxPropertyGridEvent& event );
     void OnPropertyChanging( wxPropertyGridEvent& event );
     void OnPropertyChange( wxPropertyGridEvent& event );
+
+	void  onDocumentItemSelected(const std::string &id);
+	void  onDocumentItemDeselected(const std::string &id);
+	void  onDocumentClosed(void);
 private:
     DECLARE_EVENT_TABLE()
 };

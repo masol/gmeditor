@@ -22,7 +22,6 @@
 #include <wx/numdlg.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/bind.hpp>
-#include "objectview.h"
 #include "propgrid.h"
 #include "property/hdrpage.h"
 #include "property/materialpage.h"
@@ -144,14 +143,6 @@ PropFrame::PropFrame(wxFrame *parent, wxWindowID id, const wxPoint& pos, const w
     setDefaultFramePosition();
 
 }
-
-void
-PropFrame::establishConnect(ObjectView *pov)
-{
-    ObjectView::type_callback f = boost::bind(&PropFrame::OnSelectedObjectChanged,this,_1,_2);
-    pov->addEventListen(ObjectView::EVT_SELECTION_CHANGED,f);
-}
-
 
 void PropFrame::setDefaultFramePosition()
 {

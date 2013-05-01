@@ -56,6 +56,7 @@ DocPrivate::closeScene(void)
 
 DocPrivate::~DocPrivate(void)
 {
+    clearAllListen();
     closeScene();
 }
 

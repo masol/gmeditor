@@ -29,12 +29,124 @@
 
 namespace gme{
 
+class ObjectNode;
+
+/**
+ * @brief 可以把ObjectNodePath当作标准STL中的vector<ObjectNode*>来用，只不过增加了几个便利方法。
+ */
+class ObjectNodePath : public std::vector<ObjectNode*>
+{
+private:
+    typedef std::vector<ObjectNode*>	inherited;
+    size_type				m_depth;
+public:
+    /// for compatible with stl.
+    typedef inherited::value_type					value_type;
+    typedef inherited::pointer						pointer;
+    typedef inherited::const_pointer				const_pointer;
+    typedef inherited::reference					reference;
+    typedef inherited::const_reference				const_reference;
+    typedef inherited::iterator						iterator;
+    typedef inherited::const_iterator				const_iterator;
+    typedef inherited::const_reverse_iterator		const_reverse_iterator;
+    typedef inherited::reverse_iterator				reverse_iterator;
+    typedef inherited::size_type					size_type;
+    typedef inherited::difference_type				difference_type;
+    typedef inherited::allocator_type				allocator_type;
+
+    ObjectNodePath(void) : m_depth(0){}
+    ObjectNodePath(int reservPathLength) :inherited(reservPathLength),m_depth(0){}
+    ObjectNodePath(ObjectNode *head) : m_depth(0){
+        append(head);
+    }
+
+    ObjectNodePath(const ObjectNodePath & rhs) : inherited(rhs) , m_depth(rhs.m_depth) {}
+    ObjectNodePath & operator=(const ObjectNodePath & rhs){
+        *dynamic_cast<inherited*>(this) = rhs;
+        m_depth = rhs.m_depth;
+        return *this;
+    }
+
+
+    void setHead(ObjectNode * head){
+        if(inherited::size()){
+            inherited::at(0) = head;
+        }else{
+            inherited::push_back(head);
+            m_depth++;
+        }
+    }
+
+    inline size_type	size() const{
+        return m_depth;
+    }
+
+    void append(ObjectNode * node){
+        if(inherited::size() > m_depth)
+        {
+            inherited::at(m_depth++) = node;
+        }else{
+            inherited::push_back(node);
+            m_depth++;
+        }
+    }
+
+    void append(const ObjectNodePath &frompath){
+        if( frompath.size() + size() > inherited::size() )
+        {
+            inherited::resize(frompath.size() + size());
+        }
+        std::copy(frompath.begin(),frompath.begin() + frompath.size(),inherited::begin() + size());
+    }
+
+    inline void push(ObjectNode * node){
+        append(node);
+    }
+
+    void resize(size_type __new_size, value_type __x = value_type())
+    {
+        if(__new_size > inherited::size())
+        {
+            inherited::resize(__new_size,__x);
+            m_depth = __new_size;
+        }else{
+            m_depth = __new_size;
+        }
+    }
+
+    void pop(void){
+        m_depth--;
+    }
+
+    iterator end()
+    { return inherited::begin() + size();}
+
+    const_iterator	end() const
+    { return inherited::begin() + size(); }
+
+    ObjectNode * getHead(void) const
+    {
+        return inherited::size() ? inherited::at(0) : NULL;
+    }
+
+    ObjectNode * getTail(void) const
+    {
+        return inherited::size() ? inherited::at(m_depth - 1) : NULL;
+    }
+
+    ObjectNode * getNode(size_type index) const{
+        return (index < m_depth) ? inherited::at(index) : NULL;
+    }
+    ObjectNode * getNodeFromTail(size_type index) const{
+        return (index < m_depth) ? inherited::at(m_depth - index - 1) : NULL;
+    }
+
+};
+
 /** @brief 保存了对象的额外信息。
 **/
 class ObjectNode
 {
-public:
-    typedef std::vector<ObjectNode*>        type_path;
 private:
     friend class DocIO;
     friend class ExtraObjectManager;
@@ -65,6 +177,8 @@ protected:
         m_useplynormals = ref.m_useplynormals;
         m_transformation = ref.m_transformation;
     }
+    ///@brief notify some child removed.
+    void    onChildRemoved(const std::string &childid);
 public:
     /** @brief 将当前对象的内容dump到给定的xml node.
       * @details 如果使用相对路径或者拷贝资源或者导出ctm,都是相对于当前路径展开的计算，因此调用之前需要设置当前路径为资源目标路径。
@@ -75,7 +189,7 @@ public:
     /** @brief 搜索值为id的节点对象。
      *  @param parent 如果给出此参数，将把父对象写入这里。
     **/
-    ObjectNode*     findObject(const std::string &id,type_path *pPath=NULL);
+    ObjectNode*     findObject(const std::string &id,ObjectNodePath *pPath);
     inline void addChild(const ObjectNode&  child)
     {
         m_children.push_back(child);
@@ -87,6 +201,8 @@ public:
         {
             if(it->m_id == id)
             {
+                //must remove before earse,otherwise id will been destroy!
+                onChildRemoved(id);
                 m_children.erase(it);
                 return true;
             }else if(it->removeChild(id))
@@ -124,6 +240,11 @@ public:
             return m_id;
 		return m_name;
 	}
+    ///@brief 指示本节点只是一个组节点，没有实际的模型对应。
+    inline  bool    isPureGroup(void)const
+    {
+        return (m_matid.length() == 0 && m_filepath.length() == 0);
+    }
 	inline  void    name(const std::string &n){
 	    m_name = n;
 	}

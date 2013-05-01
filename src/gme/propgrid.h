@@ -28,7 +28,6 @@
 
 namespace gme{
 
-class   ObjectView;
 class   GmePropPage;
 class PropFrame : public wxScrolledWindow
 {
@@ -50,8 +49,6 @@ private:
 //    };
     /// @brief all all pages here.
     void initPages(void);
-public:
-    void establishConnect(ObjectView *pov);
 protected:
     void OnPropertyGridPageChange( wxPropertyGridEvent& event );
     void OnSelectedObjectChanged(const std::string &oid,const std::string &matid)

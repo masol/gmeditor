@@ -53,28 +53,16 @@ protected:
     void refresh(void);
 	wxTreeListItem FindItem(const std::string &id,const wxTreeListItem &parent);
 
-    EventListen<int,type_callback >      m_eventListen;
-public:
-    enum{
-        EVT_SELECTION_CHANGED,
-        EVT_ITEMEXPANDING,
-        EVT_ITEMEXPANDED
-    };
-
-    template<class T>
-    inline void    addEventListen(int id,T &v)
-    {
-        m_eventListen.addEventListen(id,v);
-    }
-    /** @brief 返回当前选择对象的id.
-    **/
-    bool    getSelection(std::string &id,std::string *pmatid = NULL);
-	bool	delSelection();
-	bool    isSelected();
-
     void    refreshAll(void);
 	void	refresh(const std::string &parent);
-
+private:
+	void  onDocumentItemSelected(const std::string &id);
+	void  onDocumentItemDeselected(const std::string &id);
+	void  onDocumentItemAdded(const std::string &parentId);
+	void  onDocumentItemRemoved(const std::string &selfId);
+	void  onDocumentOpend(void);
+	void  onDocumentClosed(void);
+public:
     ObjectView(wxWindow* parent, wxWindowID id,const wxPoint& pos, const wxSize& size);
     ~ObjectView();
 private:

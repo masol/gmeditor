@@ -20,9 +20,11 @@
 #include "objectview.h"
 #include "stringutil.h"
 #include "dm/docobj.h"
+#include "dm/docio.h"
 #include <wx/sizer.h>
 #include "propgrid.h"
 #include "mainframe.h"
+#include <boost/bind.hpp>
 
 
 namespace gme{
@@ -50,13 +52,71 @@ END_EVENT_TABLE()
 ObjectView::ObjectView(wxWindow* parent, wxWindowID id,const wxPoint& pos, const wxSize& size)
     : inherited(parent,id,pos,size)
 {
-    m_treelist = CreateTreeListCtrl(wxTL_DEFAULT_STYLE);
+    m_treelist = CreateTreeListCtrl(wxTL_MULTIPLE);
     refresh();
     m_sizer = new wxBoxSizer(wxVERTICAL);
     m_sizer->Add(m_treelist,wxSizerFlags(1).Expand());
     SetSizer(m_sizer);
-    Show();
+
+    DocIO   dio;
+    dio.onSceneLoaded(boost::bind(&ObjectView::onDocumentOpend,this));
+    dio.onSceneClosed(boost::bind(&ObjectView::onDocumentClosed,this));
+
+    DocObj  dobj;
+    dobj.onChildAdded(boost::bind(&ObjectView::onDocumentItemAdded,this,_1));
+    dobj.onSelfRemoved(boost::bind(&ObjectView::onDocumentItemRemoved,this,_1));
+    dobj.onSelected(boost::bind(&ObjectView::onDocumentItemSelected,this,_1));
+    dobj.onDeselected(boost::bind(&ObjectView::onDocumentItemDeselected,this,_1));
 }
+
+
+void
+ObjectView::onDocumentItemSelected(const std::string &id)
+{
+	wxTreeListItem  item = FindItem(id,m_treelist->GetRootItem());
+	if(item.IsOk() && !m_treelist->IsSelected(item) )
+    {
+        m_treelist->Select(item);
+    }
+}
+
+void
+ObjectView::onDocumentItemDeselected(const std::string &id)
+{
+	wxTreeListItem  item = FindItem(id,m_treelist->GetRootItem());
+	if(item.IsOk() && m_treelist->IsSelected(item) )
+    {
+        m_treelist->Unselect(item);
+    }
+}
+
+void
+ObjectView::onDocumentItemAdded(const std::string &parentId)
+{
+    refresh(parentId);
+}
+
+void
+ObjectView::onDocumentItemRemoved(const std::string &selfId)
+{
+	wxTreeListItem  self = FindItem(selfId,m_treelist->GetRootItem());
+	if(self.IsOk())
+        m_treelist->DeleteItem(self);
+}
+
+
+void
+ObjectView::onDocumentOpend(void)
+{
+    refresh();
+}
+
+void
+ObjectView::onDocumentClosed(void)
+{
+    m_treelist->DeleteAllItems();
+}
+
 
 void
 ObjectView::refreshAll(void)
@@ -73,7 +133,7 @@ ObjectView::refresh(const std::string &id)
 	DocObj	obj;
 	DocMat	mat;
 	gme::ObjectNode &root = obj.getRootObject();
-	ObjectNode *pParentNode = root.findObject(id);
+	ObjectNode *pParentNode = root.findObject(id,NULL);
 	BOOST_ASSERT_MSG(pParentNode,"data panic...");
 	ObjectNode::type_child_container::const_iterator it = pParentNode->begin();
 	while(it != pParentNode->end())
@@ -158,64 +218,47 @@ ObjectView::~ObjectView()
 
 }
 
-bool
-ObjectView::getSelection(std::string &id,std::string *pmatid)
+///@brief 我们在收到选择变更时，直接更新文档对象的选中变更。
+void
+ObjectView::OnSelectionChanged(wxTreeListEvent& event)
 {
-    wxTreeListItem  item = m_treelist->GetSelection();
-    if(item.IsOk())
+    wxTreeListItems sels;
+    unsigned selCount = m_treelist->GetSelections(sels);
+    //同步选择。
+    DocObj  obj;
+    typedef std::vector<std::string>      type_sel_vector;
+    const type_sel_vector    &docSels = obj.getSelection();
+    //需要清除item标志的vector.
+    type_sel_vector        clearSels = docSels;
+    //需要新加select的item vector
+    type_sel_vector        addSels;
+    for(unsigned idx = 0; idx < selCount; idx++)
     {
+        wxTreeListItem  item = sels[idx];
         wxClientData *pData = m_treelist->GetItemData(item);
         ObjectViewClientData* pvd = dynamic_cast<ObjectViewClientData*>(pData);
         if(pvd)
         {
-            id = pvd->m_objid;
-            if(pmatid)
-                *pmatid = pvd->m_matid;
-            return true;
+            type_sel_vector::iterator   it = std::find(clearSels.begin(),clearSels.end(),pvd->m_objid);
+            if(it != clearSels.end())
+            {//已经被选择，忽略之。
+                clearSels.erase(it);
+            }else{//尚未被选择，加入到addSels中。
+                addSels.push_back(pvd->m_objid);
+            }
         }
     }
-    return false;
-}
 
-bool
-ObjectView::delSelection()
-{
-	wxTreeListItem  item = m_treelist->GetSelection();
-    if(item.IsOk())
+    BOOST_FOREACH(const std::string &id,clearSels)
     {
-		m_treelist->DeleteItem(item);
-		return true;
+        std::cerr << "clear selection : " << id << std::endl;
+        obj.deselect(id);
     }
-    return false;
-}
 
-bool
-ObjectView::isSelected()
-{
-	if(m_treelist->GetSelection()!= NULL)
-		return true ;
-	else 
-		return false;
-}
-
-
-
-
-void
-ObjectView::OnSelectionChanged(wxTreeListEvent& event)
-{
-	// 当选中item时，显示mat对应的属性
-    std::string     objID,matid;
-    if(getSelection(objID,&matid))
+    BOOST_FOREACH(const std::string &id,addSels)
     {
-        DocObj  obj;
-        const std::vector<std::string> &sels = obj.getSelection();
-        if(std::find(sels.begin(),sels.end(),objID) == sels.end())
-        {
-            obj.clearSelection();
-            obj.select(objID);
-        }
-        //this->m_eventListen.fire(EVT_SELECTION_CHANGED,objID,matid);
+        std::cerr << "add selection : " << id << std::endl;
+        obj.select(id);
     }
 }
 

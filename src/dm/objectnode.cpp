@@ -146,17 +146,17 @@ const char* constDef::focalDistance = "focalDistance";
 
 
 ObjectNode*
-ObjectNode::findObject(const std::string &id,type_path *pPath)
+ObjectNode::findObject(const std::string &id,ObjectNodePath *pPath)
 {
     if(pPath)
-        pPath->push_back(this);
+        pPath->push(this);
     if(this->id() == id)
         return this;
     ObjectNode* result = NULL;
     type_child_container::iterator  it = this->begin();
     while(it != this->end())
     {
-        result = it->findObject(id);
+        result = it->findObject(id,pPath);
         if(result)
         {
             break;
@@ -164,7 +164,7 @@ ObjectNode::findObject(const std::string &id,type_path *pPath)
         it++;
     }
     if(pPath && !result)
-        pPath->pop_back();
+        pPath->pop();
     return result;
 }
 
@@ -245,5 +245,13 @@ ObjectNode::dump(type_xml_node &parent,dumpContext &ctx)
 
     return pSelf;
 }
+
+void
+ObjectNode::onChildRemoved(const std::string &childid)
+{
+    Doc::instance().pDocData->removeSelection(childid);
+    Doc::instance().pDocData->fireSelection(DocPrivate::SEL_ITEMSELFREMOVED,childid);
+}
+
 
 }

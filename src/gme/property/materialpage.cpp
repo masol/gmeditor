@@ -18,6 +18,9 @@
 
 #include "config.h"
 #include "materialpage.h"
+#include "dm/docio.h"
+#include "dm/docobj.h"
+#include <boost/bind.hpp>
 #include "../stringutil.h"
 
 BEGIN_EVENT_TABLE(gme::MaterialPage, gme::MaterialPage::inherit)
@@ -29,8 +32,53 @@ END_EVENT_TABLE()
 
 namespace gme{
 
+void
+MaterialPage::onDocumentItemSelected(const std::string &id)
+{
+    if(id != m_currentObject)
+    {//刷新材质页面。
+        buildPage(id);
+    }
+}
+
+void
+MaterialPage::onDocumentItemDeselected(const std::string &id)
+{
+    if(m_currentObject == id)
+    {
+        clearPage();
+    }
+}
+
+void
+MaterialPage::clearPage(void)
+{
+    //清空当前页面。
+    m_currentObject.clear();
+}
+
+void
+MaterialPage::buildPage(const std::string &objid)
+{
+    m_currentObject = objid;
+}
+
+
+void
+MaterialPage::onDocumentClosed(void)
+{
+    clearPage();
+}
+
 MaterialPage::MaterialPage()
 {
+    DocIO   dio;
+    dio.onSceneClosed(boost::bind(&MaterialPage::onDocumentClosed,this));
+
+    DocObj  dobj;
+    dobj.onSelected(boost::bind(&MaterialPage::onDocumentItemSelected,this,_1));
+    dobj.onDeselected(boost::bind(&MaterialPage::onDocumentItemDeselected,this,_1));
+
 	// append film tonemap
 //	wxPGProperty* pf = this->Append(new wxPropertyCategory(gmeWXT("材质定义"),gmeWXT("material")));
 }

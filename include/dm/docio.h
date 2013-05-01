@@ -55,10 +55,6 @@ protected:
     void    initAndStartScene(slg::Scene *scene);
 public:
     bool    loadScene(const std::string &path);
-    /** @brief 从指定文件加载场景，并加入到pParent指定的节点下。
-      * @param pParent 指示了加入的父节点。如果为空，则加入到根节点下。
-    **/
-    bool    importScene(const std::string &path,ObjectNode *pParent = NULL);
     bool    exportScene(const std::string &path,bool bExportResource = true);
 
     void    onSceneLoaded(type_state_handler handler);

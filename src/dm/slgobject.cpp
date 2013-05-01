@@ -100,28 +100,10 @@ ExtraObjectManager::deleteFromExtMeshCache(luxrays::ExtMeshCache &ec,luxrays::Ex
 }
 
 bool
-ExtraObjectManager::removeMesh(const std::string &id)
+ExtraObjectManager::removeMesh(slg::Scene *scene,luxrays::ExtMesh *pMesh,SlgUtil::Editor &editor)
 {
-    ObjectNode  *parent = NULL;
-    ObjectNode *pNode = this->m_objectGroup.findObject(id);
-    if(!pNode)
-    {
-        return false;
-    }
-
-    if(!parent)
-        parent = &this->m_objectGroup;
-
-    slg::RenderSession* session = Doc::instance().pDocData->getSession();
-    slg::Scene       *scene = session->renderConfig->scene;
-    luxrays::ExtMesh *pMesh = this->getExtMesh(id);//scene->meshDefs.GetExtMesh("luxshell");
     if(!pMesh)
-    {
         return false;
-    }
-
-    SlgUtil::Editor      editor(session);
-
     //清理extMeshCache.
     int ref_count = deleteFromExtMeshCache(scene->extMeshCache,pMesh);
 
@@ -219,8 +201,46 @@ ExtraObjectManager::removeMesh(const std::string &id)
     editor.addAction(slg::INSTANCE_TRANS_EDIT);
     editor.addAction(slg::MATERIALS_EDIT);
     editor.addAction(slg::MATERIAL_TYPES_EDIT);
+    return true;
+}
 
-    parent->removeChild(id);
+void
+ExtraObjectManager::removeMesh(ObjectNode &parent,ObjectNode &self,slg::Scene *scene,SlgUtil::Editor &editor)
+{
+    //首先遍历删除子节点。
+    ObjectNode::type_child_container::iterator  it = self.begin();
+    while(it != self.end())
+    {
+        this->removeMesh(self,*it,scene,editor);
+        it++;
+    }
+    //然后删除自身。
+    luxrays::ExtMesh *pMesh = this->getExtMesh(self.id());
+    if(pMesh)
+        removeMesh(scene,pMesh,editor);
+    parent.removeChild(self.id());
+}
+
+bool
+ExtraObjectManager::removeMesh(const std::string &id)
+{
+    if(id.length() == 0)
+        return false;
+    ObjectNodePath   path;
+    ObjectNode *pNode = this->m_objectGroup.findObject(id,&path);
+    if(!pNode)
+    {
+        return false;
+    }
+
+    ObjectNode  *parent = path.getNodeFromTail(1);
+    BOOST_ASSERT_MSG(parent,"found root in tree??");
+
+    slg::RenderSession* session = Doc::instance().pDocData->getSession();
+    slg::Scene       *scene = session->renderConfig->scene;
+    SlgUtil::Editor      editor(session);
+
+    this->removeMesh(*parent,*pNode,scene,editor);
 
     return true;
 }

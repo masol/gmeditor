@@ -92,7 +92,7 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
 						 wxCLIP_CHILDREN;
 	// create and show propery pane
 	m_propFrame = new PropFrame(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, propFrameStyle);
-    m_propFrame->establishConnect(m_objectView);
+//    m_propFrame->establishConnect(m_objectView);
 	m_mgr.AddPane(m_propFrame, wxRIGHT, gmeWXT("属性设置"));
 	//m_mgr.GetPane(m_propFrame).Hide();
     // tell the manager to "commit" all the changes just made
@@ -293,21 +293,15 @@ MainFrame::onMenuFileImport(wxCommandEvent &event)
 	wxFileDialog *OpenDialog= new wxFileDialog(this, _T("Choose a file"), _(""), _(""), _("*.*"), wxFD_OPEN);
 	if ( OpenDialog->ShowModal() == wxID_OK )
 	{
-        gme::DocIO  dio;
 		gme::DocObj	obj;
-		std::string id;
 		gme::ObjectNode *pParent = NULL;
-		if(this->m_objectView->getSelection(id))
-            pParent = obj.getRootObject().findObject(id);
-		if(dio.importScene(boost::locale::conv::utf_to_utf<char>(OpenDialog->GetPath().ToStdWstring()),pParent))
-        {
-            if(id.length())
-                this->m_objectView->refresh(id);
-            else
-                this->m_objectView->refreshAll();
+		if(obj.getSelection().size())
+		{
+            pParent = obj.getRootObject().findObject(obj.getSelection().back(),NULL);
 		}
+		obj.importObject(boost::locale::conv::utf_to_utf<char>(OpenDialog->GetPath().ToStdWstring()),pParent);
 	}
-	OpenDialog->Close(); // Or OpenDialog->Destroy() ?
+    OpenDialog->Destroy(); // Or OpenDialog->Destroy() ?
 }
 
 
@@ -319,9 +313,8 @@ MainFrame::onMenuFileOpen(wxCommandEvent &event)
 	{
         gme::DocIO  dio;
         dio.loadScene(boost::locale::conv::utf_to_utf<char>(OpenDialog->GetPath().ToStdWstring()));
-        this->m_objectView->refreshAll();
 	}
-	OpenDialog->Close(); // Or OpenDialog->Destroy() ?
+	OpenDialog->Destroy(); // Or OpenDialog->Destroy() ?
 }
 
 void
@@ -335,7 +328,7 @@ MainFrame::onMenuFileExport(wxCommandEvent &event)
 	    gme::DocIO  dio;
 	    dio.exportScene(boost::locale::conv::utf_to_utf<char>(SaveDialog->GetPath().ToStdWstring()),true);
 	}
-	SaveDialog->Close();
+	SaveDialog->Destroy();
 }
 
 
@@ -348,7 +341,7 @@ MainFrame::onMenuFileSave(wxCommandEvent &event)
 	    gme::DocIO  dio;
 	    dio.exportScene(boost::locale::conv::utf_to_utf<char>(SaveDialog->GetPath().ToStdWstring()),false);
 	}
-	SaveDialog->Close();
+	SaveDialog->Destroy();
 }
 
 void
@@ -361,13 +354,7 @@ void
 MainFrame::onMenuEditDelete(wxCommandEvent &event)
 {
     DocObj   dobj;
-    std::string id;
-    if(this->m_objectView->getSelection(id))
-    {
-        dobj.deleteModel(id);
-    }
-
-	this->m_objectView->delSelection();
+    dobj.deleteAllSelection();
 }
 
 
@@ -445,7 +432,9 @@ MainFrame::onUpdateRenderStop(wxUpdateUIEvent& event)
 void
 MainFrame::onUpdateMenuEditDelete(wxUpdateUIEvent& event)
 {
-	event.Enable(this->m_objectView->isSelected());
+    DocObj  obj;
+    //@FIXME: need to implement obj.canDeleteItem. to remove last object cause slg crash.
+    event.Enable(obj.getSelection().size());
 }
 
 } //namespace gme

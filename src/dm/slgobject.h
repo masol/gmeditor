@@ -52,7 +52,7 @@ private:
 public:
     inline  ObjectNode*     findObject(const std::string &id)
     {
-        return m_objectGroup.findObject(id);
+        return m_objectGroup.findObject(id,NULL);
     }
     void    clear(){
         m_objectGroup.clear();
@@ -94,6 +94,8 @@ public:
     static  int   importSpScene(const std::string &path,ObjectNode &parentNode,ImportContext &ctx);
     bool    removeMesh(const std::string &id);
 private:
+    void    removeMesh(ObjectNode &parent,ObjectNode &self,slg::Scene *scene,SlgUtil::Editor &editor);
+    bool    removeMesh(slg::Scene *scene,luxrays::ExtMesh *pMesh,SlgUtil::Editor &editor);
     /** @brief 将指定xml node加载到objNode(node必须为object节点)。
     **/
     static  int   importObjects(type_xml_node &node,ObjectNode &objNode,ImportContext &ctx);

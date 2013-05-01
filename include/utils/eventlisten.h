@@ -43,6 +43,11 @@ public:
         return m_callback_data.size();
     }
 
+    inline void     clear(void)
+    {
+        m_callback_data.clear();
+    }
+
     void    fire(void)
     {
         BOOST_FOREACH(type_func &f,m_callback_data)
@@ -115,6 +120,11 @@ protected:
 
     type_callback       m_callback_data;
 public:
+    inline void     clear(void)
+    {
+        m_callback_data.clear();
+    }
+
     void    fire(type_evt_id id)
     {
         typename type_callback::iterator it = m_callback_data.find(id);

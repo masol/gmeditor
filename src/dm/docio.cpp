@@ -506,38 +506,6 @@ DocIO::exportScene(const std::string &pathstring,bool bExportResource)
     return bExportOK;
 }
 
-bool
-DocIO::importScene(const std::string &path,ObjectNode *pParent)
-{
-    ImportContext   ctx(pDocData->m_session->renderConfig->scene,path);
-
-    SlgUtil::Editor editor(pDocData->m_session.get());
-    if(!pParent)
-    {
-        pParent = &pDocData->objManager.getRoot();
-    }
-
-    bool    bLoadSuc = false;
-    if(boost::iends_with(path,".sps"))
-    {//importSpScene中假定传入Parent对象。
-        int count = ExtraObjectManager::importSpScene(path,*pParent,ctx);
-        bLoadSuc = (count > 0);
-    }else{
-        ObjectNode  node;
-        if(pDocData->objManager.importObjects(path,node,ctx))
-        {
-            pParent->addChild(node);
-            bLoadSuc = true;
-        }
-    }
-
-    if(bLoadSuc)
-        editor.addAction(ctx.getAction());
-
-    return bLoadSuc;
-}
-
-
 void
 DocIO::onSceneLoaded(type_state_handler handler)
 {
