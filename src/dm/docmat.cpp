@@ -26,24 +26,24 @@
 
 namespace gme{
 //texture
-const   int  CONST_FLOAT = slg::CONST_FLOAT;
-const   int  CONST_FLOAT3 = slg::CONST_FLOAT3;
-const   int  IMAGEMAP = slg::IMAGEMAP;
-const   int  SCALE_TEX = slg::SCALE_TEX;
-const   int  FRESNEL_APPROX_N = slg::FRESNEL_APPROX_N;
-const   int  FRESNEL_APPROX_K = slg::FRESNEL_APPROX_K;
-const   int  MIX_TEX = slg::MIX_TEX;
-const   int  ADD_TEX = slg::ADD_TEX;
-const   int  CHECKERBOARD2D = slg::CHECKERBOARD2D;
-const   int  CHECKERBOARD3D = slg::CHECKERBOARD3D;
-const   int  FBM_TEX = slg::FBM_TEX;
-const   int  MARBLE = slg::MARBLE;
-const   int  DOTS = slg::DOTS;
-const   int  BRICK = slg::BRICK;
-const   int  WINDY = slg::WINDY;
-const   int  WRINKLED = slg::WRINKLED;
-const   int  UV_TEX = slg::UV_TEX;
-const   int  BAND_TEX = slg::BAND_TEX;
+const   int  DocMat::CONST_FLOAT = slg::CONST_FLOAT;
+const   int  DocMat::CONST_FLOAT3 = slg::CONST_FLOAT3;
+const   int  DocMat::IMAGEMAP = slg::IMAGEMAP;
+const   int  DocMat::SCALE_TEX = slg::SCALE_TEX;
+const   int  DocMat::FRESNEL_APPROX_N = slg::FRESNEL_APPROX_N;
+const   int  DocMat::FRESNEL_APPROX_K = slg::FRESNEL_APPROX_K;
+const   int  DocMat::MIX_TEX = slg::MIX_TEX;
+const   int  DocMat::ADD_TEX = slg::ADD_TEX;
+const   int  DocMat::CHECKERBOARD2D = slg::CHECKERBOARD2D;
+const   int  DocMat::CHECKERBOARD3D = slg::CHECKERBOARD3D;
+const   int  DocMat::FBM_TEX = slg::FBM_TEX;
+const   int  DocMat::MARBLE = slg::MARBLE;
+const   int  DocMat::DOTS = slg::DOTS;
+const   int  DocMat::BRICK = slg::BRICK;
+const   int  DocMat::WINDY = slg::WINDY;
+const   int  DocMat::WRINKLED = slg::WRINKLED;
+const   int  DocMat::UV_TEX = slg::UV_TEX;
+const   int  DocMat::BAND_TEX = slg::BAND_TEX;
 
 std::string
 DocMat::texGetTypeNameFromType(int type)
@@ -266,9 +266,82 @@ DocMat::setMatProperty(const std::string& id,const std::string &prop,const std::
     return false;
 }
 
-bool
-DocMat::setMaterial(const std::string& id,const type_xml_node &matdef)
+int
+DocMat::updateProperty(const std::vector<std::string> &keyPath,const std::string &value,type_xml_node &parent)
 {
+    int ret = UPDATE_DENY;
+    if(keyPath.size() > 0)
+    {
+        // get material first.
+        const std::string &matId = keyPath[0];
+        slg::Material   *pMat = ExtraMaterialManager::getSlgMaterial(matId);
+        if(pMat)
+        {
+            SlgUtil::Editor     editor(pDocData->m_session.get());
+            SlgUtil::UpdateContext  context(editor,parent,value,keyPath);
+            ExtraMaterialManager &matManager = pDocData->matManager;
+            matManager.dump(context.props,pMat);
+            if(matManager.updateMaterial(context,pMat,1))
+            {
+                matManager.onMaterialRemoved(pMat);
+                std::cerr << "context.props = " << context.props.ToString() << std::endl;
+
+                editor.scene()->UpdateMaterial(matId,context.props);
+                const slg::Material *newMat = editor.scene()->matDefs.GetMaterial(matId);
+
+                SlgMaterial2Name mat2name;
+                SlgTexture2Name tex2name;
+                matManager.updateMaterialInfo(newMat,mat2name,tex2name);
+
+
+                if(context.bGenNode)
+                {//开始创建parent.
+                    if(context.idIsMat)
+                    {
+                        dumpContext dumpCtx(dumpContext::DUMP_NORMAL,boost::filesystem::current_path());
+                        matManager.dump(parent,pMat,dumpCtx);
+                        ret = UPDATE_REFRESH_MAT;
+                    }else{
+                        ret = UPDATE_REFRESH_TEX;
+                    }
+                }else{
+                    ret = UPDATE_ACCEPT;
+                }
+
+
+
+                editor.addAction(slg::MATERIAL_TYPES_EDIT);
+                editor.addAction(slg::MATERIALS_EDIT);
+                if (ExtraMaterialManager::materialIsLight(newMat))
+                    editor.addAction(slg::AREALIGHTS_EDIT);
+            }
+            //ret = ExtraMaterialManager::updateMaterial(editor,pMat,keyPath,0,value,parent);
+        }
+    }
+
+    return ret;
+}
+
+
+bool
+DocMat::updateMaterial(const std::string &id,const std::string &slgMatDef)
+{
+    slg::Scene  *scene;
+    if(pDocData->m_session.get() && (scene = pDocData->m_session->renderConfig->scene))
+    {
+        luxrays::Properties props;
+        props.LoadFromString(slgMatDef);
+
+        //first,define texture.
+        scene->DefineTextures(props);
+
+        //then, update material.
+        scene->UpdateMaterial(id,props);
+
+        //last,check the material used by othter material and update it!
+
+        return true;
+    }
 	return false;
 }
 

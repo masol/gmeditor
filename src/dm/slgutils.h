@@ -20,6 +20,7 @@
 #define  GME_DM_SLGUTILS_H
 
 #include "slg/rendersession.h"
+#include "dm/xmlutil.h"
 
 namespace gme{
 
@@ -47,7 +48,29 @@ public:
         {
             m_session->editActions.AddAction(a);
         }
+        inline slg::Scene* scene()
+        {
+            return m_session->renderConfig->scene;
+        }
     };
+
+    struct   UpdateContext{
+        SlgUtil::Editor         &editor;
+        type_xml_node           &parent;
+        const std::string       &value;
+        const std::vector<std::string>      &keyPath;
+        luxrays::Properties     props;
+        std::string             updatedId;
+        bool                    idIsMat;
+        bool                    bGenNode;   //指示是否为parent添加了子节点。
+        UpdateContext(SlgUtil::Editor &e,type_xml_node &p,const std::string &v,const std::vector<std::string> &k) :
+                editor(e), parent(p) , value(v) , keyPath(k)
+        {
+            bGenNode  = false;
+            idIsMat   = false;
+        }
+    };
+
 
     static  inline  void    OutputSlgmat(std::ostream &o,const luxrays::Matrix4x4 &luxmat)
     {

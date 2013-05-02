@@ -33,7 +33,7 @@ HDRPage::HDRPage()
 {
     DECLARE_WXCONVERT;
 	// append film tonemap
-    wxPGProperty* pf = this->AppendIn(this->GetRoot(),new wxPropertyCategory(gmeWXT("图像"),gmeWXT("film")));
+	wxPGProperty* pf = this->Append(new wxPropertyCategory(gmeWXT("图像"),gmeWXT("film")));
     // Append is ideal way to add items to wxPropertyGrid.
 	wxPGChoices soc;
 	soc.Add( gmeWXT("linear"));

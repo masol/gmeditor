@@ -434,7 +434,7 @@ MainFrame::onUpdateMenuEditDelete(wxUpdateUIEvent& event)
 {
     DocObj  obj;
     //@FIXME: need to implement obj.canDeleteItem. to remove last object cause slg crash.
-    event.Enable(obj.getSelection().size());
+    event.Enable(obj.getSelection().size() > 0);
 }
 
 } //namespace gme

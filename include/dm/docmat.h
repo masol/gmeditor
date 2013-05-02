@@ -78,7 +78,20 @@ public:
     int         getMatType(const std::string& id);
     bool        getMatProperty(const std::string& id,const std::string &prop,std::string &value);
     bool        setMatProperty(const std::string& id,const std::string &prop,const std::string &value);
-    bool        setMaterial(const std::string &id,const type_xml_node &matdef);
+
+    enum{
+        UPDATE_DENY,
+        UPDATE_ACCEPT,
+        UPDATE_REFRESH_MAT,
+        UPDATE_REFRESH_TEX
+    };
+    /** @brief update a material property from it's path.
+     * @return return enum value at the top.
+    **/
+    int         updateProperty(const std::vector<std::string> &keyPath,const std::string &value,type_xml_node &parent);
+    /** @brief fix slg defect. search all material to check this is used by a mix material. and define all texture in slgMatDef first.
+    **/
+    bool        updateMaterial(const std::string &id,const std::string &slgMatDef);
     //no used.
 //    std::string addMaterial(const type_xml_node &matdef);
     /**@brief 获取模型描述信息。将自动添加到parent下。parent必须有doc对象。

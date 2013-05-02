@@ -37,20 +37,15 @@ namespace gme{
 
 ///@brief 用于从material出发反向查找name的变量。
 /// 在ExtraMaterialManager中建立长期缓冲，本类不再需要。
-//class  SlgMaterial2Name
-//{
-//private:
-//    std::vector<u_int>      m_matIdx2NameIdx;
-//    std::vector< std::string >  m_materialNameArray;
-//public:
-//    SlgMaterial2Name(void);
-//    SlgMaterial2Name(const SlgMaterial2Name &ref)
-//    {
-//        this->m_materialNameArray = ref.m_materialNameArray;
-//        this->m_matIdx2NameIdx = ref.m_matIdx2NameIdx;
-//    }
-//    const std::string&      getMaterialName(const slg::Material* pmat)const;
-//};
+class  SlgMaterial2Name
+{
+private:
+    std::vector<u_int>      m_matIdx2NameIdx;
+    std::vector< std::string >  m_materialNameArray;
+public:
+    SlgMaterial2Name(void);
+    const std::string&      getMaterialName(const slg::Material* pmat)const;
+};
 
 class ExtraMaterialManager
 {
@@ -85,9 +80,17 @@ public:
         return m_mat2id[pMat];
     }
 
+    inline  void    updateMaterialId(const slg::Material* pMat,const std::string &id)
+    {
+        m_mat2id[pMat] = id;
+    }
+
+
     /** @brief recursion remove extrainfo from slg material.
     **/
     void    onMaterialRemoved(const slg::Material* pMat);
+    ///@brief 递归更新material及所有子节点的信息。
+    void    updateMaterialInfo(const slg::Material *pMat,SlgMaterial2Name &mat2name,SlgTexture2Name &tex2name);
 
     /** @brief
     **/
@@ -102,8 +105,16 @@ public:
     ///@brief 改进slg缺陷，递归检查一个材质是否是光源。
     static  bool    materialIsLight(const slg::Material *pmat);
 
+    ///@brief fix slg's ToProperties bug.
+    const std::string&    dump(luxrays::Properties &prop,const slg::Material* pMat);
+
+    bool    updateMaterial(SlgUtil::UpdateContext &ctx,slg::Material *pMat,size_t curIdx);
+    ///@brief 设置材质属性。
+    static  int     updateMaterial(SlgUtil::Editor &editor,slg::Material *pMat,const std::vector<std::string> &keyPath,size_t curIdx,const std::string &value,type_xml_node &parent);
+
     type_xml_node*   dump(type_xml_node &parent,const slg::Material* pMat,dumpContext &ctx);
 private:
+    const std::string&    buildDefaultMaterial(SlgUtil::UpdateContext &ctx,slg::Material *pMat,int type);
     //static  void    createMatteMaterial(ImportContext &ctx,const std::string& id);
 };
 

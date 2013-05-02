@@ -32,25 +32,133 @@
 
 namespace gme{
 
-//SlgTexture2Name::SlgTexture2Name(void)
-//{
-//    slg::Scene  *scene = Doc::instance().pDocData->getSession()->renderConfig->scene;
-//    m_textureNameArray = scene->texDefs.GetTextureNames ();
-//    m_texIdx2NameIdx.resize(m_textureNameArray.size());
-//    u_int   nameIdx = 0;
-//    for(std::vector< std::string >::const_iterator it = m_textureNameArray.begin(); it < m_textureNameArray.end(); ++it,++nameIdx)
-//    {
-//        m_texIdx2NameIdx[scene->texDefs.GetTextureIndex(*it)] = nameIdx;
-//    }
-//}
-//
-//const std::string&
-//SlgTexture2Name::getTextureName(const slg::Texture* ptex)
-//{
-//    slg::Scene  *scene = Doc::instance().pDocData->getSession()->renderConfig->scene;
-//    u_int matNameIdx = m_texIdx2NameIdx[scene->texDefs.GetTextureIndex(ptex)];
-//    return m_textureNameArray[matNameIdx];
-//}
+SlgTexture2Name::SlgTexture2Name(void)
+{
+    slg::Scene  *scene = Doc::instance().pDocData->getSession()->renderConfig->scene;
+    m_textureNameArray = scene->texDefs.GetTextureNames ();
+    m_texIdx2NameIdx.resize(m_textureNameArray.size());
+    u_int   nameIdx = 0;
+    for(std::vector< std::string >::const_iterator it = m_textureNameArray.begin(); it < m_textureNameArray.end(); ++it,++nameIdx)
+    {
+        m_texIdx2NameIdx[scene->texDefs.GetTextureIndex(*it)] = nameIdx;
+    }
+}
+
+const std::string&
+SlgTexture2Name::getTextureName(const slg::Texture* ptex)
+{
+    slg::Scene  *scene = Doc::instance().pDocData->getSession()->renderConfig->scene;
+    u_int matNameIdx = m_texIdx2NameIdx[scene->texDefs.GetTextureIndex(ptex)];
+    return m_textureNameArray[matNameIdx];
+}
+
+void
+ExtraTextureManager::updateTextureInfo(const slg::Texture *pTex,SlgTexture2Name &tex2name)
+{
+    const std::string &id = tex2name.getTextureName(pTex);
+    if(id.empty())
+        return;
+
+    switch(pTex->GetType())
+    {
+    case slg::CONST_FLOAT3:
+        break;
+    case slg::CONST_FLOAT:
+        break;
+    case slg::IMAGEMAP:
+        {
+            const std::string&  id = m_tex2id[pTex];
+            if(id.length())
+            {
+                m_slgname2filepath_map.erase(id);
+            }
+        }
+        break;
+    case slg::SCALE_TEX:
+        {
+            const slg::ScaleTexture*   pRealTex = dynamic_cast<const slg::ScaleTexture*>(pTex);
+            updateTextureInfo(pRealTex->GetTexture1(),tex2name);
+            updateTextureInfo(pRealTex->GetTexture2(),tex2name);
+        }
+        break;
+    case slg::FRESNEL_APPROX_N:
+        {
+            const slg::FresnelApproxNTexture*   pRealTex = dynamic_cast<const slg::FresnelApproxNTexture*>(pTex);
+            updateTextureInfo(pRealTex->GetTexture(),tex2name);
+        }
+        break;
+    case slg::FRESNEL_APPROX_K:
+        {
+            const slg::FresnelApproxKTexture*   pRealTex = dynamic_cast<const slg::FresnelApproxKTexture*>(pTex);
+            updateTextureInfo(pRealTex->GetTexture(),tex2name);
+        }
+        break;
+    case slg::MIX_TEX:
+        {
+            const slg::MixTexture*   pRealTex = dynamic_cast<const slg::MixTexture*>(pTex);
+            updateTextureInfo(pRealTex->GetTexture1(),tex2name);
+            updateTextureInfo(pRealTex->GetTexture2(),tex2name);
+            updateTextureInfo(pRealTex->GetAmountTexture(),tex2name);
+        }
+        break;
+    case slg::ADD_TEX:
+        {
+            const slg::AddTexture*   pRealTex = dynamic_cast<const slg::AddTexture*>(pTex);
+            updateTextureInfo(pRealTex->GetTexture1(),tex2name);
+            updateTextureInfo(pRealTex->GetTexture2(),tex2name);
+        }
+        break;
+    case slg::CHECKERBOARD2D:
+        {
+            const slg::CheckerBoard2DTexture*   pRealTex = dynamic_cast<const slg::CheckerBoard2DTexture*>(pTex);
+            updateTextureInfo(pRealTex->GetTexture1(),tex2name);
+            updateTextureInfo(pRealTex->GetTexture2(),tex2name);
+        }
+        break;
+    case slg::CHECKERBOARD3D:
+        {
+            const slg::CheckerBoard3DTexture*   pRealTex = dynamic_cast<const slg::CheckerBoard3DTexture*>(pTex);
+            updateTextureInfo(pRealTex->GetTexture1(),tex2name);
+            updateTextureInfo(pRealTex->GetTexture2(),tex2name);
+        }
+        break;
+    case slg::FBM_TEX:
+        break;
+    case slg::MARBLE:
+        break;
+    case slg::DOTS:
+        {
+            const slg::DotsTexture*   pRealTex = dynamic_cast<const slg::DotsTexture*>(pTex);
+            updateTextureInfo(pRealTex->GetInsideTex(),tex2name);
+            updateTextureInfo(pRealTex->GetOutsideTex(),tex2name);
+        }
+        break;
+    case slg::BRICK:
+        {
+            const slg::BrickTexture*   pRealTex = dynamic_cast<const slg::BrickTexture*>(pTex);
+            updateTextureInfo(pRealTex->GetTexture1(),tex2name);
+            updateTextureInfo(pRealTex->GetTexture2(),tex2name);
+            updateTextureInfo(pRealTex->GetTexture3(),tex2name);
+        }
+        break;
+    case slg::WINDY:
+        break;
+    case slg::WRINKLED:
+        break;
+    case slg::UV_TEX:
+        break;
+    case slg::BAND_TEX:
+        {
+            const slg::BandTexture*   pRealTex = dynamic_cast<const slg::BandTexture*>(pTex);
+            updateTextureInfo(pRealTex->GetAmountTexture(),tex2name);
+        }
+        break;
+    default:
+        BOOST_ASSERT_MSG(false,"unreachable code");
+    }
+    m_tex2id[pTex] = id;
+}
+
 
 void
 ExtraTextureManager::onTextureRemoved(const slg::Texture *pTex)
@@ -367,6 +475,115 @@ ExtraTextureManager::getBondnameFromType(slg::MasonryBond type)
     BOOST_ASSERT_MSG(false,"unreachable code");
     return "";
 }
+
+std::string
+ExtraTextureManager::dump(luxrays::Properties &prop,const slg::Texture* pTex)
+{
+    switch(pTex->GetType())
+    {
+    case slg::CONST_FLOAT3:
+        {
+            luxrays::Spectrum color = dynamic_cast<const slg::ConstFloat3Texture*>(pTex)->GetColor();
+            return boost::str(boost::format("%f %f %f") % color.r % color.g % color.b );
+        }
+        break;
+    case slg::CONST_FLOAT:
+        {
+            float value = dynamic_cast<const slg::ConstFloatTexture*>(pTex)->GetValue();
+            return boost::lexical_cast<std::string>( value );
+        }
+        break;
+    case slg::IMAGEMAP:
+        {
+            const std::string &id = this->getTextureId(pTex);
+            BOOST_ASSERT_MSG(!id.empty(),"imagemap without id!");
+            const std::string*  pPath = this->queryPath(id);
+            BOOST_ASSERT_MSG(pPath,"imagemap without path");
+
+            //BOOST_ASSERT_MSG(false,"not implement");
+        }
+        break;
+    case slg::SCALE_TEX:
+        {
+            BOOST_ASSERT_MSG(false,"not implement");
+        }
+        break;
+    case slg::FRESNEL_APPROX_N:
+        {
+            BOOST_ASSERT_MSG(false,"not implement");
+        }
+        break;
+    case slg::FRESNEL_APPROX_K:
+        {
+            BOOST_ASSERT_MSG(false,"not implement");
+        }
+        break;
+    case slg::MIX_TEX:
+        {
+            BOOST_ASSERT_MSG(false,"not implement");
+        }
+        break;
+    case slg::ADD_TEX:
+        {
+            BOOST_ASSERT_MSG(false,"not implement");
+        }
+        break;
+    case slg::CHECKERBOARD2D:
+        {
+            BOOST_ASSERT_MSG(false,"not implement");
+        }
+        break;
+    case slg::CHECKERBOARD3D:
+        {
+            BOOST_ASSERT_MSG(false,"not implement");
+        }
+        break;
+    case slg::FBM_TEX:
+        {
+            BOOST_ASSERT_MSG(false,"not implement");
+        }
+        break;
+    case slg::MARBLE:
+        {
+            BOOST_ASSERT_MSG(false,"not implement");
+        }
+        break;
+    case slg::DOTS:
+        {
+            BOOST_ASSERT_MSG(false,"not implement");
+        }
+        break;
+    case slg::BRICK:
+        {
+            BOOST_ASSERT_MSG(false,"not implement");
+        }
+        break;
+    case slg::WINDY:
+        {
+            BOOST_ASSERT_MSG(false,"not implement");
+        }
+        break;
+    case slg::WRINKLED:
+        {
+            BOOST_ASSERT_MSG(false,"not implement");
+        }
+        break;
+    case slg::UV_TEX:
+        {
+            BOOST_ASSERT_MSG(false,"not implement");
+        }
+        break;
+    case slg::BAND_TEX:
+        {
+            BOOST_ASSERT_MSG(false,"not implement");
+        }
+        break;
+    default:
+        BOOST_ASSERT_MSG(false,"unreachable code");
+    }
+    return "";
+}
+
 
 type_xml_node*
 ExtraTextureManager::dump(type_xml_node &parent,const std::string &tag,const slg::Texture *pTex,dumpContext &ctx)
@@ -1093,6 +1310,79 @@ ExtraTextureManager::createTexture(ImportContext &ctx,type_xml_node &self)
     }
     return result;
 }
+
+int
+ExtraTextureManager::updateTexture(SlgUtil::Editor &editor,slg::Material *pMat,const slg::Texture *pTex,const std::vector<std::string> &keyPath,size_t curIdx,const std::string &value,type_xml_node &parent)
+{
+    int ret = DocMat::UPDATE_DENY;
+    if(curIdx == keyPath.size())
+    {//最后一层，切换类型。
+    }else{
+        const std::string &curKey = keyPath[curIdx+1];
+        slg::Scene  *scene = editor.scene();
+        switch(pTex->GetType())
+        {
+        case slg::CONST_FLOAT3:
+            if(curKey == "value")
+            {
+                luxrays::Properties prop = pMat->ToProperties();
+                //const std::string &matId = Doc::instance().pDocData->matManager.dump(prop,pMat);
+                std::string matId = Doc::instance().pDocData->matManager.getMaterialId(pMat);
+                prop.SetString("scene.materials." + matId + "." + keyPath[curIdx],value);
+                ///@fixme slg not support mix material update!
+                std::cerr << "update material = " << prop.ToString() << std::endl;
+                Doc::instance().pDocData->matManager.onMaterialRemoved(pMat);
+                scene->UpdateMaterial(matId,prop);
+                editor.addAction(slg::MATERIAL_TYPES_EDIT);
+                editor.addAction(slg::MATERIALS_EDIT);
+                const slg::Material *newMat = scene->matDefs.GetMaterial(matId);
+                Doc::instance().pDocData->matManager.updateMaterialId(newMat,matId);
+                if (newMat->IsLightSource())
+                    editor.addAction(slg::AREALIGHTS_EDIT);
+                ret = DocMat::UPDATE_ACCEPT;
+            }
+            break;
+        case slg::CONST_FLOAT:
+            break;
+        case slg::IMAGEMAP:
+            break;
+        case slg::SCALE_TEX:
+            break;
+        case slg::FRESNEL_APPROX_N:
+            break;
+        case slg::FRESNEL_APPROX_K:
+            break;
+        case slg::MIX_TEX:
+            break;
+        case slg::ADD_TEX:
+            break;
+        case slg::CHECKERBOARD2D:
+            break;
+        case slg::CHECKERBOARD3D:
+            break;
+        case slg::FBM_TEX:
+            break;
+        case slg::MARBLE:
+            break;
+        case slg::DOTS:
+            break;
+        case slg::BRICK:
+            break;
+        case slg::WINDY:
+            break;
+        case slg::WRINKLED:
+            break;
+        case slg::UV_TEX:
+            break;
+        case slg::BAND_TEX:
+            break;
+        default:
+            BOOST_ASSERT_MSG(false,"unreachable code");
+        }
+    }
+    return ret;
+}
+
 
 
 bool

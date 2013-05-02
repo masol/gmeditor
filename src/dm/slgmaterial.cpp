@@ -25,25 +25,25 @@
 
 namespace gme{
 
-//SlgMaterial2Name::SlgMaterial2Name()
-//{
-//    slg::Scene  *scene = Doc::instance().pDocData->getSession()->renderConfig->scene;
-//    m_materialNameArray = scene->matDefs.GetMaterialNames ();
-//    m_matIdx2NameIdx.resize(m_materialNameArray.size());
-//    u_int   nameIdx = 0;
-//    for(std::vector< std::string >::const_iterator it = m_materialNameArray.begin(); it < m_materialNameArray.end(); ++it,++nameIdx)
-//    {
-//        m_matIdx2NameIdx[scene->matDefs.GetMaterialIndex(*it)] = nameIdx;
-//    }
-//}
-//
-//const std::string&
-//SlgMaterial2Name::getMaterialName(const slg::Material* pmat)const
-//{
-//    slg::Scene  *scene = Doc::instance().pDocData->getSession()->renderConfig->scene;
-//    u_int matNameIdx = m_matIdx2NameIdx[scene->matDefs.GetMaterialIndex(pmat)];
-//    return m_materialNameArray[matNameIdx];
-//}
+SlgMaterial2Name::SlgMaterial2Name()
+{
+    slg::Scene  *scene = Doc::instance().pDocData->getSession()->renderConfig->scene;
+    m_materialNameArray = scene->matDefs.GetMaterialNames ();
+    m_matIdx2NameIdx.resize(m_materialNameArray.size());
+    u_int   nameIdx = 0;
+    for(std::vector< std::string >::const_iterator it = m_materialNameArray.begin(); it < m_materialNameArray.end(); ++it,++nameIdx)
+    {
+        m_matIdx2NameIdx[scene->matDefs.GetMaterialIndex(*it)] = nameIdx;
+    }
+}
+
+const std::string&
+SlgMaterial2Name::getMaterialName(const slg::Material* pmat)const
+{
+    slg::Scene  *scene = Doc::instance().pDocData->getSession()->renderConfig->scene;
+    u_int matNameIdx = m_matIdx2NameIdx[scene->matDefs.GetMaterialIndex(pmat)];
+    return m_materialNameArray[matNameIdx];
+}
 
 static  inline
 void removeIfExist(ExtraTextureManager &texManager,const slg::Texture *pTex)
@@ -166,6 +166,198 @@ ExtraMaterialManager::appendMat2IdFromSlg(void)
         m_mat2id[scene->matDefs.GetMaterial(scene->matDefs.GetMaterialIndex(*it))] = materialNameArray[nameIdx];
     }
 }
+
+const std::string&
+ExtraMaterialManager::dump(luxrays::Properties &prop,const slg::Material* pMat)
+{
+    const std::string &id = this->getMaterialId(pMat);
+    BOOST_ASSERT_MSG(!id.empty(),"where are the pMat come from?");
+    std::string typeStr = DocMat::getTypeNameFromType(pMat->GetType());
+    const std::string matPrefix = "scene.materials." + id + '.';
+    prop.SetString(matPrefix + "type",typeStr);
+
+    if(pMat->IsLightSource())
+    {
+        prop.SetString(matPrefix + constDef::emission,ExtraTextureManager::dump(prop,pMat->GetEmitTexture()));
+    }
+
+    if(pMat->HasBumpTex())
+    {
+        prop.SetString(matPrefix + constDef::bumptex,ExtraTextureManager::dump(prop,pMat->GetBumpTexture()));
+    }
+
+    if(pMat->HasNormalTex())
+    {
+        prop.SetString(matPrefix + constDef::normaltex,ExtraTextureManager::dump(prop,pMat->GetNormalTexture()));
+    }
+
+    switch(pMat->GetType())
+    {
+    case slg::MATTE:
+        {
+            const slg::Texture *pTex = dynamic_cast<const slg::MatteMaterial*>(pMat)->GetKd ();
+            if(pTex)
+            {
+                prop.SetString(matPrefix + constDef::kd,ExtraTextureManager::dump(prop,pTex));
+            }
+        }
+        break;
+    case slg::MIRROR:
+        {
+            const slg::Texture *pTex = dynamic_cast<const slg::MirrorMaterial*>(pMat)->GetKr();
+            if(pTex)
+            {
+                prop.SetString(matPrefix + constDef::kr,ExtraTextureManager::dump(prop,pTex));
+            }
+        }
+        break;
+    case slg::GLASS:
+        {
+            const slg::GlassMaterial *pMaterial = dynamic_cast<const slg::GlassMaterial*>(pMat);
+            if(pMaterial->GetKr())
+            {
+                prop.SetString(matPrefix + constDef::kr,ExtraTextureManager::dump(prop,pMaterial->GetKr()));
+            }
+            if(pMaterial->GetKt())
+            {
+                prop.SetString(matPrefix + constDef::kt,ExtraTextureManager::dump(prop,pMaterial->GetKt()));
+            }
+            if(pMaterial->GetOutsideIOR())
+            {
+                prop.SetString(matPrefix + constDef::ioroutside,ExtraTextureManager::dump(prop,pMaterial->GetOutsideIOR()));
+            }
+            if(pMaterial->GetIOR())
+            {
+                prop.SetString(matPrefix + constDef::iorinside,ExtraTextureManager::dump(prop,pMaterial->GetIOR()));
+            }
+        }
+        break;
+    case slg::METAL:
+        {
+            const slg::MetalMaterial *pMaterial = dynamic_cast<const slg::MetalMaterial*>(pMat);
+            if(pMaterial->GetKr())
+            {
+                prop.SetString(matPrefix + constDef::kr,ExtraTextureManager::dump(prop,pMaterial->GetKr()));
+            }
+            if(pMaterial->GetExp())
+            {
+                prop.SetString(matPrefix + constDef::exp,ExtraTextureManager::dump(prop,pMaterial->GetExp()));
+            }
+        }
+        break;
+    case slg::ARCHGLASS:
+        {
+            const slg::ArchGlassMaterial *pMaterial = dynamic_cast<const slg::ArchGlassMaterial*>(pMat);
+            if(pMaterial->GetKr())
+            {
+                prop.SetString(matPrefix + constDef::kr,ExtraTextureManager::dump(prop,pMaterial->GetKr()));
+            }
+            if(pMaterial->GetKt ())
+            {
+                prop.SetString(matPrefix + constDef::kt,ExtraTextureManager::dump(prop,pMaterial->GetKt()));
+            }
+            if(pMaterial->GetOutsideIOR())
+            {
+                prop.SetString(matPrefix + constDef::ioroutside,ExtraTextureManager::dump(prop,pMaterial->GetOutsideIOR()));
+            }
+            if(pMaterial->GetIOR())
+            {
+                prop.SetString(matPrefix + constDef::iorinside,ExtraTextureManager::dump(prop,pMaterial->GetIOR()));
+            }
+        }
+        break;
+    case slg::MIX:
+        {
+            const slg::MixMaterial *pMaterial = dynamic_cast<const slg::MixMaterial*>(pMat);
+            BOOST_ASSERT_MSG(pMaterial->GetMaterialA() && pMaterial->GetMaterialB(), "invalid mix material");
+
+            prop.SetString(matPrefix + "material1",dump(prop,pMaterial->GetMaterialA()));
+            prop.SetString(matPrefix + "material2",dump(prop,pMaterial->GetMaterialB()));
+
+            if(pMaterial->GetMixFactor())
+            {
+                prop.SetString(matPrefix + constDef::amount,ExtraTextureManager::dump(prop,pMaterial->GetMixFactor()));
+            }
+        }
+        break;
+    case slg::NULLMAT:
+        {
+        }
+        break;
+    case slg::MATTETRANSLUCENT:
+        {
+            const slg::MatteTranslucentMaterial  *pMaterial = dynamic_cast<const slg::MatteTranslucentMaterial*>(pMat);
+            if(pMaterial->GetKr())
+            {
+				prop.SetString(matPrefix + constDef::kr,ExtraTextureManager::dump(prop,pMaterial->GetKr()));
+            }
+            if(pMaterial->GetKt ())
+            {
+				prop.SetString(matPrefix + constDef::kt,ExtraTextureManager::dump(prop,pMaterial->GetKt()));
+            }
+        }
+        break;
+    case slg::GLOSSY2:
+        {
+            const slg::Glossy2Material  *pMaterial = dynamic_cast<const slg::Glossy2Material*>(pMat);
+            if(pMaterial->GetKd())
+            {
+				prop.SetString(matPrefix + constDef::kd,ExtraTextureManager::dump(prop,pMaterial->GetKd()));
+            }
+            if(pMaterial->GetKs ())
+            {
+				prop.SetString(matPrefix + constDef::ks,ExtraTextureManager::dump(prop,pMaterial->GetKs()));
+            }
+            if(pMaterial->GetNu ())
+            {
+				prop.SetString(matPrefix + constDef::uroughness,ExtraTextureManager::dump(prop,pMaterial->GetNu()));
+            }
+            if(pMaterial->GetNv ())
+            {
+				prop.SetString(matPrefix + constDef::vroughness,ExtraTextureManager::dump(prop,pMaterial->GetNv()));
+            }
+            if(pMaterial->GetKa ())
+            {
+				prop.SetString(matPrefix + constDef::ka,ExtraTextureManager::dump(prop,pMaterial->GetKa()));
+            }
+            if(pMaterial->GetDepth ())
+            {
+                prop.SetString(matPrefix + constDef::d,ExtraTextureManager::dump(prop,pMaterial->GetDepth()));
+            }
+            if(pMaterial->GetIndex ())
+            {
+                prop.SetString(matPrefix + constDef::index,ExtraTextureManager::dump(prop,pMaterial->GetIndex()));
+            }
+            prop.SetString(matPrefix + "multibounce",(pMaterial->IsMultibounce() ? "true" : "false" ));
+        }
+        break;
+    case slg::METAL2:
+        {
+            const slg::Metal2Material  *pMaterial = dynamic_cast<const slg::Metal2Material*>(pMat);
+            if(pMaterial->GetN())
+            {
+                prop.SetString(matPrefix + constDef::n,ExtraTextureManager::dump(prop,pMaterial->GetN()));
+            }
+            if(pMaterial->GetK())
+            {
+                prop.SetString(matPrefix + constDef::k,ExtraTextureManager::dump(prop,pMaterial->GetK()));
+            }
+            if(pMaterial->GetNu ())
+            {
+                prop.SetString(matPrefix + constDef::uroughness,ExtraTextureManager::dump(prop,pMaterial->GetNu()));
+            }
+            if(pMaterial->GetNv ())
+            {
+                prop.SetString(matPrefix + constDef::vroughness,ExtraTextureManager::dump(prop,pMaterial->GetNv()));
+            }
+        }
+        break;
+    default:
+        BOOST_ASSERT_MSG(false,"unreachable code");
+    }
+    return id;
+}
+
 
 type_xml_node*
 ExtraMaterialManager::dump(type_xml_node &parent,const slg::Material* pMat,dumpContext &ctx)
@@ -390,6 +582,368 @@ ExtraMaterialManager::dump(type_xml_node &parent,const slg::Material* pMat,dumpC
 
     return pSelf;
 }
+
+const std::string&
+ExtraMaterialManager::buildDefaultMaterial(SlgUtil::UpdateContext &ctx,slg::Material *pMat,int type)
+{
+    //first,remove all material from ctx.
+    const std::string &id = this->getMaterialId(pMat);
+    std::string prefix = "scene.materials." + id;
+    std::vector< std::string >  matKeys = ctx.props.GetAllKeys (prefix);
+    BOOST_FOREACH(const std::string &key,matKeys)
+    {
+        ctx.props.Delete(key);
+    }
+
+    prefix += '.';
+
+    switch(type)
+    {
+    case slg::MATTE:
+        ctx.props.SetString(prefix + constDef::type,"matte");
+        ctx.props.SetString(prefix + constDef::kd,"0.75 0.75 0.75");
+        break;
+    case slg::MIRROR:
+        ctx.props.SetString(prefix + constDef::type,"mirror");
+        ctx.props.SetString(prefix + constDef::kd,"1.0 1.0 1.0");
+        break;
+    case slg::GLASS:
+        ctx.props.SetString(prefix + constDef::type,"glass");
+        ctx.props.SetString(prefix + constDef::kr,"1.0 1.0 1.0");
+        ctx.props.SetString(prefix + constDef::kt,"1.0 1.0 1.0");
+        ctx.props.SetString(prefix + constDef::ioroutside,"1.0");
+        ctx.props.SetString(prefix + constDef::iorinside,"1.5");
+        break;
+    case slg::METAL:
+        ctx.props.SetString(prefix + constDef::type,"metal");
+        ctx.props.SetString(prefix + constDef::kr,"1.0 1.0 1.0");
+        ctx.props.SetString(prefix + constDef::exp,"10.0");
+        break;
+    case slg::ARCHGLASS:
+        break;
+    case slg::MIX:
+        break;
+    case slg::NULLMAT:
+        break;
+    case slg::MATTETRANSLUCENT:
+        break;
+    case slg::GLOSSY2:
+        break;
+    case slg::METAL2:
+        break;
+    default:
+        BOOST_ASSERT_MSG(false,"unreachable code");
+    }
+    return id;
+}
+
+void
+ExtraMaterialManager::updateMaterialInfo(const slg::Material *pMat,SlgMaterial2Name &mat2name,SlgTexture2Name &tex2name)
+{
+    const std::string &matId = mat2name.getMaterialName(pMat);
+    updateMaterialId(pMat,matId);
+
+    ExtraTextureManager &texManager = Doc::instance().pDocData->texManager;
+
+    if(pMat->IsLightSource())
+    {
+        texManager.updateTextureInfo(pMat->GetEmitTexture(),tex2name);
+    }
+
+    if(pMat->HasBumpTex())
+    {
+        texManager.updateTextureInfo(pMat->GetBumpTexture(),tex2name);
+    }
+
+    if(pMat->HasNormalTex())
+    {
+        texManager.updateTextureInfo(pMat->GetNormalTexture(),tex2name);
+    }
+
+    switch(pMat->GetType())
+    {
+    case slg::MATTE:
+        {
+            const slg::Texture *pTex = dynamic_cast<const slg::MatteMaterial*>(pMat)->GetKd ();
+            if(pTex)
+            {
+                texManager.updateTextureInfo(pTex,tex2name);
+            }
+        }
+        break;
+    case slg::MIRROR:
+        {
+            const slg::Texture *pTex = dynamic_cast<const slg::MirrorMaterial*>(pMat)->GetKr();
+            if(pTex)
+            {
+                texManager.updateTextureInfo(pTex,tex2name);
+            }
+        }
+        break;
+    case slg::GLASS:
+        {
+            const slg::GlassMaterial *pMaterial = dynamic_cast<const slg::GlassMaterial*>(pMat);
+            if(pMaterial->GetKr())
+            {
+                texManager.updateTextureInfo(pMaterial->GetKr(),tex2name);
+            }
+            if(pMaterial->GetKt())
+            {
+                texManager.updateTextureInfo(pMaterial->GetKt(),tex2name);
+            }
+            if(pMaterial->GetOutsideIOR())
+            {
+                texManager.updateTextureInfo(pMaterial->GetOutsideIOR(),tex2name);
+            }
+            if(pMaterial->GetIOR())
+            {
+                texManager.updateTextureInfo(pMaterial->GetIOR(),tex2name);
+            }
+        }
+        break;
+    case slg::METAL:
+        {
+            const slg::MetalMaterial *pMaterial = dynamic_cast<const slg::MetalMaterial*>(pMat);
+            if(pMaterial->GetKr())
+            {
+                texManager.updateTextureInfo(pMaterial->GetKr(),tex2name);
+            }
+            if(pMaterial->GetExp())
+            {
+                texManager.updateTextureInfo(pMaterial->GetExp(),tex2name);
+            }
+        }
+        break;
+    case slg::ARCHGLASS:
+        {
+            const slg::ArchGlassMaterial *pMaterial = dynamic_cast<const slg::ArchGlassMaterial*>(pMat);
+            if(pMaterial->GetKr())
+            {
+                texManager.updateTextureInfo(pMaterial->GetKr(),tex2name);
+            }
+            if(pMaterial->GetKt ())
+            {
+                texManager.updateTextureInfo(pMaterial->GetKt(),tex2name);
+            }
+            if(pMaterial->GetOutsideIOR())
+            {
+                texManager.updateTextureInfo(pMaterial->GetOutsideIOR(),tex2name);
+            }
+            if(pMaterial->GetIOR())
+            {
+                texManager.updateTextureInfo(pMaterial->GetIOR(),tex2name);
+            }
+        }
+        break;
+    case slg::MIX:
+        {
+            const slg::MixMaterial *pMaterial = dynamic_cast<const slg::MixMaterial*>(pMat);
+            BOOST_ASSERT_MSG(pMaterial->GetMaterialA() && pMaterial->GetMaterialB(), "invalid mix material");
+
+            updateMaterialInfo(pMaterial->GetMaterialA(),mat2name,tex2name);
+            updateMaterialInfo(pMaterial->GetMaterialB(),mat2name,tex2name);
+            if(pMaterial->GetMixFactor())
+            {
+				texManager.updateTextureInfo(pMaterial->GetMixFactor(),tex2name);
+            }
+        }
+        break;
+    case slg::NULLMAT:
+        {
+        }
+        break;
+    case slg::MATTETRANSLUCENT:
+        {
+            const slg::MatteTranslucentMaterial  *pMaterial = dynamic_cast<const slg::MatteTranslucentMaterial*>(pMat);
+            if(pMaterial->GetKr())
+            {
+				texManager.updateTextureInfo(pMaterial->GetKr(),tex2name);
+            }
+            if(pMaterial->GetKt ())
+            {
+				texManager.updateTextureInfo(pMaterial->GetKt(),tex2name);
+            }
+        }
+        break;
+    case slg::GLOSSY2:
+        {
+            const slg::Glossy2Material  *pMaterial = dynamic_cast<const slg::Glossy2Material*>(pMat);
+            if(pMaterial->GetKd())
+            {
+				texManager.updateTextureInfo(pMaterial->GetKd(),tex2name);
+            }
+            if(pMaterial->GetKs ())
+            {
+				texManager.updateTextureInfo(pMaterial->GetKs(),tex2name);
+            }
+            if(pMaterial->GetNu ())
+            {
+				texManager.updateTextureInfo(pMaterial->GetNu(),tex2name);
+            }
+            if(pMaterial->GetNv ())
+            {
+				texManager.updateTextureInfo(pMaterial->GetNv(),tex2name);
+            }
+            if(pMaterial->GetKa ())
+            {
+				texManager.updateTextureInfo(pMaterial->GetKa(),tex2name);
+            }
+            if(pMaterial->GetDepth ())
+            {
+				texManager.updateTextureInfo(pMaterial->GetDepth(),tex2name);
+            }
+            if(pMaterial->GetIndex ())
+            {
+				texManager.updateTextureInfo(pMaterial->GetIndex(),tex2name);
+            }
+        }
+        break;
+    case slg::METAL2:
+        {
+            const slg::Metal2Material  *pMaterial = dynamic_cast<const slg::Metal2Material*>(pMat);
+            if(pMaterial->GetN())
+            {
+				texManager.updateTextureInfo(pMaterial->GetN(),tex2name);
+            }
+            if(pMaterial->GetK())
+            {
+				texManager.updateTextureInfo(pMaterial->GetK(),tex2name);
+            }
+            if(pMaterial->GetNu ())
+            {
+				texManager.updateTextureInfo(pMaterial->GetNu(),tex2name);
+            }
+            if(pMaterial->GetNv ())
+            {
+				texManager.updateTextureInfo(pMaterial->GetNv(),tex2name);
+            }
+        }
+        break;
+    default:
+        BOOST_ASSERT_MSG(false,"unreachable code");
+    }
+}
+
+//void
+//ExtraMaterialManager::updateMaterial(slg::Material *pMat,const std::string &matId,luxrays::Properties &prop,SlgUtil::Editor &editor)
+//{
+//    onMaterialRemoved(pMat);
+//    scene->UpdateMaterial(matId,prop);
+//    editor.addAction(slg::MATERIAL_TYPES_EDIT);
+//    editor.addAction(slg::MATERIALS_EDIT);
+//    const slg::Material *newMat = scene->matDefs.GetMaterial(matId);
+//    updateMaterialId(newMat,matId);
+//    if (newMat->IsLightSource())
+//        editor.addAction(slg::AREALIGHTS_EDIT);
+//
+//}
+
+bool
+ExtraMaterialManager::updateMaterial(SlgUtil::UpdateContext &ctx,slg::Material *pMat,size_t curIdx)
+{
+    if(curIdx == ctx.keyPath.size())
+    {//最后一级。这里就必然是material type.
+        int type = boost::lexical_cast<int>(ctx.value);
+
+        ctx.updatedId = buildDefaultMaterial(ctx,pMat,type);
+        ctx.idIsMat = true;
+        ctx.bGenNode = true;
+    }else
+    {
+        const std::string &curKey = ctx.keyPath[curIdx];
+        if(curKey == constDef::emission)
+        {//
+        }else if(curKey == constDef::bumptex)
+        {
+        }else if(curKey == constDef::normaltex)
+        {
+        }else{
+            switch(pMat->GetType())
+            {
+            case slg::MATTE:
+                if(curKey == constDef::kd)
+                {
+                    //ExtraTextureManager::updateTexture(ceditor,pMat,dynamic_cast<slg::MatteMaterial*>(pMat)->GetKd(),ctx.keyPath,curIdx+1,value,parent);
+                }
+                break;
+            case slg::MIRROR:
+                break;
+            case slg::GLASS:
+                break;
+            case slg::METAL:
+                break;
+            case slg::ARCHGLASS:
+                break;
+            case slg::MIX:
+                break;
+            case slg::NULLMAT:
+                break;
+            case slg::MATTETRANSLUCENT:
+                break;
+            case slg::GLOSSY2:
+                break;
+            case slg::METAL2:
+                break;
+            default:
+                BOOST_ASSERT_MSG(false,"unreachable code");
+            }
+        }
+    }
+    return true;
+}
+
+
+int
+ExtraMaterialManager::updateMaterial(SlgUtil::Editor &editor,slg::Material *pMat,const std::vector<std::string> &keyPath,size_t curIdx,const std::string &value,type_xml_node &parent)
+{
+    int ret = DocMat::UPDATE_DENY;
+    if(curIdx == keyPath.size())
+    {//最后一级。这里就必然是material type.
+        //int type = boost::value
+    }else
+    {
+        const std::string &curKey = keyPath[curIdx+1];
+        if(curKey == constDef::emission)
+        {//
+        }else if(curKey == constDef::bumptex)
+        {
+        }else if(curKey == constDef::normaltex)
+        {
+        }else{
+            switch(pMat->GetType())
+            {
+            case slg::MATTE:
+                if(curKey == constDef::kd)
+                {
+                    ret = ExtraTextureManager::updateTexture(editor,pMat,dynamic_cast<slg::MatteMaterial*>(pMat)->GetKd(),keyPath,curIdx+1,value,parent);
+                }
+                break;
+            case slg::MIRROR:
+                break;
+            case slg::GLASS:
+                break;
+            case slg::METAL:
+                break;
+            case slg::ARCHGLASS:
+                break;
+            case slg::MIX:
+                break;
+            case slg::NULLMAT:
+                break;
+            case slg::MATTETRANSLUCENT:
+                break;
+            case slg::GLOSSY2:
+                break;
+            case slg::METAL2:
+                break;
+            default:
+                BOOST_ASSERT_MSG(false,"unreachable code");
+            }
+        }
+    }
+    return ret;
+}
+
 
 void
 ExtraMaterialManager::createMaterial(ImportContext &ctx,std::string& id,type_xml_node &xmlnode)

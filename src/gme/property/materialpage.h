@@ -21,16 +21,33 @@
 
 #include <wx/wx.h>
 #include "gmeproppage.h"
+#include "dm/xmlutil.h"
 
 namespace gme{
 
 class MaterialPage : public GmePropPage
 {
 private:
+    enum{
+        TEX_HAS_DISABLE = 0x1,
+        TEX_HAS_IES = 0X2,
+        TEX_MAX_EXTEND
+    };
+    ///@brief expand from slg.
+    static  const   int     TEX_DISABLE = -1;
+    static  const   int     TEX_IES = -2;
     typedef GmePropPage  inherit;
     std::string         m_currentObject;
     void    clearPage(void);
     void    buildPage(const std::string &objid);
+    void    addMaterial(wxPGProperty &parent,type_xml_node *pSelf,const std::string &origID);
+    void    addMaterialContent(wxPGProperty &matType,type_xml_node *pSelf,int type,const std::string &name);
+    void    buildMaterialChoice(wxPGChoices &soc);
+
+    void    addTexture(wxPGProperty &parent,type_xml_node *pParent,const std::string &childTag,int flag = 0);
+    void    buildTextureChoice(wxPGChoices &soc);
+    ///@brief 从tag返回一个友好的名称。
+    std::string     getNameFromTagName(const std::string &tag);
 public:
     MaterialPage();
     virtual ~MaterialPage();
