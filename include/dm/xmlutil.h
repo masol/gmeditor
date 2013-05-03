@@ -222,6 +222,23 @@ namespace gme
         }
     };
 
+    inline type_xml_node*    find_child(type_xml_node *pNode,const std::string &tagName)
+    {
+        if(tagName == pNode->name())
+        {
+            return pNode;
+        }
+        type_xml_node   *child = pNode->first_node();
+        while(child)
+        {
+            type_xml_node* founded = find_child(child,tagName);
+            if(founded)
+                return founded;
+            child = child->next_sibling();
+        }
+        return NULL;
+    }
+
     inline char* allocate_string(type_xml_doc *pDoc,const std::string &value)
     {
         return pDoc->allocate_string(value.c_str(),value.length() + 1);

@@ -200,7 +200,6 @@ ExtraObjectManager::removeMesh(slg::Scene *scene,luxrays::ExtMesh *pMesh,SlgUtil
     editor.addAction(slg::GEOMETRY_EDIT);
     editor.addAction(slg::INSTANCE_TRANS_EDIT);
     editor.addAction(slg::MATERIALS_EDIT);
-    editor.addAction(slg::MATERIAL_TYPES_EDIT);
     return true;
 }
 
@@ -697,7 +696,7 @@ ExtraObjectManager::importObjects(const std::string& path,ObjectNode &obj,Import
                 aiProcess_Triangulate            |
                 aiProcess_JoinIdenticalVertices  |
                 aiProcess_ImproveCacheLocality   |
-//                aiProcess_FixInfacingNormals     |
+                aiProcess_FixInfacingNormals     |
                 aiProcess_FindDegenerates        |
                 aiProcess_FindInvalidData        |
                 aiProcess_OptimizeMeshes         |

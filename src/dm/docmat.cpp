@@ -24,6 +24,15 @@
 #include "slgmaterial.h"
 #include <boost/assert.hpp>
 
+
+#define __CL_ENABLE_EXCEPTIONS 1
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <OpenCL/cl.hpp>
+#else
+#include <CL/cl.hpp>
+#endif
+
+
 namespace gme{
 //texture
 const   int  DocMat::CONST_FLOAT = slg::CONST_FLOAT;
@@ -267,7 +276,7 @@ DocMat::setMatProperty(const std::string& id,const std::string &prop,const std::
 }
 
 int
-DocMat::updateProperty(const std::vector<std::string> &keyPath,const std::string &value,type_xml_node &parent)
+DocMat::updateProperty(const std::vector<std::string> &keyPath,const std::string &value,type_xml_node &parent,boost::function<bool (std::string &)> &getImageFile)
 {
     int ret = UPDATE_DENY;
     if(keyPath.size() > 0)
@@ -277,43 +286,55 @@ DocMat::updateProperty(const std::vector<std::string> &keyPath,const std::string
         slg::Material   *pMat = ExtraMaterialManager::getSlgMaterial(matId);
         if(pMat)
         {
-            SlgUtil::Editor     editor(pDocData->m_session.get());
-            SlgUtil::UpdateContext  context(editor,parent,value,keyPath);
-            ExtraMaterialManager &matManager = pDocData->matManager;
-            matManager.dump(context.props,pMat);
-            if(matManager.updateMaterial(context,pMat,1))
-            {
-                matManager.onMaterialRemoved(pMat);
-                std::cerr << "context.props = " << context.props.ToString() << std::endl;
+            try{
+                SlgUtil::Editor     editor(pDocData->m_session.get());
+                SlgUtil::UpdateContext  context(editor,parent,value,keyPath,getImageFile);
+                ExtraMaterialManager &matManager = pDocData->matManager;
+                matManager.dump(context.props,pMat);
+                if(matManager.updateMaterial(context,pMat,1) && !context.bVeto)
+                {
+                    matManager.onMaterialRemoved(pMat);
+                    std::cerr << "context.props = " << context.props.ToString() << std::endl;
 
-                editor.scene()->UpdateMaterial(matId,context.props);
-                const slg::Material *newMat = editor.scene()->matDefs.GetMaterial(matId);
+                    //in any case,we need update root material.
+                    editor.scene()->UpdateMaterial(matId,context.props);
+                    const slg::Material *newMat = editor.scene()->matDefs.GetMaterial(matId);
 
-                SlgMaterial2Name mat2name;
-                SlgTexture2Name tex2name;
-                matManager.updateMaterialInfo(newMat,mat2name,tex2name);
+                    SlgMaterial2Name mat2name;
+                    SlgTexture2Name tex2name;
+                    matManager.updateMaterialInfo(newMat,mat2name,tex2name);
 
 
-                if(context.bGenNode)
-                {//开始创建parent.
-                    if(context.idIsMat)
-                    {
+                    if(context.bGenNode)
+                    {//开始创建parent.
                         dumpContext dumpCtx(dumpContext::DUMP_NORMAL,boost::filesystem::current_path());
-                        matManager.dump(parent,pMat,dumpCtx);
-                        ret = UPDATE_REFRESH_MAT;
+                        if(context.idIsMat)
+                        {
+                            pMat = matManager.getSlgMaterial(context.updatedId);
+                            BOOST_ASSERT_MSG(pMat,"material with updatedId not exist?");
+                            matManager.dump(parent,pMat,dumpCtx);
+                            ret = UPDATE_REFRESH_MAT;
+                        }else{
+                            const slg::Texture *pTex = ExtraMaterialManager::getTextureFromKeypath(newMat,keyPath,1);
+                            if(pTex)
+                            {//注意Null Texture.
+                                pDocData->texManager.dump(parent,constDef::texture,pTex,dumpCtx);
+                            }
+                            ret = UPDATE_REFRESH_TEX;
+                        }
                     }else{
-                        ret = UPDATE_REFRESH_TEX;
+                        ret = UPDATE_ACCEPT;
                     }
-                }else{
-                    ret = UPDATE_ACCEPT;
+
+                    editor.addAction(slg::MATERIALS_EDIT);
+                    if (ExtraMaterialManager::materialIsLight(newMat))
+                        editor.addAction(slg::AREALIGHTS_EDIT);
                 }
-
-
-
-                editor.addAction(slg::MATERIAL_TYPES_EDIT);
-                editor.addAction(slg::MATERIALS_EDIT);
-                if (ExtraMaterialManager::materialIsLight(newMat))
-                    editor.addAction(slg::AREALIGHTS_EDIT);
+            }catch(std::exception e)
+            {
+                //error occupy.we stop and start session here. caused by opencl
+                pDocData->m_session->Stop();
+                pDocData->m_session->Start();
             }
             //ret = ExtraMaterialManager::updateMaterial(editor,pMat,keyPath,0,value,parent);
         }

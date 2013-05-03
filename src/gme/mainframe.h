@@ -21,6 +21,7 @@
 
 #include <wx/wx.h>
 #include <wx/aui/aui.h>
+#include <boost/function.hpp>
 
 namespace gme{
 
@@ -88,7 +89,13 @@ public:
 		SFP_TIME_TOTAL = 4,
 		SFP_TOTOAL = 5
 	};
+    inline static  boost::function<bool (std::string &)>&  getImageFilepathFunc(void)
+    {
+        return sv_getImageFilepath;
+    }
 private:
+    static  boost::function<bool (std::string &)>   sv_getImageFilepath;
+	bool getImageFilepath(std::string &result);
     wxAuiPaneInfo&  getPaneFromCmdID(int cmdid);
     inline void updateProgressbar(){
         wxRect rect;

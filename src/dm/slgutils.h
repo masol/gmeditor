@@ -56,18 +56,20 @@ public:
 
     struct   UpdateContext{
         SlgUtil::Editor         &editor;
-        type_xml_node           &parent;
         const std::string       &value;
         const std::vector<std::string>      &keyPath;
+        boost::function<bool (std::string &)>   getImageFilepath;
         luxrays::Properties     props;
         std::string             updatedId;
         bool                    idIsMat;
         bool                    bGenNode;   //指示是否为parent添加了子节点。
-        UpdateContext(SlgUtil::Editor &e,type_xml_node &p,const std::string &v,const std::vector<std::string> &k) :
-                editor(e), parent(p) , value(v) , keyPath(k)
+        bool                    bVeto;      //指示是否已经放弃了本次修改。
+        UpdateContext(SlgUtil::Editor &e,type_xml_node &p,const std::string &v,const std::vector<std::string> &k,boost::function<bool (std::string &)> &f) :
+                editor(e), value(v) , keyPath(k),getImageFilepath(f)
         {
             bGenNode  = false;
             idIsMat   = false;
+            bVeto = false;
         }
     };
 

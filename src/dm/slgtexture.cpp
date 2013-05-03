@@ -56,8 +56,10 @@ void
 ExtraTextureManager::updateTextureInfo(const slg::Texture *pTex,SlgTexture2Name &tex2name)
 {
     const std::string &id = tex2name.getTextureName(pTex);
-    if(id.empty())
-        return;
+    if(!id.empty())
+    {
+        m_tex2id[pTex] = id;
+    }
 
     switch(pTex->GetType())
     {
@@ -66,13 +68,6 @@ ExtraTextureManager::updateTextureInfo(const slg::Texture *pTex,SlgTexture2Name 
     case slg::CONST_FLOAT:
         break;
     case slg::IMAGEMAP:
-        {
-            const std::string&  id = m_tex2id[pTex];
-            if(id.length())
-            {
-                m_slgname2filepath_map.erase(id);
-            }
-        }
         break;
     case slg::SCALE_TEX:
         {
@@ -123,8 +118,10 @@ ExtraTextureManager::updateTextureInfo(const slg::Texture *pTex,SlgTexture2Name 
         }
         break;
     case slg::FBM_TEX:
+        BOOST_ASSERT_MSG(false,"NOT IMPLEMENT CODE!");
         break;
     case slg::MARBLE:
+        BOOST_ASSERT_MSG(false,"NOT IMPLEMENT CODE!");
         break;
     case slg::DOTS:
         {
@@ -142,10 +139,13 @@ ExtraTextureManager::updateTextureInfo(const slg::Texture *pTex,SlgTexture2Name 
         }
         break;
     case slg::WINDY:
+        BOOST_ASSERT_MSG(false,"NOT IMPLEMENT CODE!");
         break;
     case slg::WRINKLED:
+        BOOST_ASSERT_MSG(false,"NOT IMPLEMENT CODE!");
         break;
     case slg::UV_TEX:
+        BOOST_ASSERT_MSG(false,"NOT IMPLEMENT CODE!");
         break;
     case slg::BAND_TEX:
         {
@@ -156,7 +156,6 @@ ExtraTextureManager::updateTextureInfo(const slg::Texture *pTex,SlgTexture2Name 
     default:
         BOOST_ASSERT_MSG(false,"unreachable code");
     }
-    m_tex2id[pTex] = id;
 }
 
 
@@ -495,12 +494,25 @@ ExtraTextureManager::dump(luxrays::Properties &prop,const slg::Texture* pTex)
         break;
     case slg::IMAGEMAP:
         {
-            const std::string &id = this->getTextureId(pTex);
-            BOOST_ASSERT_MSG(!id.empty(),"imagemap without id!");
-            const std::string*  pPath = this->queryPath(id);
-            BOOST_ASSERT_MSG(pPath,"imagemap without path");
+            ExtraTextureManager &texManager = Doc::instance().pDocData->texManager;
+            const std::string &id = texManager.getTextureId(pTex);
+            const std::string *pfullpath = texManager.queryPath(id);
+            BOOST_ASSERT_MSG(!id.empty() && pfullpath,"image texture without id!");
 
-            //BOOST_ASSERT_MSG(false,"not implement");
+            std::string     prefix = "scene.textures.";
+            prefix = prefix + id + '.';
+            prop.SetString(prefix + constDef::type,"imagemap");
+            prop.SetString(prefix + constDef::file,*pfullpath);
+
+            const slg::ImageMapTexture* pImageTex = dynamic_cast<const slg::ImageMapTexture*>(pTex);
+
+            if(!ImageMapTexture_isGammaDefault(pImageTex->GetImageMap()->GetGamma()))
+                prop.SetString(prefix + "gamma",boost::lexical_cast<std::string>(pImageTex->GetImageMap()->GetGamma()));
+
+            if(!ImageMapTexture_isGainDefault(pImageTex->GetGain()))
+                prop.SetString(prefix + "gain",boost::lexical_cast<std::string>(pImageTex->GetGain()));
+
+            return id;
         }
         break;
     case slg::SCALE_TEX:
@@ -1311,79 +1323,256 @@ ExtraTextureManager::createTexture(ImportContext &ctx,type_xml_node &self)
     return result;
 }
 
-int
-ExtraTextureManager::updateTexture(SlgUtil::Editor &editor,slg::Material *pMat,const slg::Texture *pTex,const std::vector<std::string> &keyPath,size_t curIdx,const std::string &value,type_xml_node &parent)
+std::string
+ExtraTextureManager::buildDefaultTexture(SlgUtil::UpdateContext &ctx,const slg::Texture *pTex,int type)
 {
-    int ret = DocMat::UPDATE_DENY;
+    //first,remove all texture definition from ctx.
+    const std::string &id = this->getTextureId(pTex);
+    if(!id.empty())
+    {
+        std::string prefix = "scene.textures." + id;
+        std::vector< std::string >  texKeys = ctx.props.GetAllKeys (prefix);
+        BOOST_FOREACH(const std::string &key,texKeys)
+        {
+            ctx.props.Delete(key);
+        }
+        //不需要删除附加资源，最后在onTextureRemoved调用中会把id相关资源(路径以及tex2id项)删除。
+    }
+
+    switch(type)
+    {
+    case slg::CONST_FLOAT3:
+        return "1.0 1.0 1.0";
+        break;
+    case slg::CONST_FLOAT:
+        return "1.0";
+    case slg::IMAGEMAP:
+        {//we need generate new id.
+            std::string fullpath;
+            if(ctx.getImageFilepath(fullpath))
+            {
+                std::string     id = string::uuid_to_string(boost::uuids::random_generator()());
+                std::stringstream   ss;
+                ss << "scene.textures." << id << ".type = imagemap" << std::endl;
+                ss << "scene.textures." << id << ".file = " << fullpath << std::endl;
+
+//                ctx.props.SetString("scene.textures." + id + ".type","imagemap");
+//                ctx.props.SetString("scene.textures." + id + ".file",fullpath);
+
+                ctx.editor.scene()->DefineTextures(ss.str());
+                m_slgname2filepath_map[id] = fullpath;
+                m_tex2id[ctx.editor.scene()->texDefs.GetTexture(id)] = id;
+
+                //ctx.editor.addAction(slg::IMAGEMAPS_EDIT);
+                return id;
+            }else{
+                ctx.bVeto = true;
+                return "";
+            }
+        }
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::SCALE_TEX:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::FRESNEL_APPROX_N:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::FRESNEL_APPROX_K:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::MIX_TEX:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::ADD_TEX:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::CHECKERBOARD2D:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::CHECKERBOARD3D:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::FBM_TEX:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::MARBLE:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::DOTS:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::BRICK:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::WINDY:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::WRINKLED:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::UV_TEX:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::BAND_TEX:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    default:
+        BOOST_ASSERT_MSG(false,"unreachable code");
+    }
+    return "";
+}
+
+slg::Texture*
+ExtraTextureManager::getSlgTexture(const std::string &id)
+{
+    return Doc::instance().pDocData->m_session->renderConfig->scene->texDefs.GetTexture(id);
+}
+
+const slg::Texture*
+ExtraTextureManager::getTextureFromKeypath(const slg::Texture *pTex,const std::vector<std::string> &keyPath,size_t curIdx)
+{
     if(curIdx == keyPath.size())
-    {//最后一层，切换类型。
-    }else{
-        const std::string &curKey = keyPath[curIdx+1];
-        slg::Scene  *scene = editor.scene();
+        return pTex;
+//    const std::string &curKey = keyPath[curIdx];
+    switch(pTex->GetType())
+    {
+    case slg::CONST_FLOAT3:
+    case slg::CONST_FLOAT:
+    case slg::IMAGEMAP:
+        return pTex;
+    case slg::SCALE_TEX:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::FRESNEL_APPROX_N:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::FRESNEL_APPROX_K:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::MIX_TEX:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::ADD_TEX:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::CHECKERBOARD2D:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::CHECKERBOARD3D:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::FBM_TEX:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::MARBLE:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::DOTS:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::BRICK:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::WINDY:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::WRINKLED:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::UV_TEX:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    case slg::BAND_TEX:
+        BOOST_ASSERT_MSG(false,"not implement");
+        break;
+    default:
+        BOOST_ASSERT_MSG(false,"unreachable code");
+    }
+    throw std::runtime_error("reach unreachable code!");
+}
+
+std::string
+ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Texture *pTex,size_t curIdx)
+{
+    if(curIdx == ctx.keyPath.size())
+    {//最后一级。这里就必然是material type.
+        int type = boost::lexical_cast<int>(ctx.value);
+
+        std::cerr << "boost::lexical_cast<int>(ctx.value)=" << type << std::endl;
+
+        ctx.updatedId = buildDefaultTexture(ctx,pTex,type);
+        ctx.idIsMat = false;
+        ctx.bGenNode = true;
+        return ctx.updatedId;
+    }else
+    {
+        const std::string &curKey = ctx.keyPath[curIdx];
         switch(pTex->GetType())
         {
         case slg::CONST_FLOAT3:
-            if(curKey == "value")
-            {
-                luxrays::Properties prop = pMat->ToProperties();
-                //const std::string &matId = Doc::instance().pDocData->matManager.dump(prop,pMat);
-                std::string matId = Doc::instance().pDocData->matManager.getMaterialId(pMat);
-                prop.SetString("scene.materials." + matId + "." + keyPath[curIdx],value);
-                ///@fixme slg not support mix material update!
-                std::cerr << "update material = " << prop.ToString() << std::endl;
-                Doc::instance().pDocData->matManager.onMaterialRemoved(pMat);
-                scene->UpdateMaterial(matId,prop);
-                editor.addAction(slg::MATERIAL_TYPES_EDIT);
-                editor.addAction(slg::MATERIALS_EDIT);
-                const slg::Material *newMat = scene->matDefs.GetMaterial(matId);
-                Doc::instance().pDocData->matManager.updateMaterialId(newMat,matId);
-                if (newMat->IsLightSource())
-                    editor.addAction(slg::AREALIGHTS_EDIT);
-                ret = DocMat::UPDATE_ACCEPT;
-            }
-            break;
+            BOOST_ASSERT_MSG(curKey == "value","invalid key!");
+            return ctx.value;
         case slg::CONST_FLOAT:
-            break;
+            BOOST_ASSERT_MSG(curKey == "value","invalid key!");
+            return ctx.value;
         case slg::IMAGEMAP:
+            {//we need call ctx.getImagePath to fetch the new pathfile.
+            //need implement a replaceId to operate ctx.props.
+            }
+            BOOST_ASSERT_MSG(false,"not implement");
             break;
         case slg::SCALE_TEX:
+            BOOST_ASSERT_MSG(false,"not implement");
             break;
         case slg::FRESNEL_APPROX_N:
+            BOOST_ASSERT_MSG(false,"not implement");
             break;
         case slg::FRESNEL_APPROX_K:
+            BOOST_ASSERT_MSG(false,"not implement");
             break;
         case slg::MIX_TEX:
+            BOOST_ASSERT_MSG(false,"not implement");
             break;
         case slg::ADD_TEX:
+            BOOST_ASSERT_MSG(false,"not implement");
             break;
         case slg::CHECKERBOARD2D:
+            BOOST_ASSERT_MSG(false,"not implement");
             break;
         case slg::CHECKERBOARD3D:
+            BOOST_ASSERT_MSG(false,"not implement");
             break;
         case slg::FBM_TEX:
+            BOOST_ASSERT_MSG(false,"not implement");
             break;
         case slg::MARBLE:
+            BOOST_ASSERT_MSG(false,"not implement");
             break;
         case slg::DOTS:
+            BOOST_ASSERT_MSG(false,"not implement");
             break;
         case slg::BRICK:
+            BOOST_ASSERT_MSG(false,"not implement");
             break;
         case slg::WINDY:
+            BOOST_ASSERT_MSG(false,"not implement");
             break;
         case slg::WRINKLED:
+            BOOST_ASSERT_MSG(false,"not implement");
             break;
         case slg::UV_TEX:
+            BOOST_ASSERT_MSG(false,"not implement");
             break;
         case slg::BAND_TEX:
+            BOOST_ASSERT_MSG(false,"not implement");
             break;
         default:
             BOOST_ASSERT_MSG(false,"unreachable code");
         }
     }
-    return ret;
+    throw std::runtime_error("reach unreachable code!");
 }
-
-
 
 bool
 ExtraTextureManager::defineImageMapTexture(ImportContext &ctx,const std::string &src,std::string &id)

@@ -88,7 +88,7 @@ public:
     /** @brief update a material property from it's path.
      * @return return enum value at the top.
     **/
-    int         updateProperty(const std::vector<std::string> &keyPath,const std::string &value,type_xml_node &parent);
+    int         updateProperty(const std::vector<std::string> &keyPath,const std::string &value,type_xml_node &parent,boost::function<bool (std::string &)> &getImageFile);
     /** @brief fix slg defect. search all material to check this is used by a mix material. and define all texture in slgMatDef first.
     **/
     bool        updateMaterial(const std::string &id,const std::string &slgMatDef);

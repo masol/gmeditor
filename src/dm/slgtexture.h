@@ -69,16 +69,18 @@ private:
 
 public:
     ///@brief 清空全部数据，用于场景重置(例如加载)。
-    void    clear()
+    inline void    clear()
     {
         m_slgname2filepath_map.clear();
         m_tex2id.clear();
     }
 
-    const std::string&   getTextureId(const slg::Texture *pTex)
+    inline const std::string&   getTextureId(const slg::Texture *pTex)
     {
         return m_tex2id[pTex];
     }
+    static  slg::Texture*   getSlgTexture(const std::string &id);
+
 
     /** @brief recursion remove extrainfo from slg material.
     **/
@@ -100,6 +102,7 @@ public:
         }
         return NULL;
     }
+
     void    loadExtraFromProps(luxrays::Properties &props);
 
     /** @brief fix bug for slg::Texture::ToProperties.
@@ -117,8 +120,20 @@ public:
 public:
     static std::string getBondnameFromType(slg::MasonryBond type);
     bool defineImageMapTexture(ImportContext &ctx,const std::string &src,std::string &id);
-    static  int    updateTexture(SlgUtil::Editor &editor,slg::Material *pMat,const slg::Texture *pTex,const std::vector<std::string> &keyPath,size_t curIdx,const std::string &value,type_xml_node &parent);
+    ///@brief 更新贴图属性。返回贴图id.
+    std::string    updateTexture(SlgUtil::UpdateContext &ctx,const slg::Texture *pTex,size_t curIdx);
+    static const slg::Texture*  getTextureFromKeypath(const slg::Texture *pTex,const std::vector<std::string> &keyPath,size_t curIdx);
 private:
+    std::string buildDefaultTexture(SlgUtil::UpdateContext &ctx,const slg::Texture *pTex,int type);
+    static  inline bool ImageMapTexture_isGainDefault(float gain)
+    {
+        return (gain == 1.0f);
+    }
+    static  inline bool ImageMapTexture_isGammaDefault(float gamma)
+    {
+        return (gamma == 2.2f);
+    }
+
     inline const std::string&  defineAndUpdate(const std::string &id,slg::Scene *scene,const std::string &sceneDef)
     {
         scene->DefineTextures(sceneDef);

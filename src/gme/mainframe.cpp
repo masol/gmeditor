@@ -26,6 +26,7 @@
 #include "dm/docobj.h"
 #include "dm/docctl.h"
 #include <boost/locale.hpp>
+#include <boost/bind.hpp>
 #include "propgrid.h"
 #include "data/xpmres.h"
 #include "glrenderview.h"
@@ -97,11 +98,15 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
 	//m_mgr.GetPane(m_propFrame).Hide();
     // tell the manager to "commit" all the changes just made
     m_mgr.Update();
+    sv_getImageFilepath = boost::bind(&MainFrame::getImageFilepath,this,_1);
 }
 
 MainFrame::~MainFrame()
 {
+    ///@todo 设置sv_getImageFilepath到一个恒定false的函数。
 }
+
+boost::function<bool (std::string &)>   MainFrame::sv_getImageFilepath;
 
 void
 MainFrame::createMenubar()
@@ -302,6 +307,22 @@ MainFrame::onMenuFileImport(wxCommandEvent &event)
 		obj.importObject(boost::locale::conv::utf_to_utf<char>(OpenDialog->GetPath().ToStdWstring()),pParent);
 	}
     OpenDialog->Destroy(); // Or OpenDialog->Destroy() ?
+}
+
+bool
+MainFrame::getImageFilepath(std::string &result)
+{
+    DECLARE_WXCONVERT;
+
+    bool    bHasResult = false;
+	wxFileDialog *OpenDialog= new wxFileDialog(this, gmeWXT("Choose a file"), _(""), _(""), _("*.*"), wxFD_OPEN);
+	if ( OpenDialog->ShowModal() == wxID_OK )
+	{
+		result = boost::locale::conv::utf_to_utf<char>(OpenDialog->GetPath().ToStdWstring());
+        bHasResult = true;
+	}
+    OpenDialog->Destroy(); // Or OpenDialog->Destroy() ?
+    return bHasResult;
 }
 
 

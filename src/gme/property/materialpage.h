@@ -44,10 +44,20 @@ private:
     void    addMaterialContent(wxPGProperty &matType,type_xml_node *pSelf,int type,const std::string &name);
     void    buildMaterialChoice(wxPGChoices &soc);
 
+    void    addTextureContent(wxPGProperty *pTexType,type_xml_node *pSelf,int type);
     void    addTexture(wxPGProperty &parent,type_xml_node *pParent,const std::string &childTag,int flag = 0);
     void    buildTextureChoice(wxPGChoices &soc);
     ///@brief 从tag返回一个友好的名称。
     std::string     getNameFromTagName(const std::string &tag);
+    inline  void    removeChild(wxPGProperty *parent)
+    {
+        unsigned int childCount = parent->GetChildCount();
+        for(unsigned int idx = 0; idx < childCount; idx++)
+        {
+            this->DeleteProperty(parent->Item(idx));
+        }
+//        this->RefreshProperty(parent);
+    }
 public:
     MaterialPage();
     virtual ~MaterialPage();

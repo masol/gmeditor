@@ -92,12 +92,13 @@ public:
     ///@brief 递归更新material及所有子节点的信息。
     void    updateMaterialInfo(const slg::Material *pMat,SlgMaterial2Name &mat2name,SlgTexture2Name &tex2name);
 
-    /** @brief
+    /** @brief get slg material object from it's id(slgname).
     **/
     static slg::Material* getSlgMaterial(const std::string &id);
 
     void createMatteMaterial(ImportContext &ctx,const std::string& id,const std::string& name,const std::string &kdpath,const char* emissionPath = NULL,const char* normalPath = NULL);
     void createGrayMaterial(ImportContext &ctx,const std::string& id);
+    void createGrayMaterial(slg::Scene *scene,const std::string& id);
     ///@fixme : 使用rapidxml接口来导入导出材质。
     /** @brief 从xmlnode中定义一个材质。如果id未指定，尝试从xmlnode中读入，否则会自动创建一个随机id.
     **/
@@ -108,13 +109,16 @@ public:
     ///@brief fix slg's ToProperties bug.
     const std::string&    dump(luxrays::Properties &prop,const slg::Material* pMat);
 
-    bool    updateMaterial(SlgUtil::UpdateContext &ctx,slg::Material *pMat,size_t curIdx);
     ///@brief 设置材质属性。
-    static  int     updateMaterial(SlgUtil::Editor &editor,slg::Material *pMat,const std::vector<std::string> &keyPath,size_t curIdx,const std::string &value,type_xml_node &parent);
+    bool    updateMaterial(SlgUtil::UpdateContext &ctx,const slg::Material *pMat,size_t curIdx);
 
     type_xml_node*   dump(type_xml_node &parent,const slg::Material* pMat,dumpContext &ctx);
+
+    ///@brief 获取指定property keypath的贴图。如果不是一个有效贴图，返回NULL.
+    static const slg::Texture*   getTextureFromKeypath(const slg::Material *pMat,const std::vector<std::string> &keyPath,size_t curPost);
 private:
-    const std::string&    buildDefaultMaterial(SlgUtil::UpdateContext &ctx,slg::Material *pMat,int type);
+    static  bool    isMaterialTypeCompiled(int matType);
+    const std::string&    buildDefaultMaterial(SlgUtil::UpdateContext &ctx,const slg::Material *pMat,int type);
     //static  void    createMatteMaterial(ImportContext &ctx,const std::string& id);
 };
 

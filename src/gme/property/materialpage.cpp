@@ -28,6 +28,7 @@
 #include <boost/format.hpp>
 #include <wx/propgrid/advprops.h>
 #include "../stringutil.h"
+#include "../mainframe.h"
 
 
 BEGIN_EVENT_TABLE(gme::MaterialPage, gme::MaterialPage::inherit)
@@ -134,6 +135,52 @@ MaterialPage::getNameFromTagName(const std::string &tag)
     return tag;
 }
 
+void
+MaterialPage::addTextureContent(wxPGProperty *pTexType,type_xml_node *pSelf,int type)
+{
+    DECLARE_WXCONVERT;
+    if(type == DocMat::CONST_FLOAT3)
+    {
+        wxColour    color(128,128,128);
+        type_xml_attr *rAttr = pSelf->first_attribute("r");
+        type_xml_attr *gAttr = pSelf->first_attribute("g");
+        type_xml_attr *bAttr = pSelf->first_attribute("b");
+        if(rAttr && gAttr && bAttr)
+        {
+            int r = (int)(boost::lexical_cast<float>(rAttr->value()) * 255.0f);
+            int g = (int)(boost::lexical_cast<float>(gAttr->value()) * 255.0f);
+            int b = (int)(boost::lexical_cast<float>(bAttr->value()) * 255.0f);
+            color.Set(r,g,b);
+        }
+        wxPGProperty* pTexValue = new wxColourProperty(gmeWXT("颜色"),"value",color);
+        this->AppendIn(pTexType,pTexValue);
+    }else if(type == DocMat::CONST_FLOAT)
+    {
+        float   value = 0.5;
+        type_xml_attr   *pValueAttr = pSelf->first_attribute("value");
+        if(pValueAttr)
+        {
+            value = boost::lexical_cast<float>(pValueAttr->value());
+        }
+        wxFloatProperty *pTexValue = new wxFloatProperty(gmeWXT("值"),"value",value);
+        this->AppendIn(pTexType,pTexValue);
+    }else if(type == DocMat::IMAGEMAP)
+    {
+        type_xml_attr  *fileAttr = pSelf->first_attribute("file");
+        if(fileAttr)
+        {
+        }else
+        {//@TODO: add default image here.
+            BOOST_ASSERT_MSG(false,"not implement");
+        }
+        wxImageFileProperty *pTexFile = new wxImageFileProperty(gmeWXT("文件"),"file",fileAttr->value());
+        this->AppendIn(pTexType,pTexFile);
+        ///@todo : add gain and gamma.
+    }else{
+        BOOST_ASSERT_MSG(false,"not implement!");
+    }
+}
+
 
 void
 MaterialPage::addTexture(wxPGProperty &parent,type_xml_node *pParent,const std::string &childTag,int flag)
@@ -175,46 +222,7 @@ MaterialPage::addTexture(wxPGProperty &parent,type_xml_node *pParent,const std::
 
     if(pSelf)
     {//开始向pTextype添加可选项。
-        if(type == DocMat::CONST_FLOAT3)
-        {
-            wxColour    color(128,128,128);
-            type_xml_attr *rAttr = pSelf->first_attribute("r");
-            type_xml_attr *gAttr = pSelf->first_attribute("g");
-            type_xml_attr *bAttr = pSelf->first_attribute("b");
-            if(rAttr && gAttr && bAttr)
-            {
-                int r = (int)(boost::lexical_cast<float>(rAttr->value()) * 255.0f);
-                int g = (int)(boost::lexical_cast<float>(gAttr->value()) * 255.0f);
-                int b = (int)(boost::lexical_cast<float>(bAttr->value()) * 255.0f);
-                color.Set(r,g,b);
-            }
-            wxPGProperty* pTexValue = new wxColourProperty(gmeWXT("颜色"),"value",color);
-            this->AppendIn(pTexType,pTexValue);
-        }else if(type == DocMat::CONST_FLOAT)
-        {
-            float   value = 0.5;
-            type_xml_attr   *pValueAttr = pSelf->first_attribute("value");
-            if(pValueAttr)
-            {
-                value = boost::lexical_cast<float>(pValueAttr->value());
-            }
-            wxFloatProperty *pTexValue = new wxFloatProperty(gmeWXT("值"),"value",value);
-            this->AppendIn(pTexType,pTexValue);
-        }else if(type == DocMat::IMAGEMAP)
-        {
-            type_xml_attr  *fileAttr = pSelf->first_attribute("file");
-            if(fileAttr)
-            {
-            }else
-            {//@TODO: add default image here.
-                BOOST_ASSERT_MSG(false,"not implement");
-            }
-            wxImageFileProperty *pTexFile = new wxImageFileProperty(gmeWXT("文件"),"file",fileAttr->value());
-            this->AppendIn(pTexType,pTexFile);
-            ///@todo : add gain and gamma.
-        }else{
-            BOOST_ASSERT_MSG(false,"not implement!");
-        }
+        addTextureContent(pTexType,pSelf,type);
     }
 }
 
@@ -298,8 +306,8 @@ MaterialPage::addMaterialContent(wxPGProperty &matType,type_xml_node *pSelf,int 
                     pChildB = pTemp;
                 }
 
-                addMaterial(matType,pChildA,"materialA");
-                addMaterial(matType,pChildB,"materialB");
+                addMaterial(matType,pChildA,"material1");
+                addMaterial(matType,pChildB,"material2");
 
                 addTexture(matType,pSelf,constDef::amount);
                 bAdded = true;
@@ -391,7 +399,7 @@ MaterialPage::buildPage(const std::string &objid)
     DECLARE_WXCONVERT;
     DocObj   dobj;
     ObjectNode *pNode = dobj.getRootObject().findObject(objid,NULL);
-    if(pNode)
+    if(pNode && !pNode->matid().empty())
     {
         DocMat  mat;
         type_xml_doc    doc;
@@ -440,6 +448,13 @@ void MaterialPage::OnPropertySelect( wxPropertyGridEvent& WXUNUSED(event) )
 void MaterialPage::OnPropertyChange( wxPropertyGridEvent& event )
 {
     wxPGProperty* p = event.GetProperty();
+    std::cerr << "MaterialPage::OnPropertyChange('" << p->GetName().c_str() << "', to value '" << p->GetDisplayedString().c_str() << "')" << std::endl;
+}
+
+void
+MaterialPage::OnPropertyChanging( wxPropertyGridEvent& event )
+{
+    wxPGProperty* p = event.GetProperty();
     std::vector< std::string >    idArray;
 
     std::string name(p->GetName().c_str());
@@ -452,17 +467,18 @@ void MaterialPage::OnPropertyChange( wxPropertyGridEvent& event )
 //    {
 //        //value = boost::lexical_cast<std::string>(dynamic_cast<wxEnumProperty*>(p)->GetChoiceSelection());
 //    }else
-    if(p->IsKindOf(&wxColourProperty::ms_classInfo))
+//    std::cerr << event.GetValue().GetType();
+    if(event.GetValue().GetType().compare("wxColour") == 0)
     {
-        const wxColor &c = dynamic_cast<wxColourProperty*>(p)->GetVal().m_colour;
-        value = boost::str(boost::format("%f %f %f") % ((float)c.Red()/255.0f)  % ((float)c.Green()/255.0f)  % ((float)c.Blue()/255.0f) );
+        const wxColor *pc = dynamic_cast<wxColor*>(event.GetValue().GetWxObjectPtr());
+        value = boost::str(boost::format("%f %f %f") % ((float)pc->Red()/255.0f)  % ((float)pc->Green()/255.0f)  % ((float)pc->Blue()/255.0f) );
     }else{
-        value =  p->GetValue().GetString().c_str();
+        value =  event.GetValue().GetString().c_str();
     }
 
     std::cerr << "value=" << value << std::endl;
 
-    int result = mat.updateProperty(idArray,value,doc);
+    int result = mat.updateProperty(idArray,value,doc,MainFrame::getImageFilepathFunc());
     switch(result)
     {
     case DocMat::UPDATE_DENY:
@@ -474,17 +490,49 @@ void MaterialPage::OnPropertyChange( wxPropertyGridEvent& event )
         std::cerr << "property changed accepted." << std::endl;
         break;
     case DocMat::UPDATE_REFRESH_MAT:
+        {
+            this->removeChild(p);
+            type_xml_node   *pMatNode = find_child(&doc,constDef::material);
+            if(pMatNode)
+            {
+                type_xml_attr   *pType = pMatNode->first_attribute(constDef::type);
+                BOOST_ASSERT_MSG(pType,"found a material without type??");
+
+                std::string     name;
+                type_xml_attr   *pName = pMatNode->first_attribute(constDef::name);
+                if(pName)
+                {
+                    name = pName->value();
+                }
+                if(name.empty())
+                {
+                    name = "未命名";
+                }
+
+                int type = DocMat::getTypeFromTypeName(pType->value());
+
+                this->addMaterialContent(*p,pMatNode,type,name);
+            }
+            this->RefreshProperty(p);
+        }
         std::cerr << "property changed need refresh." << std::endl;
         break;
+    case DocMat::UPDATE_REFRESH_TEX:
+        {
+            this->removeChild(p);
+            type_xml_node   *pTexNode = find_child(&doc,constDef::texture);
+            if(pTexNode)
+            {
+                this->addTextureContent(p,pTexNode,boost::lexical_cast<int>(value));
+            }
+            this->RefreshProperty(p);
+        }
+        std::cerr << "texture property changed need refresh." << std::endl;
+        break;
+    default:
+        BOOST_ASSERT_MSG(false,"unreachable code");
     }
 
-
-    std::cerr << "MaterialPage::OnPropertyChange('" << p->GetName().c_str() << "', to value '" << p->GetDisplayedString().c_str() << "')" << std::endl;
-}
-
-void MaterialPage::OnPropertyChanging( wxPropertyGridEvent& event )
-{
-    wxPGProperty* p = event.GetProperty();
     std::cerr << "MaterialPage::OnPropertyChanging('" << p->GetName().c_str() << "', to value '" << event.GetValue().GetString().c_str() << "')" << std::endl;
 }
 
