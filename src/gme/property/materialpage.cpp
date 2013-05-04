@@ -29,6 +29,7 @@
 #include <wx/propgrid/advprops.h>
 #include "../stringutil.h"
 #include "../mainframe.h"
+#include "luxrays/utils/properties.h"
 
 
 BEGIN_EVENT_TABLE(gme::MaterialPage, gme::MaterialPage::inherit)
@@ -39,27 +40,6 @@ END_EVENT_TABLE()
 
 
 namespace gme{
-
-enum{
-    IDT_TEXTURE,
-    IDT_MATERIAL,
-    IDT_NORMAL,
-    IDT_MAX
-};
-
-static  inline int
-getIdTypeFromName(const std::string &name)
-{
-    if(boost::starts_with(name,"t_"))
-    {
-        return IDT_TEXTURE;
-    }else if(boost::starts_with(name,"m_"))
-    {
-        return IDT_MATERIAL;
-    }
-    return IDT_NORMAL;
-}
-
 
 void
 MaterialPage::onDocumentItemSelected(const std::string &id)
@@ -166,16 +146,65 @@ MaterialPage::addTextureContent(wxPGProperty *pTexType,type_xml_node *pSelf,int 
         this->AppendIn(pTexType,pTexValue);
     }else if(type == DocMat::IMAGEMAP)
     {
-        type_xml_attr  *fileAttr = pSelf->first_attribute("file");
-        if(fileAttr)
+        type_xml_attr  *pAttr = pSelf->first_attribute("file");
+        if(pAttr)
         {
         }else
         {//@TODO: add default image here.
             BOOST_ASSERT_MSG(false,"not implement");
         }
-        wxImageFileProperty *pTexFile = new wxImageFileProperty(gmeWXT("文件"),"file",fileAttr->value());
-        this->AppendIn(pTexType,pTexFile);
-        ///@todo : add gain and gamma.
+        this->AppendIn(pTexType,new wxImageFileProperty(gmeWXT("文件"),"file",pAttr->value()));
+
+        float gain = 1.0f;
+        pAttr = pSelf->first_attribute("gain");
+        if(pAttr)
+        {
+            gain = boost::lexical_cast<float>(pAttr->value());
+        }
+        this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("增益"),"gain",gain));
+
+#if 0  //disable gamma setting.(this need refresh imagefile,so i need to modify slg source)
+        float gamma = 2.2f;
+        pAttr = pSelf->first_attribute("gamma");
+        if(pAttr)
+        {
+            gamma = boost::lexical_cast<float>(pAttr->value());
+        }
+        this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("伽马"),"gamma",gamma));
+#endif
+
+        {//append imageMapping2d.  (type_xml_node *pSelf,wxPGProperty *pTexType)
+            type_xml_node   *pMappingNode = pSelf->first_node(constDef::mapping);
+            float uScale=1.0f,vScale=1.0f,uDelta=0.0f,vDelta=0.0f;
+            if(pMappingNode != NULL)
+            {
+                type_xml_attr *pAttr = pMappingNode->first_attribute("uvscale");
+                if(pAttr)
+                {
+                    std::vector< float > var = luxrays::Properties::ConvertToFloatVector(pAttr->value());
+                    if(var.size() >= 2)
+                    {
+                        uScale = var[0];
+                        vScale = var[1];
+                    }
+                }
+
+                pAttr = pMappingNode->first_attribute("uvdelta");
+                if(pAttr)
+                {
+                    std::vector< float > var = luxrays::Properties::ConvertToFloatVector(pAttr->value());
+                    if(var.size() >= 2)
+                    {
+                        uDelta = var[0];
+                        vDelta = var[1];
+                    }
+                }
+            }
+            this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("uScale"),"uscale",uScale));
+            this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("vScale"),"vscale",vScale));
+            this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("uDelta"),"udelta",uDelta));
+            this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("vDelta"),"vdelta",vDelta));
+        }
     }else{
         BOOST_ASSERT_MSG(false,"not implement!");
     }
@@ -192,13 +221,13 @@ MaterialPage::addTexture(wxPGProperty &parent,type_xml_node *pParent,const std::
     wxPGChoices soc;
     buildTextureChoice(soc);
     if(flag & TEX_HAS_DISABLE)
-        soc.Add( gmeWXT("disable"),TEX_DISABLE);
+        soc.Add( gmeWXT("disable"),DocMat::TEX_DISABLE);
     if(flag & TEX_HAS_IES)
-        soc.Add( gmeWXT("ies"),TEX_IES);
+        soc.Add( gmeWXT("ies"),DocMat::TEX_IES);
 
     //如果自身id不存在,则使用p_+randomid作为id.指示引用父id.
     std::string  id;
-    int type = TEX_DISABLE;
+    int type = DocMat::TEX_DISABLE;
     if(pSelf)
     {
         type_xml_attr   *pIdAttr = pSelf->first_attribute(constDef::id);
@@ -468,10 +497,15 @@ MaterialPage::OnPropertyChanging( wxPropertyGridEvent& event )
 //        //value = boost::lexical_cast<std::string>(dynamic_cast<wxEnumProperty*>(p)->GetChoiceSelection());
 //    }else
 //    std::cerr << event.GetValue().GetType();
-    if(event.GetValue().GetType().compare("wxColour") == 0)
+    wxAny any = event.GetValue();
+    if(any.CheckType<wxColour>())
     {
-        const wxColor *pc = dynamic_cast<wxColor*>(event.GetValue().GetWxObjectPtr());
-        value = boost::str(boost::format("%f %f %f") % ((float)pc->Red()/255.0f)  % ((float)pc->Green()/255.0f)  % ((float)pc->Blue()/255.0f) );
+        wxColour pc = any.As<wxColour>();
+        value = boost::str(boost::format("%f %f %f") % ((float)pc.Red()/255.0f)  % ((float)pc.Green()/255.0f)  % ((float)pc.Blue()/255.0f) );
+    }else if(any.CheckType<float>())
+    {
+        float fv = any.As<float>();
+        value = boost::str(boost::format("%.4f")%fv);
     }else{
         value =  event.GetValue().GetString().c_str();
     }

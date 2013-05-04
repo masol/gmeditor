@@ -52,6 +52,9 @@ public: //texture.
     static  const   int  WRINKLED;
     static  const   int  UV_TEX;
     static  const   int  BAND_TEX;
+    ///@brief expand from slg.
+    static  const   int  TEX_DISABLE;
+    static  const   int  TEX_IES;
     static  std::string  texGetTypeNameFromType(int type);
     static  int   texGetTypeFromTypeName(const std::string &name);
 public: //material.

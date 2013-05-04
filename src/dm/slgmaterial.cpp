@@ -149,9 +149,10 @@ ExtraMaterialManager::onMaterialRemoved(const slg::Material* pMat)
     default:
         BOOST_ASSERT_MSG(false,"unreachable code");
     }
-    const std::string   &id = m_mat2id[pMat];
-    if(id.length())
-        m_id2name.erase(id);
+///@fixme: we can not erase id2name,because the material-refresh will exec to here.in this situation id2name is valid,only pMat changed.but,how to distinguish it from id destroy? the best solution may be callback from slg::matDefs.
+//    const std::string   &id = m_mat2id[pMat];
+//    if(id.length())
+//        m_id2name.erase(id);
     m_mat2id.erase(pMat);
 }
 
@@ -1004,6 +1005,25 @@ ExtraMaterialManager::getTextureFromKeypath(const slg::Material *pMat,const std:
     throw std::runtime_error("reach unreachable code");
 }
 
+static  inline bool
+checkAndUpdateDisableTexture(ExtraTextureManager &texManager,SlgUtil::UpdateContext &ctx,const std::string &curKey,const std::string &prefix,const std::string &suffix,const slg::Texture *pTex,size_t curIdx)
+{
+    if(curKey == suffix)
+    {
+
+        std::string key = prefix + suffix;
+        std::string texValue = texManager.updateTexture(ctx,pTex,curIdx+1);
+        if(texValue.empty())
+        {
+            ctx.props.Delete(key);
+        }else{
+            ctx.props.SetString(key,texValue);
+        }
+        return true;
+    }
+    return false;
+}
+
 
 bool
 ExtraMaterialManager::updateMaterial(SlgUtil::UpdateContext &ctx,const slg::Material *pMat,size_t curIdx)
@@ -1021,15 +1041,13 @@ ExtraMaterialManager::updateMaterial(SlgUtil::UpdateContext &ctx,const slg::Mate
         const std::string &matId = this->getMaterialId(pMat);
         std::string prefix = "scene.materials." + matId + '.';
         const std::string &curKey = ctx.keyPath[curIdx];
-        if(curKey == constDef::emission)
-        {//
-            ctx.props.SetString(prefix + constDef::emission,texManager.updateTexture(ctx,pMat->GetEmitTexture(),curIdx+1));
-        }else if(curKey == constDef::bumptex)
+
+        if(checkAndUpdateDisableTexture(texManager,ctx,curKey,prefix,constDef::emission,pMat->GetEmitTexture(),curIdx))
         {
-            ctx.props.SetString(prefix + constDef::bumptex,texManager.updateTexture(ctx,pMat->GetBumpTexture(),curIdx+1));
-        }else if(curKey == constDef::normaltex)
+        }else if(checkAndUpdateDisableTexture(texManager,ctx,curKey,prefix,constDef::bumptex,pMat->GetBumpTexture(),curIdx))
         {
-            ctx.props.SetString(prefix + constDef::normaltex,texManager.updateTexture(ctx,pMat->GetNormalTexture(),curIdx+1));
+        }else if(checkAndUpdateDisableTexture(texManager,ctx,curKey,prefix,constDef::normaltex,pMat->GetNormalTexture(),curIdx))
+        {
         }else{
             switch(pMat->GetType())
             {

@@ -77,9 +77,10 @@ public:
 	/** Updata Render Stop UI**/
 	void onUpdateRenderStop(wxUpdateUIEvent& event);
 
-	/** Processes Render Pause**/
 	void onViewmodeChanged(wxCommandEvent &event);
     void onUpdateViewmode(wxUpdateUIEvent &event);
+	/** Update Save\Export\Import UI**/
+	void onUpdateSaveAndEdit(wxUpdateUIEvent &event);
 
 	enum{
 		SFP_INFO = 0,
@@ -106,11 +107,12 @@ private:
             m_pGauge->Move(rect.x,rect.y);
         }
     }
-//not need free members.
+	//not need free members.
     wxGauge         *m_pGauge;
     ObjectView      *m_objectView;
     GlRenderView    *m_renderView;
 	PropFrame       *m_propFrame;
+	std::string      m_filepath;
     void    createMenubar();
 	void    createToolbar();
     void    createStatusbar();

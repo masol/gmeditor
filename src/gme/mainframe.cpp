@@ -30,14 +30,17 @@
 #include "propgrid.h"
 #include "data/xpmres.h"
 #include "glrenderview.h"
+#include "filedialog.h"
 
 namespace gme{
 
 BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_MENU(wxID_OPEN, MainFrame::onMenuFileOpen)
 	EVT_MENU(wxID_SAVE, MainFrame::onMenuFileSave)
-	EVT_MENU(cmd::GID_EXPORT, MainFrame::onMenuFileExport)
+	EVT_UPDATE_UI(wxID_SAVE,MainFrame::onUpdateSaveAndEdit)
+	EVT_MENU(cmd::GID_EXPORT, MainFrame::onMenuFileExport)	
 	EVT_MENU(cmd::GID_IMPORT, MainFrame::onMenuFileImport)
+	EVT_UPDATE_UI_RANGE(cmd::GID_EXPORT,cmd::GID_IMPORT,MainFrame::onUpdateSaveAndEdit)
 	EVT_MENU(wxID_EXIT, MainFrame::onMenuFileQuit)
 	EVT_MENU(wxID_DELETE, MainFrame::onMenuEditDelete)
 	EVT_MENU(wxID_ABOUT, MainFrame::onMenuHelpAbout)
@@ -118,7 +121,6 @@ MainFrame::createMenubar()
     {//File
         wxMenu *pFileMenu = new wxMenu();
         pFileMenu->Append(wxID_OPEN, gmeWXT("打开(&O)"), gmeWXT("打开已有场景"));
-        pFileMenu->Append(cmd::GID_IMPORT, gmeWXT("导入(&I)"), gmeWXT("从文件中导入模型到当前场景"));
         pFileMenu->AppendSeparator();
         pFileMenu->Append(wxID_SAVE, gmeWXT("保存(&S)"), gmeWXT("保存现有场景"));
         pFileMenu->Append(cmd::GID_EXPORT, gmeWXT("导出(&E)"), gmeWXT("导出现有场景"));
@@ -130,6 +132,7 @@ MainFrame::createMenubar()
 
     {//Edit
         wxMenu *pEditMenu = new wxMenu();
+		pEditMenu->Append(cmd::GID_IMPORT, gmeWXT("导入(&I)"), gmeWXT("从文件中导入模型到当前场景"));
         pEditMenu->Append(wxID_DELETE, gmeWXT("删除(&D)"), gmeWXT("删除选中模型"));
 		pEditMenu->AppendSeparator();
 		pEditMenu->Append(cmd::GID_RENDER_START,gmeWXT("开始渲染"),gmeWXT("开始渲染当前场景"));
@@ -176,12 +179,9 @@ MainFrame::createToolbar()
 
 		wxBitmap bmpOpen(xpm::open);
 		wxBitmap bmpSave(xpm::save);
-		wxBitmap bmpImport(xpm::import);
 		wxBitmap bmpExport(xpm::_export);
 
-		//pToolBar->InsertTool(0,wxID_OPEN,gmeWXT(""),bmpOpen,wxNullBitmap,wxITEM_NORMAL,gmeWXT("打开"),gmeWXT("打开已有场景"));
 		pFileTbr->AddTool(wxID_OPEN,gmeWXT("File"),bmpOpen,gmeWXT("打开"));
-		pFileTbr->AddTool(cmd::GID_IMPORT,gmeWXT("File"),bmpImport,gmeWXT("导入"));
 		pFileTbr->AddSeparator();
 		pFileTbr->AddTool(wxID_SAVE,gmeWXT("File"),bmpSave,gmeWXT("保存"));
 		pFileTbr->AddTool(cmd::GID_EXPORT,gmeWXT("File"),bmpExport,gmeWXT("导出"));
@@ -196,11 +196,13 @@ MainFrame::createToolbar()
 		wxAuiToolBar *pEditTbr = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
 												  wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW| wxAUI_TB_HORIZONTAL);
 
+		wxBitmap bmpImport(xpm::import);
 		wxBitmap bmpDel(xpm::_delete);
 		wxBitmap bmpStart(xpm::start);
 		wxBitmap bmpStop(xpm::stop);
 		wxBitmap bmpPause(xpm::pause);
 
+		pEditTbr->AddTool(cmd::GID_IMPORT,gmeWXT("Edit"),bmpImport,gmeWXT("导入"));
 		pEditTbr->AddTool(wxID_DELETE,gmeWXT("Edit"),bmpDel,gmeWXT("删除"));
 		pEditTbr->AddSeparator();
 		pEditTbr->AddTool(cmd::GID_RENDER_START,gmeWXT("RenderCtrl"),bmpStart,gmeWXT("开始渲染"));
@@ -291,12 +293,11 @@ MainFrame::getPaneFromCmdID(int cmdid)
     return m_mgr.GetPane(pWindow);
 }
 
-
 void
 MainFrame::onMenuFileImport(wxCommandEvent &event)
 {
-	wxFileDialog *OpenDialog= new wxFileDialog(this, _T("Choose a file"), _(""), _(""), _("*.*"), wxFD_OPEN);
-	if ( OpenDialog->ShowModal() == wxID_OK )
+    ImportDialog    dialog(this);
+    if(dialog.ShowModal() == wxID_OK)
 	{
 		gme::DocObj	obj;
 		gme::ObjectNode *pParent = NULL;
@@ -304,24 +305,20 @@ MainFrame::onMenuFileImport(wxCommandEvent &event)
 		{
             pParent = obj.getRootObject().findObject(obj.getSelection().back(),NULL);
 		}
-		obj.importObject(boost::locale::conv::utf_to_utf<char>(OpenDialog->GetPath().ToStdWstring()),pParent);
+        obj.importObject(dialog.GetPath(),pParent);
 	}
-    OpenDialog->Destroy(); // Or OpenDialog->Destroy() ?
 }
 
 bool
 MainFrame::getImageFilepath(std::string &result)
 {
-    DECLARE_WXCONVERT;
-
     bool    bHasResult = false;
-	wxFileDialog *OpenDialog= new wxFileDialog(this, gmeWXT("Choose a file"), _(""), _(""), _("*.*"), wxFD_OPEN);
-	if ( OpenDialog->ShowModal() == wxID_OK )
+    OpenImageDialog dialog(this);
+	if ( dialog.ShowModal() == wxID_OK )
 	{
-		result = boost::locale::conv::utf_to_utf<char>(OpenDialog->GetPath().ToStdWstring());
+        result = dialog.GetPath();
         bHasResult = true;
 	}
-    OpenDialog->Destroy(); // Or OpenDialog->Destroy() ?
     return bHasResult;
 }
 
@@ -329,40 +326,35 @@ MainFrame::getImageFilepath(std::string &result)
 void
 MainFrame::onMenuFileOpen(wxCommandEvent &event)
 {
-	wxFileDialog *OpenDialog= new wxFileDialog(this, _T("Choose a file"), _(""), _(""), _("*.*"), wxFD_OPEN);
-	if ( OpenDialog->ShowModal() == wxID_OK )
+	OpenSceneDialog dialog(this);
+	if ( dialog.ShowModal() == wxID_OK )
 	{
         gme::DocIO  dio;
-        dio.loadScene(boost::locale::conv::utf_to_utf<char>(OpenDialog->GetPath().ToStdWstring()));
+        m_filepath = dialog.GetPath();
+		dio.loadScene(m_filepath);
 	}
-	OpenDialog->Destroy(); // Or OpenDialog->Destroy() ?
 }
 
 void
 MainFrame::onMenuFileExport(wxCommandEvent &event)
 {
-    DECLARE_WXCONVERT;
-
-	wxFileDialog *SaveDialog= new wxFileDialog(this, gmeWXT("选择导出文件"), _(""), _(""), _("*.*"), wxFD_SAVE);
-	if ( SaveDialog->ShowModal() == wxID_OK )
+    SaveSceneDialog dialog(this);
+	if ( dialog.ShowModal() == wxID_OK )
 	{
 	    gme::DocIO  dio;
-	    dio.exportScene(boost::locale::conv::utf_to_utf<char>(SaveDialog->GetPath().ToStdWstring()),true);
+	    dio.exportScene(dialog.GetPath(),true);
 	}
-	SaveDialog->Destroy();
 }
 
 
 void
 MainFrame::onMenuFileSave(wxCommandEvent &event)
-{
-	wxFileDialog *SaveDialog= new wxFileDialog(this, _T("Choose a file"), _(""), _(""), _("*.*"), wxFD_SAVE);
-	if ( SaveDialog->ShowModal() == wxID_OK )
+{	
+	gme::DocIO  dio;
+	if(!m_filepath.empty())
 	{
-	    gme::DocIO  dio;
-	    dio.exportScene(boost::locale::conv::utf_to_utf<char>(SaveDialog->GetPath().ToStdWstring()),false);
+	   dio.exportScene(m_filepath,false);
 	}
-	SaveDialog->Destroy();
 }
 
 void
@@ -440,7 +432,7 @@ void
 MainFrame::onUpdateRenderStart(wxUpdateUIEvent& event)
 {
 	DocCtl dctl;
-	event.Enable(!dctl.isRuning());
+	event.Enable(!dctl.isRuning()&&!m_filepath.empty());
 }
 
 void
@@ -457,6 +449,13 @@ MainFrame::onUpdateMenuEditDelete(wxUpdateUIEvent& event)
     //@FIXME: need to implement obj.canDeleteItem. to remove last object cause slg crash.
     event.Enable(obj.getSelection().size() > 0);
 }
+
+void 
+MainFrame::onUpdateSaveAndEdit(wxUpdateUIEvent &event)
+{
+	event.Enable(!m_filepath.empty());
+}
+
 
 } //namespace gme
 

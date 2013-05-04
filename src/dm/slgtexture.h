@@ -124,6 +124,8 @@ public:
     std::string    updateTexture(SlgUtil::UpdateContext &ctx,const slg::Texture *pTex,size_t curIdx);
     static const slg::Texture*  getTextureFromKeypath(const slg::Texture *pTex,const std::vector<std::string> &keyPath,size_t curIdx);
 private:
+    static  bool    checkTextureMapping2DUpdate(SlgUtil::UpdateContext &ctx,luxrays::Properties &newProps,const std::string &curKey,const std::string &mapping_prefix,const slg::TextureMapping2D *pMapping);
+
     std::string buildDefaultTexture(SlgUtil::UpdateContext &ctx,const slg::Texture *pTex,int type);
     static  inline bool ImageMapTexture_isGainDefault(float gain)
     {
@@ -133,6 +135,20 @@ private:
     {
         return (gamma == 2.2f);
     }
+    static  inline bool UVMapping2D_isScaleDefault(const slg::UVMapping2D *pMapping2D)
+    {
+        return (pMapping2D->uScale == 1.0f && pMapping2D->vScale == 1.0f);
+    }
+    static  inline bool UVMapping2D_isDeltaDefault(const slg::UVMapping2D *pMapping2D)
+    {
+        return (pMapping2D->uDelta == 0.0f && pMapping2D->vDelta == 0.0f);
+    }
+    static  inline bool UVMapping2D_isDefault(const slg::UVMapping2D *pMapping2D)
+    {
+        return (UVMapping2D_isScaleDefault(pMapping2D) && UVMapping2D_isDeltaDefault(pMapping2D));
+    }
+    ///@brief prefix example:"scene.textures.XXXXXXXXXXXXXXXXX.mapping."
+    static  void   dumpTextureMapping2D(const slg::TextureMapping2D *pMapping,luxrays::Properties &props,const std::string &prefix);
 
     inline const std::string&  defineAndUpdate(const std::string &id,slg::Scene *scene,const std::string &sceneDef)
     {

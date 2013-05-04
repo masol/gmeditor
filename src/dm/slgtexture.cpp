@@ -169,13 +169,15 @@ ExtraTextureManager::onTextureRemoved(const slg::Texture *pTex)
     case slg::CONST_FLOAT:
         break;
     case slg::IMAGEMAP:
-        {
-            const std::string&  id = m_tex2id[pTex];
-            if(id.length())
-            {
-                m_slgname2filepath_map.erase(id);
-            }
-        }
+///@fixme: we can not erase slgname2filepath,because the texture-refresh will exec to here.in this situation slgname2filepath
+///is valid,only pTex changed.but,how to distinguish it from id destroy? the best solution may be callback from slg::texDefs.
+//        {
+//            const std::string&  id = m_tex2id[pTex];
+//            if(id.length())
+//            {
+//                m_slgname2filepath_map.erase(id);
+//            }
+//        }
         break;
     case slg::SCALE_TEX:
         {
@@ -475,6 +477,37 @@ ExtraTextureManager::getBondnameFromType(slg::MasonryBond type)
     return "";
 }
 
+void
+ExtraTextureManager::dumpTextureMapping2D(const slg::TextureMapping2D *pMapping,luxrays::Properties &props,const std::string &prefix)
+{
+    if(!pMapping)
+        return;
+    switch(pMapping->GetType())
+    {
+    case slg::UVMAPPING2D:
+        {
+            const slg::UVMapping2D *pMapping2D = dynamic_cast<const slg::UVMapping2D*>(pMapping);
+            if(pMapping2D && !ExtraTextureManager::UVMapping2D_isDefault(pMapping2D))
+            {
+                props.SetString(prefix + constDef::type,"uvmapping2d");
+                if(!UVMapping2D_isScaleDefault(pMapping2D))
+                {
+                    std::string value = boost::str(boost::format("%.4f %.4f") %pMapping2D->uScale % pMapping2D->vScale);
+                    props.SetString(prefix + "uvscale",value);
+                }
+                if(!UVMapping2D_isDeltaDefault(pMapping2D))
+                {
+                    std::string value = boost::str(boost::format("%.4f %.4f") %pMapping2D->uDelta % pMapping2D->vDelta);
+                    props.SetString(prefix + "uvdelta",value);
+                }
+            }
+        }
+        break;
+    default:
+        BOOST_ASSERT_MSG(false,"unreachable code");
+    }
+}
+
 std::string
 ExtraTextureManager::dump(luxrays::Properties &prop,const slg::Texture* pTex)
 {
@@ -512,6 +545,8 @@ ExtraTextureManager::dump(luxrays::Properties &prop,const slg::Texture* pTex)
             if(!ImageMapTexture_isGainDefault(pImageTex->GetGain()))
                 prop.SetString(prefix + "gain",boost::lexical_cast<std::string>(pImageTex->GetGain()));
 
+            //update mapping2d.
+            dumpTextureMapping2D(pImageTex->GetTextureMapping(),prop,prefix + ".mapping.");
             return id;
         }
         break;
@@ -1360,17 +1395,20 @@ ExtraTextureManager::buildDefaultTexture(SlgUtil::UpdateContext &ctx,const slg::
 //                ctx.props.SetString("scene.textures." + id + ".file",fullpath);
 
                 ctx.editor.scene()->DefineTextures(ss.str());
+
+//                ctx.editor.addAction(slg::IMAGEMAPS_EDIT);
+                ctx.editor.needRefresh(true);
+//                ctx.editor.needRefresh(ctx.editor.scene()->imgMapCache.GetSize() == 0);
+
                 m_slgname2filepath_map[id] = fullpath;
                 m_tex2id[ctx.editor.scene()->texDefs.GetTexture(id)] = id;
 
-                //ctx.editor.addAction(slg::IMAGEMAPS_EDIT);
                 return id;
             }else{
                 ctx.bVeto = true;
                 return "";
             }
         }
-        BOOST_ASSERT_MSG(false,"not implement");
         break;
     case slg::SCALE_TEX:
         BOOST_ASSERT_MSG(false,"not implement");
@@ -1418,6 +1456,13 @@ ExtraTextureManager::buildDefaultTexture(SlgUtil::UpdateContext &ctx,const slg::
         BOOST_ASSERT_MSG(false,"not implement");
         break;
     default:
+        if(type == DocMat::TEX_DISABLE)
+        {
+            //return empty is enough.
+            break;
+        }else if(type == DocMat::TEX_IES)
+        {//process ies here.
+        }
         BOOST_ASSERT_MSG(false,"unreachable code");
     }
     return "";
@@ -1492,6 +1537,30 @@ ExtraTextureManager::getTextureFromKeypath(const slg::Texture *pTex,const std::v
     throw std::runtime_error("reach unreachable code!");
 }
 
+bool
+ExtraTextureManager::checkTextureMapping2DUpdate(SlgUtil::UpdateContext &ctx,luxrays::Properties &newProps,const std::string &curKey,const std::string &mapping_prefix,const slg::TextureMapping2D *pMapping)
+{
+    const slg::UVMapping2D *pMap2D = dynamic_cast<const slg::UVMapping2D*>(pMapping);
+    BOOST_ASSERT_MSG(pMap2D != NULL,"new uv-mapping type?");
+    bool    bMatch = true;
+    if(curKey == "uscale")
+    {
+        newProps.SetString(mapping_prefix + "uvscale",boost::str(boost::format("%s %f")%ctx.value%pMap2D->vScale));
+    }else if(curKey == "vscale")
+    {
+        newProps.SetString(mapping_prefix + "uvscale",boost::str(boost::format("%f %s")%pMap2D->uScale%ctx.value));
+    }else if(curKey == "udelta")
+    {
+        newProps.SetString(mapping_prefix + "uvdelta",boost::str(boost::format("%s %f")%ctx.value%pMap2D->vDelta));
+    }else if(curKey == "vdelta")
+    {
+        newProps.SetString(mapping_prefix + "uvdelta",boost::str(boost::format("%f %s")%pMap2D->uDelta%ctx.value));
+    }else{
+        bMatch = false;
+    }
+    return bMatch;
+}
+
 std::string
 ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Texture *pTex,size_t curIdx)
 {
@@ -1517,10 +1586,46 @@ ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Textur
             BOOST_ASSERT_MSG(curKey == "value","invalid key!");
             return ctx.value;
         case slg::IMAGEMAP:
-            {//we need call ctx.getImagePath to fetch the new pathfile.
-            //need implement a replaceId to operate ctx.props.
+            {//need implement a replaceId to operate ctx.props.
+                const std::string  &oldId = this->getTextureId(pTex);
+                luxrays::Properties newProps;
+                std::string prefix = "scene.textures.";
+                std::string newId = SlgUtil::propReplaceNewId(ctx.props,newProps,oldId,"scene.textures.");
+
+                bool    bNeedRefresh = false;
+
+                if(curKey == constDef::file)
+                {
+                    newProps.SetString(prefix + newId + ".file",ctx.value);
+                    m_slgname2filepath_map[newId] = ctx.value;
+                    bNeedRefresh = true;
+                }else if(curKey == "gamma")
+                {
+                    newProps.SetString(prefix + newId + ".gamma",ctx.value);
+                }else if(curKey == "gain")
+                {
+                    newProps.SetString(prefix + newId + ".gain",ctx.value);
+                }else if(checkTextureMapping2DUpdate(ctx,newProps,curKey,
+                    prefix + newId + '.' + constDef::mapping + '.',
+                    dynamic_cast<const slg::ImageMapTexture*>(pTex)->GetTextureMapping()))
+                {
+                }else{
+                    BOOST_ASSERT_MSG(false,"unreachable code.");
+                }
+
+                //std::cerr << newProps.ToString() << std::endl;
+                ctx.editor.scene()->DefineTextures(newProps);
+
+//                ctx.editor.addAction(slg::IMAGEMAPS_EDIT);
+//                ctx.editor.needRefresh(ctx.editor.scene()->imgMapCache.GetSize() == 0);
+                ctx.editor.needRefresh(bNeedRefresh);
+
+                m_tex2id[ctx.editor.scene()->texDefs.GetTexture(newId)] = newId;
+                this->addPath(newId,m_slgname2filepath_map[oldId]);
+                m_slgname2filepath_map.erase(oldId);
+//                ctx.editor.addAction(slg::IMAGEMAPS_EDIT);
+                return newId;
             }
-            BOOST_ASSERT_MSG(false,"not implement");
             break;
         case slg::SCALE_TEX:
             BOOST_ASSERT_MSG(false,"not implement");

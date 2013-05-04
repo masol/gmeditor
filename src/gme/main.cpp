@@ -68,6 +68,7 @@ public:
         SetTopWindow(m_mainFrame);
         m_mainFrame->Maximize();
         m_mainFrame->Show();
+        //wxInitAllImageHandlers();
         //before init openCL,we must init openGL first.
 
 

@@ -53,6 +53,8 @@ const   int  DocMat::WINDY = slg::WINDY;
 const   int  DocMat::WRINKLED = slg::WRINKLED;
 const   int  DocMat::UV_TEX = slg::UV_TEX;
 const   int  DocMat::BAND_TEX = slg::BAND_TEX;
+const   int  DocMat::TEX_DISABLE = slg::BAND_TEX + 0x1000;
+const   int  DocMat::TEX_IES = DocMat::TEX_DISABLE + 1;
 
 std::string
 DocMat::texGetTypeNameFromType(int type)

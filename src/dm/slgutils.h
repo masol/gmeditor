@@ -21,6 +21,7 @@
 
 #include "slg/rendersession.h"
 #include "dm/xmlutil.h"
+#include <boost/foreach.hpp>
 
 namespace gme{
 
@@ -30,19 +31,32 @@ public:
     struct   Editor{
     protected:
         slg::RenderSession      *m_session;
+        bool                    m_bNeedRefresh;
     public:
         inline Editor(slg::RenderSession *session)
         {
             m_session = session;
             m_session->BeginEdit();
+            m_bNeedRefresh = false;
+        }
+        inline void  needRefresh(bool v){
+            m_bNeedRefresh = v;
         }
         inline ~Editor()
         {
-			if (m_session->editActions.Has(slg::MATERIALS_EDIT)) {
-				m_session->renderConfig->scene->RemoveUnusedMaterials();
-				m_session->renderConfig->scene->RemoveUnusedTextures();
-			}
-            m_session->EndEdit();
+            if (m_session->editActions.Has(slg::MATERIALS_EDIT)) {
+                m_session->renderConfig->scene->RemoveUnusedMaterials();
+                m_session->renderConfig->scene->RemoveUnusedTextures();
+            }
+            if(m_bNeedRefresh || m_session->editActions.Has(slg::MATERIAL_TYPES_EDIT))
+            {
+                m_session->editActions.Reset();
+                m_session->EndEdit();
+                m_session->Stop();
+                m_session->Start();
+            }else{
+                m_session->EndEdit();
+            }
         }
         inline void addAction(const slg::EditAction a)
         {
@@ -64,14 +78,32 @@ public:
         bool                    idIsMat;
         bool                    bGenNode;   //指示是否为parent添加了子节点。
         bool                    bVeto;      //指示是否已经放弃了本次修改。
+        bool                    bNeedRefresh;   //hacker:指示是否需要refresh(stop/start).
         UpdateContext(SlgUtil::Editor &e,type_xml_node &p,const std::string &v,const std::vector<std::string> &k,boost::function<bool (std::string &)> &f) :
                 editor(e), value(v) , keyPath(k),getImageFilepath(f)
         {
             bGenNode  = false;
             idIsMat   = false;
             bVeto = false;
+            bNeedRefresh = false;
         }
     };
+
+    static  inline  std::string propReplaceNewId(luxrays::Properties &oldProp,luxrays::Properties &newProp,const std::string &oldId,const std::string &prefix)
+    {
+        std::string oldPrefix = prefix + oldId;
+        std::string newId = string::uuid_to_string(boost::uuids::random_generator()());
+        std::string newPrefix = prefix + newId;
+        const std::vector< std::string >  Keys = oldProp.GetAllKeys(oldPrefix);
+        BOOST_FOREACH(const std::string &key,Keys)
+        {
+            std::string value = oldProp.GetString(key,"");
+            std::string subkey = luxrays::Properties::ExtractField(key,3);
+            oldProp.Delete(key);
+            newProp.SetString(newPrefix + '.' + subkey,value);
+        }
+        return newId;
+    }
 
 
     static  inline  void    OutputSlgmat(std::ostream &o,const luxrays::Matrix4x4 &luxmat)

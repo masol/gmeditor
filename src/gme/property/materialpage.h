@@ -33,9 +33,6 @@ private:
         TEX_HAS_IES = 0X2,
         TEX_MAX_EXTEND
     };
-    ///@brief expand from slg.
-    static  const   int     TEX_DISABLE = -1;
-    static  const   int     TEX_IES = -2;
     typedef GmePropPage  inherit;
     std::string         m_currentObject;
     void    clearPage(void);
