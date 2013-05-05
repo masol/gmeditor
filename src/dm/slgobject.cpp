@@ -207,16 +207,18 @@ void
 ExtraObjectManager::removeMesh(ObjectNode &parent,ObjectNode &self,slg::Scene *scene,SlgUtil::Editor &editor)
 {
     //首先遍历删除子节点。
-    ObjectNode::type_child_container::iterator  it = self.begin();
-    while(it != self.end())
+    while(self.m_children.size())
     {
-        this->removeMesh(self,*it,scene,editor);
-        it++;
+        ObjectNode &child = self.m_children[0];
+        this->removeMesh(self,child,scene,editor);
     }
     //然后删除自身。
-    luxrays::ExtMesh *pMesh = this->getExtMesh(self.id());
-    if(pMesh)
-        removeMesh(scene,pMesh,editor);
+    if(!self.matid().empty())
+    {
+        luxrays::ExtMesh *pMesh = this->getExtMesh(self.id());
+        if(pMesh)
+            removeMesh(scene,pMesh,editor);
+    }
     parent.removeChild(self.id());
 }
 
@@ -238,6 +240,8 @@ ExtraObjectManager::removeMesh(const std::string &id)
     slg::RenderSession* session = Doc::instance().pDocData->getSession();
     slg::Scene       *scene = session->renderConfig->scene;
     SlgUtil::Editor      editor(session);
+    ///
+    //editor.needRefresh(true);
 
     this->removeMesh(*parent,*pNode,scene,editor);
 

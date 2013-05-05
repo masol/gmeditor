@@ -30,6 +30,7 @@
 #include "../stringutil.h"
 #include "../mainframe.h"
 #include "luxrays/utils/properties.h"
+#include "slg/sdl/texture.h"
 
 
 BEGIN_EVENT_TABLE(gme::MaterialPage, gme::MaterialPage::inherit)
@@ -90,7 +91,8 @@ MaterialPage::buildTextureChoice(wxPGChoices &soc)
     soc.Add( gmeWXT("windy"),DocMat::WINDY);
     soc.Add( gmeWXT("wrinkled"),DocMat::WRINKLED);
     soc.Add( gmeWXT("uv"),DocMat::UV_TEX);
-    soc.Add( gmeWXT("band"),DocMat::BAND_TEX);
+    //band not implement!
+    //soc.Add( gmeWXT("band"),DocMat::BAND_TEX);
 }
 
 std::string
@@ -116,6 +118,42 @@ MaterialPage::getNameFromTagName(const std::string &tag)
 }
 
 void
+MaterialPage::addMapping2D(wxPGProperty *pTexType,type_xml_node *pSelf)
+{//append imageMapping2d.  (type_xml_node *pSelf,wxPGProperty *pTexType)
+    DECLARE_WXCONVERT;
+    type_xml_node   *pMappingNode = pSelf->first_node(constDef::mapping);
+    float uScale=1.0f,vScale=1.0f,uDelta=0.0f,vDelta=0.0f;
+    if(pMappingNode != NULL)
+    {
+        type_xml_attr *pAttr = pMappingNode->first_attribute("uvscale");
+        if(pAttr)
+        {
+            std::vector< float > var = luxrays::Properties::ConvertToFloatVector(pAttr->value());
+            if(var.size() >= 2)
+            {
+                uScale = var[0];
+                vScale = var[1];
+            }
+        }
+
+        pAttr = pMappingNode->first_attribute("uvdelta");
+        if(pAttr)
+        {
+            std::vector< float > var = luxrays::Properties::ConvertToFloatVector(pAttr->value());
+            if(var.size() >= 2)
+            {
+                uDelta = var[0];
+                vDelta = var[1];
+            }
+        }
+    }
+    this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("uScale"),"uscale",uScale));
+    this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("vScale"),"vscale",vScale));
+    this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("uDelta"),"udelta",uDelta));
+    this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("vDelta"),"vdelta",vDelta));
+}
+
+void
 MaterialPage::addTextureContent(wxPGProperty *pTexType,type_xml_node *pSelf,int type)
 {
     DECLARE_WXCONVERT;
@@ -136,12 +174,7 @@ MaterialPage::addTextureContent(wxPGProperty *pTexType,type_xml_node *pSelf,int 
         this->AppendIn(pTexType,pTexValue);
     }else if(type == DocMat::CONST_FLOAT)
     {
-        float   value = 0.5;
-        type_xml_attr   *pValueAttr = pSelf->first_attribute("value");
-        if(pValueAttr)
-        {
-            value = boost::lexical_cast<float>(pValueAttr->value());
-        }
+        float   value = GetAttributeValue(pSelf,"value",0.5f);
         wxFloatProperty *pTexValue = new wxFloatProperty(gmeWXT("值"),"value",value);
         this->AppendIn(pTexType,pTexValue);
     }else if(type == DocMat::IMAGEMAP)
@@ -172,39 +205,110 @@ MaterialPage::addTextureContent(wxPGProperty *pTexType,type_xml_node *pSelf,int 
         }
         this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("伽马"),"gamma",gamma));
 #endif
+        addMapping2D(pTexType,pSelf);
 
-        {//append imageMapping2d.  (type_xml_node *pSelf,wxPGProperty *pTexType)
-            type_xml_node   *pMappingNode = pSelf->first_node(constDef::mapping);
-            float uScale=1.0f,vScale=1.0f,uDelta=0.0f,vDelta=0.0f;
-            if(pMappingNode != NULL)
-            {
-                type_xml_attr *pAttr = pMappingNode->first_attribute("uvscale");
-                if(pAttr)
-                {
-                    std::vector< float > var = luxrays::Properties::ConvertToFloatVector(pAttr->value());
-                    if(var.size() >= 2)
-                    {
-                        uScale = var[0];
-                        vScale = var[1];
-                    }
-                }
+    }else if(type == DocMat::SCALE_TEX)
+    {
+        addTexture(*pTexType,pSelf,"texture1",0);
+        addTexture(*pTexType,pSelf,"texture2",0);
+    }else if(type == DocMat::FRESNEL_APPROX_N)
+    {
+        addTexture(*pTexType,pSelf,constDef::texture,0);
+    }else if(type == DocMat::FRESNEL_APPROX_K)
+    {
+        addTexture(*pTexType,pSelf,constDef::texture,0);
+    }else if(type == DocMat::MIX_TEX)
+    {
+        addTexture(*pTexType,pSelf,constDef::amount,0);
+        addTexture(*pTexType,pSelf,"texture1",0);
+        addTexture(*pTexType,pSelf,"texture2",0);
+    }else if(type == DocMat::ADD_TEX)
+    {
+        addTexture(*pTexType,pSelf,"texture1",0);
+        addTexture(*pTexType,pSelf,"texture2",0);
+    }else if(type == DocMat::CHECKERBOARD2D)
+    {
+        addTexture(*pTexType,pSelf,"texture1",0);
+        addTexture(*pTexType,pSelf,"texture2",0);
+        addMapping2D(pTexType,pSelf);
+    }else if(type == DocMat::CHECKERBOARD3D)
+    {
+        addTexture(*pTexType,pSelf,"texture1",0);
+        addTexture(*pTexType,pSelf,"texture2",0);
+        //addMapping3D(pTexType,pSelf);
+    }else if(type == DocMat::FBM_TEX)
+    {
+        int octaves = GetAttributeValue(pSelf,"octaves",8);
+        float roughness = GetAttributeValue(pSelf,"roughness",0.5f);
+        this->AppendIn(pTexType,new wxIntProperty(gmeWXT("octaves"),"octaves",octaves));
+        this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("roughness"),"roughness",roughness));
+        //addMapping3D(pTexType,pSelf);
+    }else if(type == DocMat::MARBLE)
+    {
+        int octaves = GetAttributeValue(pSelf,"octaves",8);
+        float roughness = GetAttributeValue(pSelf,"roughness",0.5f);
+        float scale = GetAttributeValue(pSelf,"scale",1.0f);
+        float variation = GetAttributeValue(pSelf,"variation",0.2f);
+        this->AppendIn(pTexType,new wxIntProperty(gmeWXT("octaves"),"octaves",octaves));
+        this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("roughness"),"roughness",roughness));
+        this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("scale"),"scale",scale));
+        this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("variation"),"variation",variation));
+        //addMapping3D(pTexType,pSelf);
+    }else if(type == DocMat::DOTS)
+    {
+        addTexture(*pTexType,pSelf,"inside",0);
+        addTexture(*pTexType,pSelf,"outside",0);
+        addMapping2D(pTexType,pSelf);
+    }else if(type == DocMat::BRICK)
+    {
+        addTexture(*pTexType,pSelf,"bricktex",0);
+        addTexture(*pTexType,pSelf,"mortartex",0);
+        addTexture(*pTexType,pSelf,"brickmodtex",0);
 
-                pAttr = pMappingNode->first_attribute("uvdelta");
-                if(pAttr)
-                {
-                    std::vector< float > var = luxrays::Properties::ConvertToFloatVector(pAttr->value());
-                    if(var.size() >= 2)
-                    {
-                        uDelta = var[0];
-                        vDelta = var[1];
-                    }
-                }
-            }
-            this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("uScale"),"uscale",uScale));
-            this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("vScale"),"vscale",vScale));
-            this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("uDelta"),"udelta",uDelta));
-            this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("vDelta"),"vdelta",vDelta));
-        }
+        wxPGChoices soc;
+        soc.Add( gmeWXT("flemish"),slg::FLEMISH);
+        soc.Add( gmeWXT("running"),slg::RUNNING);
+        soc.Add( gmeWXT("english"),slg::ENGLISH);
+        soc.Add( gmeWXT("herringbone"),slg::HERRINGBONE);
+        soc.Add( gmeWXT("basket"),slg::BASKET);
+        soc.Add( gmeWXT("chain link"),slg::KETTING);
+        int brickbond = slg::RUNNING;
+        type_xml_attr *pAttr = pSelf->first_attribute("brickbond");
+        if(pAttr)
+            brickbond = DocMat::brickbondTypeFromName(pAttr->value());
+        this->AppendIn(pTexType,new wxEnumProperty(gmeWXT("brickbond"),"brickbond",soc,brickbond));
+
+        float brickwidth = GetAttributeValue(pSelf,"brickwidth",0.3f);
+        this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("brickwidth"),"brickwidth",brickwidth));
+
+        float brickheight = GetAttributeValue(pSelf,"brickheight",0.1f);
+        this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("brickheight"),"brickheight",brickheight));
+
+        float brickdepth = GetAttributeValue(pSelf,"brickdepth",0.15f);
+        this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("brickdepth"),"brickdepth",brickdepth));
+
+        float mortarsize = GetAttributeValue(pSelf,"mortarsize",0.01f);
+        this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("mortarsize"),"mortarsize",mortarsize));
+
+        float brickrun = GetAttributeValue(pSelf,"brickrun",0.75f);
+        this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("brickrun"),"brickrun",brickrun));
+
+        float brickbevel = GetAttributeValue(pSelf,"brickbevel",0.0f);
+        this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("brickbevel"),"brickbevel",brickbevel));
+        //addMapping3D(pTexType,pSelf);
+    }else if(type == DocMat::WINDY)
+    {
+        //addMapping3D(pTexType,pSelf);
+    }else if(type == DocMat::WRINKLED)
+    {
+        int octaves = GetAttributeValue(pSelf,"octaves",8);
+        float roughness = GetAttributeValue(pSelf,"roughness",0.5f);
+        this->AppendIn(pTexType,new wxIntProperty(gmeWXT("octaves"),"octaves",octaves));
+        this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("roughness"),"roughness",roughness));
+        //addMapping3D(pTexType,pSelf);
+    }else if(type == DocMat::UV_TEX)
+    {
+        addMapping2D(pTexType,pSelf);
     }else{
         BOOST_ASSERT_MSG(false,"not implement!");
     }
@@ -471,13 +575,13 @@ MaterialPage::~MaterialPage()
 
 void MaterialPage::OnPropertySelect( wxPropertyGridEvent& WXUNUSED(event) )
 {
-    std::cerr << "MaterialPage::OnPropertySelect()" << std::endl;
+//    std::cerr << "MaterialPage::OnPropertySelect()" << std::endl;
 }
 
 void MaterialPage::OnPropertyChange( wxPropertyGridEvent& event )
 {
-    wxPGProperty* p = event.GetProperty();
-    std::cerr << "MaterialPage::OnPropertyChange('" << p->GetName().c_str() << "', to value '" << p->GetDisplayedString().c_str() << "')" << std::endl;
+//    wxPGProperty* p = event.GetProperty();
+//    std::cerr << "MaterialPage::OnPropertyChange('" << p->GetName().c_str() << "', to value '" << p->GetDisplayedString().c_str() << "')" << std::endl;
 }
 
 void
@@ -510,18 +614,18 @@ MaterialPage::OnPropertyChanging( wxPropertyGridEvent& event )
         value =  event.GetValue().GetString().c_str();
     }
 
-    std::cerr << "value=" << value << std::endl;
+    std::cerr << "property value change to : " << value << std::endl;
 
     int result = mat.updateProperty(idArray,value,doc,MainFrame::getImageFilepathFunc());
     switch(result)
     {
     case DocMat::UPDATE_DENY:
-        std::cerr << "veto property changed." << std::endl;
+//        std::cerr << "veto property changed." << std::endl;
         if(event.CanVeto())
             event.Veto();
         break;
     case DocMat::UPDATE_ACCEPT:
-        std::cerr << "property changed accepted." << std::endl;
+//        std::cerr << "property changed accepted." << std::endl;
         break;
     case DocMat::UPDATE_REFRESH_MAT:
         {
@@ -549,7 +653,7 @@ MaterialPage::OnPropertyChanging( wxPropertyGridEvent& event )
             }
             this->RefreshProperty(p);
         }
-        std::cerr << "property changed need refresh." << std::endl;
+//        std::cerr << "property changed need refresh." << std::endl;
         break;
     case DocMat::UPDATE_REFRESH_TEX:
         {
@@ -561,13 +665,13 @@ MaterialPage::OnPropertyChanging( wxPropertyGridEvent& event )
             }
             this->RefreshProperty(p);
         }
-        std::cerr << "texture property changed need refresh." << std::endl;
+//        std::cerr << "texture property changed need refresh." << std::endl;
         break;
     default:
         BOOST_ASSERT_MSG(false,"unreachable code");
     }
 
-    std::cerr << "MaterialPage::OnPropertyChanging('" << p->GetName().c_str() << "', to value '" << event.GetValue().GetString().c_str() << "')" << std::endl;
+//    std::cerr << "MaterialPage::OnPropertyChanging('" << p->GetName().c_str() << "', to value '" << event.GetValue().GetString().c_str() << "')" << std::endl;
 }
 
 

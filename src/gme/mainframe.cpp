@@ -25,6 +25,7 @@
 #include "dm/docio.h"
 #include "dm/docobj.h"
 #include "dm/docctl.h"
+#include "dm/docimg.h"
 #include <boost/locale.hpp>
 #include <boost/bind.hpp>
 #include "propgrid.h"
@@ -38,8 +39,9 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_MENU(wxID_OPEN, MainFrame::onMenuFileOpen)
 	EVT_MENU(wxID_SAVE, MainFrame::onMenuFileSave)
 	EVT_UPDATE_UI(wxID_SAVE,MainFrame::onUpdateSaveAndEdit)
-	EVT_MENU(cmd::GID_EXPORT, MainFrame::onMenuFileExport)	
+	EVT_MENU(cmd::GID_EXPORT, MainFrame::onMenuFileExport)
 	EVT_MENU(cmd::GID_IMPORT, MainFrame::onMenuFileImport)
+	EVT_MENU(cmd::GID_SAVE_IMAGE, MainFrame::onMenuFileSaveImage)
 	EVT_UPDATE_UI_RANGE(cmd::GID_EXPORT,cmd::GID_IMPORT,MainFrame::onUpdateSaveAndEdit)
 	EVT_MENU(wxID_EXIT, MainFrame::onMenuFileQuit)
 	EVT_MENU(wxID_DELETE, MainFrame::onMenuEditDelete)
@@ -123,6 +125,7 @@ MainFrame::createMenubar()
         pFileMenu->Append(wxID_OPEN, gmeWXT("打开(&O)"), gmeWXT("打开已有场景"));
         pFileMenu->AppendSeparator();
         pFileMenu->Append(wxID_SAVE, gmeWXT("保存(&S)"), gmeWXT("保存现有场景"));
+        pFileMenu->Append(cmd::GID_SAVE_IMAGE, gmeWXT("保存图片(&S)"), gmeWXT("保存当前渲染结果"));
         pFileMenu->Append(cmd::GID_EXPORT, gmeWXT("导出(&E)"), gmeWXT("导出现有场景"));
         pFileMenu->AppendSeparator();
         pFileMenu->Append(wxID_EXIT, gmeWXT("退出(&X)"), gmeWXT("退出gmeditor"));
@@ -294,6 +297,17 @@ MainFrame::getPaneFromCmdID(int cmdid)
 }
 
 void
+MainFrame::onMenuFileSaveImage(wxCommandEvent &event)
+{
+    SaveImageDialog dialog(this);
+    if(dialog.ShowModal() == wxID_OK)
+	{
+		gme::DocImg img;
+        img.saveImage(dialog.GetPath());
+	}
+}
+
+void
 MainFrame::onMenuFileImport(wxCommandEvent &event)
 {
     ImportDialog    dialog(this);
@@ -349,7 +363,7 @@ MainFrame::onMenuFileExport(wxCommandEvent &event)
 
 void
 MainFrame::onMenuFileSave(wxCommandEvent &event)
-{	
+{
 	gme::DocIO  dio;
 	if(!m_filepath.empty())
 	{
@@ -450,7 +464,7 @@ MainFrame::onUpdateMenuEditDelete(wxUpdateUIEvent& event)
     event.Enable(obj.getSelection().size() > 0);
 }
 
-void 
+void
 MainFrame::onUpdateSaveAndEdit(wxUpdateUIEvent &event)
 {
 	event.Enable(!m_filepath.empty());

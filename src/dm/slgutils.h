@@ -78,14 +78,12 @@ public:
         bool                    idIsMat;
         bool                    bGenNode;   //指示是否为parent添加了子节点。
         bool                    bVeto;      //指示是否已经放弃了本次修改。
-        bool                    bNeedRefresh;   //hacker:指示是否需要refresh(stop/start).
         UpdateContext(SlgUtil::Editor &e,type_xml_node &p,const std::string &v,const std::vector<std::string> &k,boost::function<bool (std::string &)> &f) :
                 editor(e), value(v) , keyPath(k),getImageFilepath(f)
         {
             bGenNode  = false;
             idIsMat   = false;
             bVeto = false;
-            bNeedRefresh = false;
         }
     };
 

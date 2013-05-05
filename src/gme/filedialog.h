@@ -53,9 +53,21 @@ public:
     OpenImageDialog(wxWindow *parent)
     {
         DECLARE_WXCONVERT;
-	    pDialog = new wxFileDialog(parent, gmeWXT("选择打开文件"), _(""), _(""), 
-						   gmeWXT("所有文件|*.*"), 
+	    pDialog = new wxFileDialog(parent, gmeWXT("选择打开文件"), _(""), _(""),
+						   gmeWXT("所有文件|*.*"),
 						   wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    }
+};
+
+class SaveImageDialog : public FileDialogBase
+{
+public:
+    SaveImageDialog(wxWindow *parent)
+    {
+        DECLARE_WXCONVERT;
+	    pDialog = new wxFileDialog(parent, gmeWXT("图片保存为"), _(""), _(""),
+						       gmeWXT("所有文件|*.*"),
+						       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     }
 };
 
@@ -66,8 +78,8 @@ public:
     OpenSceneDialog(wxWindow *parent)
     {
         DECLARE_WXCONVERT;
-	    pDialog = new wxFileDialog(parent, gmeWXT("选择打开文件"), _(""), _(""), 
-						   gmeWXT("所有文件|*.*|CFG文件(*.cfg)|*.cfg|SPS文件(*.sps)|*.sps|CTM文件(*.ctm)|*.ctm"), 
+	    pDialog = new wxFileDialog(parent, gmeWXT("选择打开文件"), _(""), _(""),
+						   gmeWXT("所有文件|*.*|CFG文件(*.cfg)|*.cfg|SPS文件(*.sps)|*.sps|CTM文件(*.ctm)|*.ctm"),
 						   wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     }
 };
@@ -90,7 +102,7 @@ public:
     ImportDialog(wxWindow *parent)
     {
 	    DECLARE_WXCONVERT;
-	    pDialog = new wxFileDialog(parent, gmeWXT("选择打开文件"), _(""), _(""), 
+	    pDialog = new wxFileDialog(parent, gmeWXT("选择打开文件"), _(""), _(""),
 						       gmeWXT("所有文件|*.*|模型文件(*.ply)|*.ply"),
 						       wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     }

@@ -57,6 +57,9 @@ public: //texture.
     static  const   int  TEX_IES;
     static  std::string  texGetTypeNameFromType(int type);
     static  int   texGetTypeFromTypeName(const std::string &name);
+
+    ///@brief for BrickTexture.
+    static  int   brickbondTypeFromName(const std::string &strval);
 public: //material.
     static  const   int  INVALID_MATERIAL = -1;
     static  const   int  MATTE;

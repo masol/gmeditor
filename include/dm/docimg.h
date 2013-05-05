@@ -16,8 +16,8 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_DM_DOCIO_H
-#define  GME_DM_DOCIO_H
+#ifndef  GME_DM_DOCIMG_H
+#define  GME_DM_DOCIMG_H
 
 
 #include "dm/doc.h"
@@ -87,9 +87,12 @@ public:
     const float*    getPixels(void);
     ///@brief for software render.
     bool    getData(ImageDataBase *pdata);
+
+    ///@brief save the image result.
+    bool    saveImage(const std::string &fullpath);
 };
 
 }
 
-#endif //GME_DM_DOCIO_H
+#endif //GME_DM_DOCIMG_H
 

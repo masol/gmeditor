@@ -103,6 +103,34 @@ DocMat::texGetTypeNameFromType(int type)
 }
 
 int
+DocMat::brickbondTypeFromName(const std::string &strval)
+{
+    if(strval == "flemish")
+    {
+        return slg::FLEMISH;
+    }else if(strval == "running")
+    {
+        return slg::RUNNING;
+    }else if(strval == "english")
+    {
+        return slg::ENGLISH;
+    }else if(strval == "basket")
+    {
+        return slg::BASKET;
+    }else if(strval == "herringbone")
+    {
+        return slg::HERRINGBONE;
+    }else if(strval == "chain link")
+    {
+        return slg::KETTING;
+    }else{
+        BOOST_ASSERT_MSG(false,"invalid brickbond");
+    }
+    return slg::RUNNING;
+}
+
+
+int
 DocMat::texGetTypeFromTypeName(const std::string &name)
 {
     if(name == "constfloat1")
@@ -296,7 +324,7 @@ DocMat::updateProperty(const std::vector<std::string> &keyPath,const std::string
                 if(matManager.updateMaterial(context,pMat,1) && !context.bVeto)
                 {
                     matManager.onMaterialRemoved(pMat);
-                    std::cerr << "context.props = " << context.props.ToString() << std::endl;
+//                    std::cerr << "context.props = " << context.props.ToString() << std::endl;
 
                     //in any case,we need update root material.
                     editor.scene()->UpdateMaterial(matId,context.props);

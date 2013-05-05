@@ -19,7 +19,6 @@
 #include "config.h"
 #include "dm/doc.h"
 #include "slgtexture.h"
-#include "dm/docmat.h"
 #include "docprivate.h"
 #include "slg/slg.h"
 #include "luxrays/luxrays.h"
@@ -118,10 +117,8 @@ ExtraTextureManager::updateTextureInfo(const slg::Texture *pTex,SlgTexture2Name 
         }
         break;
     case slg::FBM_TEX:
-        BOOST_ASSERT_MSG(false,"NOT IMPLEMENT CODE!");
-        break;
     case slg::MARBLE:
-        BOOST_ASSERT_MSG(false,"NOT IMPLEMENT CODE!");
+        //has no child.
         break;
     case slg::DOTS:
         {
@@ -139,13 +136,9 @@ ExtraTextureManager::updateTextureInfo(const slg::Texture *pTex,SlgTexture2Name 
         }
         break;
     case slg::WINDY:
-        BOOST_ASSERT_MSG(false,"NOT IMPLEMENT CODE!");
-        break;
     case slg::WRINKLED:
-        BOOST_ASSERT_MSG(false,"NOT IMPLEMENT CODE!");
-        break;
     case slg::UV_TEX:
-        BOOST_ASSERT_MSG(false,"NOT IMPLEMENT CODE!");
+        //has no child
         break;
     case slg::BAND_TEX:
         {
@@ -228,8 +221,8 @@ ExtraTextureManager::onTextureRemoved(const slg::Texture *pTex)
         }
         break;
     case slg::FBM_TEX:
-        break;
     case slg::MARBLE:
+        //has no child.
         break;
     case slg::DOTS:
         {
@@ -247,10 +240,9 @@ ExtraTextureManager::onTextureRemoved(const slg::Texture *pTex)
         }
         break;
     case slg::WINDY:
-        break;
     case slg::WRINKLED:
-        break;
     case slg::UV_TEX:
+        //no child
         break;
     case slg::BAND_TEX:
         {
@@ -478,6 +470,12 @@ ExtraTextureManager::getBondnameFromType(slg::MasonryBond type)
 }
 
 void
+ExtraTextureManager::dumpTextureMapping3D(const slg::TextureMapping3D *pMapping,luxrays::Properties &props,const std::string &prefix)
+{
+    props.Load(pMapping->ToProperties(prefix));
+}
+
+void
 ExtraTextureManager::dumpTextureMapping2D(const slg::TextureMapping2D *pMapping,luxrays::Properties &props,const std::string &prefix)
 {
     if(!pMapping)
@@ -509,6 +507,29 @@ ExtraTextureManager::dumpTextureMapping2D(const slg::TextureMapping2D *pMapping,
 }
 
 std::string
+ExtraTextureManager::dumpImagemap(luxrays::Properties &prop,const slg::ImageMapTexture* pImageTex)
+{
+    const std::string &id = this->getTextureId(pImageTex);
+    const std::string *pfullpath = this->queryPath(id);
+    BOOST_ASSERT_MSG(!id.empty() && pfullpath,"image texture without id!");
+
+    std::string     prefix = "scene.textures.";
+    prefix = prefix + id + '.';
+    prop.SetString(prefix + constDef::type,"imagemap");
+    prop.SetString(prefix + constDef::file,*pfullpath);
+
+    if(!ImageMapTexture_isGammaDefault(pImageTex->GetImageMap()->GetGamma()))
+        prop.SetString(prefix + "gamma",boost::lexical_cast<std::string>(pImageTex->GetImageMap()->GetGamma()));
+
+    if(!ImageMapTexture_isGainDefault(pImageTex->GetGain()))
+        prop.SetString(prefix + "gain",boost::lexical_cast<std::string>(pImageTex->GetGain()));
+
+    //update mapping2d.
+    dumpTextureMapping2D(pImageTex->GetTextureMapping(),prop,prefix + ".mapping.");
+    return id;
+}
+
+std::string
 ExtraTextureManager::dump(luxrays::Properties &prop,const slg::Texture* pTex)
 {
     switch(pTex->GetType())
@@ -518,108 +539,172 @@ ExtraTextureManager::dump(luxrays::Properties &prop,const slg::Texture* pTex)
             luxrays::Spectrum color = dynamic_cast<const slg::ConstFloat3Texture*>(pTex)->GetColor();
             return boost::str(boost::format("%f %f %f") % color.r % color.g % color.b );
         }
-        break;
     case slg::CONST_FLOAT:
         {
             float value = dynamic_cast<const slg::ConstFloatTexture*>(pTex)->GetValue();
             return boost::lexical_cast<std::string>( value );
         }
-        break;
     case slg::IMAGEMAP:
         {
             ExtraTextureManager &texManager = Doc::instance().pDocData->texManager;
-            const std::string &id = texManager.getTextureId(pTex);
-            const std::string *pfullpath = texManager.queryPath(id);
-            BOOST_ASSERT_MSG(!id.empty() && pfullpath,"image texture without id!");
-
-            std::string     prefix = "scene.textures.";
-            prefix = prefix + id + '.';
-            prop.SetString(prefix + constDef::type,"imagemap");
-            prop.SetString(prefix + constDef::file,*pfullpath);
-
-            const slg::ImageMapTexture* pImageTex = dynamic_cast<const slg::ImageMapTexture*>(pTex);
-
-            if(!ImageMapTexture_isGammaDefault(pImageTex->GetImageMap()->GetGamma()))
-                prop.SetString(prefix + "gamma",boost::lexical_cast<std::string>(pImageTex->GetImageMap()->GetGamma()));
-
-            if(!ImageMapTexture_isGainDefault(pImageTex->GetGain()))
-                prop.SetString(prefix + "gain",boost::lexical_cast<std::string>(pImageTex->GetGain()));
-
-            //update mapping2d.
-            dumpTextureMapping2D(pImageTex->GetTextureMapping(),prop,prefix + ".mapping.");
-            return id;
+            return texManager.dumpImagemap(prop,dynamic_cast<const slg::ImageMapTexture*>(pTex));
         }
-        break;
     case slg::SCALE_TEX:
         {
-            BOOST_ASSERT_MSG(false,"not implement");
+            std::string id = Doc::instance().pDocData->texManager.dumpCompTex(prop,pTex);
+            const slg::ScaleTexture *pRealTex = dynamic_cast<const slg::ScaleTexture*>(pTex);
+
+            prop.SetString("scene.textures." + id + ".texture1",ExtraTextureManager::dump(prop,pRealTex->GetTexture1()));
+            prop.SetString("scene.textures." + id + ".texture2",ExtraTextureManager::dump(prop,pRealTex->GetTexture2()));
+            return id;
         }
-        break;
     case slg::FRESNEL_APPROX_N:
         {
-            BOOST_ASSERT_MSG(false,"not implement");
+            std::string id = Doc::instance().pDocData->texManager.dumpCompTex(prop,pTex);
+            const slg::FresnelApproxNTexture *pRealTex = dynamic_cast<const slg::FresnelApproxNTexture*>(pTex);
+
+            prop.SetString("scene.textures." + id + ".texture",ExtraTextureManager::dump(prop,pRealTex->GetTexture()));
+            return id;
         }
-        break;
     case slg::FRESNEL_APPROX_K:
         {
-            BOOST_ASSERT_MSG(false,"not implement");
+            std::string id = Doc::instance().pDocData->texManager.dumpCompTex(prop,pTex);
+            const slg::FresnelApproxKTexture *pRealTex = dynamic_cast<const slg::FresnelApproxKTexture*>(pTex);
+
+            prop.SetString("scene.textures." + id + ".texture",ExtraTextureManager::dump(prop,pRealTex->GetTexture()));
+            return id;
         }
-        break;
     case slg::MIX_TEX:
         {
-            BOOST_ASSERT_MSG(false,"not implement");
+            std::string id = Doc::instance().pDocData->texManager.dumpCompTex(prop,pTex);
+            const slg::MixTexture *pRealTex = dynamic_cast<const slg::MixTexture*>(pTex);
+
+            prop.SetString("scene.textures." + id + ".amount",ExtraTextureManager::dump(prop,pRealTex->GetAmountTexture()));
+            prop.SetString("scene.textures." + id + ".texture1",ExtraTextureManager::dump(prop,pRealTex->GetTexture1()));
+            prop.SetString("scene.textures." + id + ".texture2",ExtraTextureManager::dump(prop,pRealTex->GetTexture2()));
+            return id;
         }
-        break;
     case slg::ADD_TEX:
         {
-            BOOST_ASSERT_MSG(false,"not implement");
+            std::string id = Doc::instance().pDocData->texManager.dumpCompTex(prop,pTex);
+            const slg::AddTexture *pRealTex = dynamic_cast<const slg::AddTexture*>(pTex);
+
+            prop.SetString("scene.textures." + id + ".texture1",ExtraTextureManager::dump(prop,pRealTex->GetTexture1()));
+            prop.SetString("scene.textures." + id + ".texture2",ExtraTextureManager::dump(prop,pRealTex->GetTexture2()));
+            return id;
         }
-        break;
     case slg::CHECKERBOARD2D:
         {
-            BOOST_ASSERT_MSG(false,"not implement");
+            std::string id = Doc::instance().pDocData->texManager.dumpCompTex(prop,pTex);
+            const slg::CheckerBoard2DTexture *pRealTex = dynamic_cast<const slg::CheckerBoard2DTexture*>(pTex);
+
+            prop.SetString("scene.textures." + id + ".texture1",ExtraTextureManager::dump(prop,pRealTex->GetTexture1()));
+            prop.SetString("scene.textures." + id + ".texture2",ExtraTextureManager::dump(prop,pRealTex->GetTexture2()));
+
+            //update mapping2d.
+            dumpTextureMapping2D(pRealTex->GetTextureMapping(),prop,"scene.textures." + id + ".mapping.");
+            return id;
         }
-        break;
     case slg::CHECKERBOARD3D:
         {
-            BOOST_ASSERT_MSG(false,"not implement");
+            std::string id = Doc::instance().pDocData->texManager.dumpCompTex(prop,pTex);
+            const slg::CheckerBoard3DTexture *pRealTex = dynamic_cast<const slg::CheckerBoard3DTexture*>(pTex);
+
+            prop.SetString("scene.textures." + id + ".texture1",ExtraTextureManager::dump(prop,pRealTex->GetTexture1()));
+            prop.SetString("scene.textures." + id + ".texture2",ExtraTextureManager::dump(prop,pRealTex->GetTexture2()));
+
+            //update mapping3d.
+            dumpTextureMapping3D(pRealTex->GetTextureMapping(),prop,"scene.textures." + id + ".mapping");
+            return id;
         }
-        break;
     case slg::FBM_TEX:
         {
-            BOOST_ASSERT_MSG(false,"not implement");
+            std::string id = Doc::instance().pDocData->texManager.dumpCompTex(prop,pTex);
+            const slg::FBMTexture *pRealTex = dynamic_cast<const slg::FBMTexture*>(pTex);
+
+            prop.SetString("scene.textures." + id + ".octaves",boost::lexical_cast<std::string>( pRealTex->GetOctaves() ));
+            prop.SetString("scene.textures." + id + ".roughness",boost::lexical_cast<std::string>( pRealTex->GetOmega() ));
+
+            //update mapping3d.
+            dumpTextureMapping3D(pRealTex->GetTextureMapping(),prop,"scene.textures." + id + ".mapping");
+            return id;
         }
-        break;
     case slg::MARBLE:
         {
-            BOOST_ASSERT_MSG(false,"not implement");
+            std::string id = Doc::instance().pDocData->texManager.dumpCompTex(prop,pTex);
+            const slg::MarbleTexture *pRealTex = dynamic_cast<const slg::MarbleTexture*>(pTex);
+
+            prop.SetString("scene.textures." + id + ".octaves",boost::lexical_cast<std::string>( pRealTex->GetOctaves() ));
+            prop.SetString("scene.textures." + id + ".roughness",boost::lexical_cast<std::string>( pRealTex->GetOmega() ));
+            prop.SetString("scene.textures." + id + ".scale",boost::lexical_cast<std::string>( pRealTex->GetScale() ));
+            prop.SetString("scene.textures." + id + ".variation",boost::lexical_cast<std::string>( pRealTex->GetVariation() ));
+
+            //update mapping3d.
+            dumpTextureMapping3D(pRealTex->GetTextureMapping(),prop,"scene.textures." + id + ".mapping");
+            return id;
         }
-        break;
     case slg::DOTS:
         {
-            BOOST_ASSERT_MSG(false,"not implement");
+            std::string id = Doc::instance().pDocData->texManager.dumpCompTex(prop,pTex);
+            const slg::DotsTexture *pRealTex = dynamic_cast<const slg::DotsTexture*>(pTex);
+
+            prop.SetString("scene.textures." + id + ".inside",ExtraTextureManager::dump(prop,pRealTex->GetInsideTex()));
+            prop.SetString("scene.textures." + id + ".outside",ExtraTextureManager::dump(prop,pRealTex->GetOutsideTex()));
+
+            //update mapping2d.
+            dumpTextureMapping2D(pRealTex->GetTextureMapping(),prop,"scene.textures." + id + ".mapping.");
+            return id;
         }
-        break;
     case slg::BRICK:
         {
-            BOOST_ASSERT_MSG(false,"not implement");
+            std::string id = Doc::instance().pDocData->texManager.dumpCompTex(prop,pTex);
+            const slg::BrickTexture *pRealTex = dynamic_cast<const slg::BrickTexture*>(pTex);
+
+            prop.SetString("scene.textures." + id + ".bricktex",ExtraTextureManager::dump(prop,pRealTex->GetTexture1()));
+            prop.SetString("scene.textures." + id + ".mortartex",ExtraTextureManager::dump(prop,pRealTex->GetTexture2()));
+            prop.SetString("scene.textures." + id + ".brickmodtex",ExtraTextureManager::dump(prop,pRealTex->GetTexture3()));
+
+            prop.SetString("scene.textures." + id + ".brickbond",getBondnameFromType(pRealTex->GetBond()));
+            prop.SetString("scene.textures." + id + ".brickwidth",boost::lexical_cast<std::string>(pRealTex->GetBrickWidth()));
+            prop.SetString("scene.textures." + id + ".brickheight",boost::lexical_cast<std::string>(pRealTex->GetBrickHeight()));
+            prop.SetString("scene.textures." + id + ".brickdepth",boost::lexical_cast<std::string>(pRealTex->GetBrickDepth()));
+            prop.SetString("scene.textures." + id + ".mortarsize",boost::lexical_cast<std::string>(pRealTex->GetMortarSize()));
+            prop.SetString("scene.textures." + id + ".brickrun",boost::lexical_cast<std::string>(pRealTex->GetRun()));
+            prop.SetString("scene.textures." + id + ".brickbevel",boost::lexical_cast<std::string>(pRealTex->GetBevelWidth() / pRealTex->GetBrickWidth()));
+
+            //update mapping3d.
+            dumpTextureMapping3D(pRealTex->GetTextureMapping(),prop,"scene.textures." + id + ".mapping");
+            return id;
         }
         break;
     case slg::WINDY:
         {
-            BOOST_ASSERT_MSG(false,"not implement");
+            std::string id = Doc::instance().pDocData->texManager.dumpCompTex(prop,pTex);
+            const slg::WindyTexture *pRealTex = dynamic_cast<const slg::WindyTexture*>(pTex);
+            //update mapping3d.
+            dumpTextureMapping3D(pRealTex->GetTextureMapping(),prop,"scene.textures." + id + ".mapping");
+            return id;
         }
-        break;
     case slg::WRINKLED:
-        {
-            BOOST_ASSERT_MSG(false,"not implement");
-        }
-        break;
+    {
+        std::string id = Doc::instance().pDocData->texManager.dumpCompTex(prop,pTex);
+        const slg::WrinkledTexture *pRealTex = dynamic_cast<const slg::WrinkledTexture*>(pTex);
+
+        prop.SetString("scene.textures." + id + ".octaves",boost::lexical_cast<std::string>( pRealTex->GetOctaves() ));
+        prop.SetString("scene.textures." + id + ".roughness",boost::lexical_cast<std::string>( pRealTex->GetOmega() ));
+
+        //update mapping3d.
+        dumpTextureMapping3D(pRealTex->GetTextureMapping(),prop,"scene.textures." + id + ".mapping");
+        return id;
+    }
     case slg::UV_TEX:
-        {
-            BOOST_ASSERT_MSG(false,"not implement");
-        }
-        break;
+    {
+        std::string id = Doc::instance().pDocData->texManager.dumpCompTex(prop,pTex);
+        const slg::UVTexture *pRealTex = dynamic_cast<const slg::UVTexture*>(pTex);
+        //update mapping2d.
+        dumpTextureMapping2D(pRealTex->GetTextureMapping(),prop,"scene.textures." + id + ".mapping.");
+        return id;
+    }
     case slg::BAND_TEX:
         {
             BOOST_ASSERT_MSG(false,"not implement");
@@ -1346,6 +1431,7 @@ ExtraTextureManager::createTexture(ImportContext &ctx,type_xml_node &self)
 //                    ss << "scene.textures." << id << ".type = band" << std::endl;
 //                    ss << "scene.textures." << id << ".amount = " << createTexture(ctx,*amount) << std::endl;
 //                }
+                BOOST_ASSERT_MSG(false,"NOT IMPLEMENT");
             }
             break;
         }
@@ -1378,7 +1464,6 @@ ExtraTextureManager::buildDefaultTexture(SlgUtil::UpdateContext &ctx,const slg::
     {
     case slg::CONST_FLOAT3:
         return "1.0 1.0 1.0";
-        break;
     case slg::CONST_FLOAT:
         return "1.0";
     case slg::IMAGEMAP:
@@ -1409,49 +1494,28 @@ ExtraTextureManager::buildDefaultTexture(SlgUtil::UpdateContext &ctx,const slg::
                 return "";
             }
         }
-        break;
     case slg::SCALE_TEX:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
     case slg::FRESNEL_APPROX_N:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
     case slg::FRESNEL_APPROX_K:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
     case slg::MIX_TEX:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
     case slg::ADD_TEX:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
     case slg::CHECKERBOARD2D:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
     case slg::CHECKERBOARD3D:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
     case slg::FBM_TEX:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
     case slg::MARBLE:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
     case slg::DOTS:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
     case slg::BRICK:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
     case slg::WINDY:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
     case slg::WRINKLED:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
     case slg::UV_TEX:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
+        {
+            std::string     id = string::uuid_to_string(boost::uuids::random_generator()());
+            std::stringstream   ss;
+            ss << "scene.textures." << id << ".type = " << DocMat::texGetTypeNameFromType(type) << std::endl;
+            ctx.editor.scene()->DefineTextures(ss.str());
+            m_tex2id[ctx.editor.scene()->texDefs.GetTexture(id)] = id;
+            return id;
+        }
     case slg::BAND_TEX:
         BOOST_ASSERT_MSG(false,"not implement");
         break;
@@ -1479,7 +1543,7 @@ ExtraTextureManager::getTextureFromKeypath(const slg::Texture *pTex,const std::v
 {
     if(curIdx == keyPath.size())
         return pTex;
-//    const std::string &curKey = keyPath[curIdx];
+    const std::string &curKey = keyPath[curIdx];
     switch(pTex->GetType())
     {
     case slg::CONST_FLOAT3:
@@ -1487,47 +1551,109 @@ ExtraTextureManager::getTextureFromKeypath(const slg::Texture *pTex,const std::v
     case slg::IMAGEMAP:
         return pTex;
     case slg::SCALE_TEX:
-        BOOST_ASSERT_MSG(false,"not implement");
+        if(curKey == "texture1")
+        {
+            return getTextureFromKeypath(dynamic_cast<const slg::ScaleTexture*>(pTex)->GetTexture1(),keyPath,curIdx+1);
+        }else if(curKey == "texture2")
+        {
+            return getTextureFromKeypath(dynamic_cast<const slg::ScaleTexture*>(pTex)->GetTexture2(),keyPath,curIdx+1);
+        }else{
+            BOOST_ASSERT_MSG(false,"unreachable code");
+        }
         break;
     case slg::FRESNEL_APPROX_N:
-        BOOST_ASSERT_MSG(false,"not implement");
+        if(curKey == constDef::texture)
+        {
+            return getTextureFromKeypath(dynamic_cast<const slg::FresnelApproxNTexture*>(pTex)->GetTexture(),keyPath,curIdx+1);
+        }else{
+            BOOST_ASSERT_MSG(false,"unreachable code");
+        }
         break;
     case slg::FRESNEL_APPROX_K:
-        BOOST_ASSERT_MSG(false,"not implement");
+        if(curKey == constDef::texture)
+        {
+            return getTextureFromKeypath(dynamic_cast<const slg::FresnelApproxKTexture*>(pTex)->GetTexture(),keyPath,curIdx+1);
+        }else{
+            BOOST_ASSERT_MSG(false,"unreachable code");
+        }
         break;
     case slg::MIX_TEX:
-        BOOST_ASSERT_MSG(false,"not implement");
+        if(curKey == constDef::amount)
+        {
+            return getTextureFromKeypath(dynamic_cast<const slg::MixTexture*>(pTex)->GetAmountTexture(),keyPath,curIdx+1);
+        }else if(curKey == "texture1")
+        {
+            return getTextureFromKeypath(dynamic_cast<const slg::MixTexture*>(pTex)->GetTexture1(),keyPath,curIdx+1);
+        }else if(curKey == "texture2")
+        {
+            return getTextureFromKeypath(dynamic_cast<const slg::MixTexture*>(pTex)->GetTexture2(),keyPath,curIdx+1);
+        }else{
+            BOOST_ASSERT_MSG(false,"unreachable code");
+        }
         break;
     case slg::ADD_TEX:
-        BOOST_ASSERT_MSG(false,"not implement");
+        if(curKey == "texture1")
+        {
+            return getTextureFromKeypath(dynamic_cast<const slg::AddTexture*>(pTex)->GetTexture1(),keyPath,curIdx+1);
+        }else if(curKey == "texture2")
+        {
+            return getTextureFromKeypath(dynamic_cast<const slg::AddTexture*>(pTex)->GetTexture2(),keyPath,curIdx+1);
+        }else{
+            BOOST_ASSERT_MSG(false,"unreachable code");
+        }
         break;
     case slg::CHECKERBOARD2D:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
+        if(curKey == "texture1")
+        {
+            return getTextureFromKeypath(dynamic_cast<const slg::CheckerBoard2DTexture*>(pTex)->GetTexture1(),keyPath,curIdx+1);
+        }else if(curKey == "texture2")
+        {
+            return getTextureFromKeypath(dynamic_cast<const slg::CheckerBoard2DTexture*>(pTex)->GetTexture2(),keyPath,curIdx+1);
+        }
+        //for mapping2d.
+        return pTex;
     case slg::CHECKERBOARD3D:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
+        if(curKey == "texture1")
+        {
+            return getTextureFromKeypath(dynamic_cast<const slg::CheckerBoard3DTexture*>(pTex)->GetTexture1(),keyPath,curIdx+1);
+        }else if(curKey == "texture2")
+        {
+            return getTextureFromKeypath(dynamic_cast<const slg::CheckerBoard3DTexture*>(pTex)->GetTexture2(),keyPath,curIdx+1);
+        }
+        //for mapping3d.
+        return pTex;
     case slg::FBM_TEX:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
     case slg::MARBLE:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
+        //not a compose.
+        return pTex;
     case slg::DOTS:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
+        if(curKey == "inside")
+        {
+            return getTextureFromKeypath(dynamic_cast<const slg::DotsTexture*>(pTex)->GetInsideTex(),keyPath,curIdx+1);
+        }else if(curKey == "outside")
+        {
+            return getTextureFromKeypath(dynamic_cast<const slg::DotsTexture*>(pTex)->GetOutsideTex(),keyPath,curIdx+1);
+        }
+        //for mapping2d.
+        return pTex;
     case slg::BRICK:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
+        if(curKey == "bricktex")
+        {
+            return getTextureFromKeypath(dynamic_cast<const slg::BrickTexture*>(pTex)->GetTexture1(),keyPath,curIdx+1);
+        }else if(curKey == "mortartex")
+        {
+            return getTextureFromKeypath(dynamic_cast<const slg::BrickTexture*>(pTex)->GetTexture2(),keyPath,curIdx+1);
+        }else if(curKey == "brickmodtex")
+        {
+            return getTextureFromKeypath(dynamic_cast<const slg::BrickTexture*>(pTex)->GetTexture3(),keyPath,curIdx+1);
+        }
+        //for mapping3d.
+        return pTex;
     case slg::WINDY:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
     case slg::WRINKLED:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
     case slg::UV_TEX:
-        BOOST_ASSERT_MSG(false,"not implement");
-        break;
+        //for mapping, no child
+        return pTex;
     case slg::BAND_TEX:
         BOOST_ASSERT_MSG(false,"not implement");
         break;
@@ -1561,6 +1687,61 @@ ExtraTextureManager::checkTextureMapping2DUpdate(SlgUtil::UpdateContext &ctx,lux
     return bMatch;
 }
 
+struct  updateCompTexture
+{
+    ExtraTextureManager     &texManager;
+    const std::string       &oldId;
+    SlgUtil::UpdateContext  &context;
+    luxrays::Properties     newProps;
+    std::string             prefix;
+    std::string             newId;
+    updateCompTexture(ExtraTextureManager &tm,const slg::Texture *pTex,SlgUtil::UpdateContext  &ctx) : texManager(tm),oldId(tm.getTextureId(pTex)),context(ctx)
+    {
+        BOOST_ASSERT_MSG(!oldId.empty(),"invalid scale texture!");
+        prefix = "scene.textures.";
+        newId = SlgUtil::propReplaceNewId(context.props,newProps,oldId,prefix);
+    }
+
+    inline  bool    checkTextureMapping2DUpdate(const std::string &curKey,const slg::TextureMapping2D *pMapping)
+    {
+        return texManager.checkTextureMapping2DUpdate(context,newProps,curKey,prefix + newId + '.' + constDef::mapping + '.',pMapping);
+    }
+
+    inline  bool    checkUpdateField(const std::string &curKey,const std::string &subString)
+    {
+        if(curKey == subString)
+        {
+            newProps.SetString(prefix + newId + '.' + subString ,context.value);
+            return true;
+        }
+        return false;
+    }
+
+    inline  bool    checkUpdateChild(const std::string &curKey,const std::string &subString,const slg::Texture *pChildTex,size_t nextIdx)
+    {
+        if(curKey == subString)
+        {
+            std::string value = texManager.updateTexture(context,pChildTex,nextIdx);
+            newProps.SetString(prefix + newId + '.' + subString ,value);
+            return true;
+        }
+        return false;
+    }
+
+    inline std::string     getResult(void)
+    {
+        if(!context.bVeto)
+        {//如果用户没有终止。定义并更新贴图。
+            context.editor.scene()->DefineTextures(newProps);
+            texManager.m_tex2id[context.editor.scene()->texDefs.GetTexture(newId)] = newId;
+            ///@fixme: slg的递归处理有bug,需要强制刷新，这在多GPU显卡环境下是噩梦....
+            context.editor.needRefresh(true);
+            return newId;
+        }
+        return "";
+    }
+};
+
 std::string
 ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Texture *pTex,size_t curIdx)
 {
@@ -1568,9 +1749,11 @@ ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Textur
     {//最后一级。这里就必然是material type.
         int type = boost::lexical_cast<int>(ctx.value);
 
-        std::cerr << "boost::lexical_cast<int>(ctx.value)=" << type << std::endl;
+//        std::cerr << "boost::lexical_cast<int>(ctx.value)=" << type << std::endl;
 
         ctx.updatedId = buildDefaultTexture(ctx,pTex,type);
+        ///@fixme: 修改slg代码以禁止强制刷新。
+        ctx.editor.needRefresh(true);
         ctx.idIsMat = false;
         ctx.bGenNode = true;
         return ctx.updatedId;
@@ -1623,52 +1806,242 @@ ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Textur
                 m_tex2id[ctx.editor.scene()->texDefs.GetTexture(newId)] = newId;
                 this->addPath(newId,m_slgname2filepath_map[oldId]);
                 m_slgname2filepath_map.erase(oldId);
-//                ctx.editor.addAction(slg::IMAGEMAPS_EDIT);
                 return newId;
             }
             break;
         case slg::SCALE_TEX:
-            BOOST_ASSERT_MSG(false,"not implement");
-            break;
+            {
+                const slg::ScaleTexture *pRealTex = dynamic_cast<const slg::ScaleTexture*>(pTex);
+
+                updateCompTexture   uct(*this,pTex,ctx);
+
+                if(uct.checkUpdateChild(curKey,"texture1",pRealTex->GetTexture1(),curIdx+1))
+                {
+                }else if(uct.checkUpdateChild(curKey,"texture2",pRealTex->GetTexture2(),curIdx+1))
+                {
+                }else{
+                    BOOST_ASSERT_MSG(false,"unreachable code.");
+                }
+
+                return uct.getResult();
+            }
         case slg::FRESNEL_APPROX_N:
-            BOOST_ASSERT_MSG(false,"not implement");
+            {
+                const slg::FresnelApproxNTexture *pRealTex = dynamic_cast<const slg::FresnelApproxNTexture*>(pTex);
+
+                updateCompTexture   uct(*this,pTex,ctx);
+
+                if(uct.checkUpdateChild(curKey,constDef::texture,pRealTex->GetTexture(),curIdx+1))
+                {
+                }else{
+                    BOOST_ASSERT_MSG(false,"unreachable code.");
+                }
+
+                return uct.getResult();
+            }
             break;
         case slg::FRESNEL_APPROX_K:
-            BOOST_ASSERT_MSG(false,"not implement");
-            break;
+            {
+                const slg::FresnelApproxKTexture *pRealTex = dynamic_cast<const slg::FresnelApproxKTexture*>(pTex);
+
+                updateCompTexture   uct(*this,pTex,ctx);
+
+                if(uct.checkUpdateChild(curKey,constDef::texture,pRealTex->GetTexture(),curIdx+1))
+                {
+                }else{
+                    BOOST_ASSERT_MSG(false,"unreachable code.");
+                }
+
+                return uct.getResult();
+            }
         case slg::MIX_TEX:
-            BOOST_ASSERT_MSG(false,"not implement");
-            break;
+            {
+                const slg::MixTexture *pRealTex = dynamic_cast<const slg::MixTexture*>(pTex);
+
+                updateCompTexture   uct(*this,pTex,ctx);
+
+                if(uct.checkUpdateChild(curKey,constDef::amount,pRealTex->GetAmountTexture(),curIdx+1))
+                {
+                }else if(uct.checkUpdateChild(curKey,"texture1",pRealTex->GetTexture1(),curIdx+1))
+                {
+                }else if(uct.checkUpdateChild(curKey,"texture2",pRealTex->GetTexture2(),curIdx+1))
+                {
+                }else{
+                    BOOST_ASSERT_MSG(false,"unreachable code.");
+                }
+                return uct.getResult();
+            }
         case slg::ADD_TEX:
-            BOOST_ASSERT_MSG(false,"not implement");
-            break;
+            {
+                const slg::AddTexture *pRealTex = dynamic_cast<const slg::AddTexture*>(pTex);
+
+                updateCompTexture   uct(*this,pTex,ctx);
+
+                if(uct.checkUpdateChild(curKey,"texture1",pRealTex->GetTexture1(),curIdx+1))
+                {
+                }else if(uct.checkUpdateChild(curKey,"texture2",pRealTex->GetTexture2(),curIdx+1))
+                {
+                }else{
+                    BOOST_ASSERT_MSG(false,"unreachable code.");
+                }
+                return uct.getResult();
+            }
         case slg::CHECKERBOARD2D:
-            BOOST_ASSERT_MSG(false,"not implement");
-            break;
+            {
+                const slg::CheckerBoard2DTexture *pRealTex = dynamic_cast<const slg::CheckerBoard2DTexture*>(pTex);
+
+                updateCompTexture   uct(*this,pTex,ctx);
+
+                if(uct.checkUpdateChild(curKey,"texture1",pRealTex->GetTexture1(),curIdx+1))
+                {
+                }else if(uct.checkUpdateChild(curKey,"texture2",pRealTex->GetTexture2(),curIdx+1))
+                {
+                }else if(uct.checkTextureMapping2DUpdate(curKey,pRealTex->GetTextureMapping()))
+                {
+                }else{
+                    BOOST_ASSERT_MSG(false,"unreachable code.");
+                }
+                return uct.getResult();
+            }
         case slg::CHECKERBOARD3D:
-            BOOST_ASSERT_MSG(false,"not implement");
-            break;
+            {
+                const slg::CheckerBoard3DTexture *pRealTex = dynamic_cast<const slg::CheckerBoard3DTexture*>(pTex);
+
+                updateCompTexture   uct(*this,pTex,ctx);
+
+                if(uct.checkUpdateChild(curKey,"texture1",pRealTex->GetTexture1(),curIdx+1))
+                {
+                }else if(uct.checkUpdateChild(curKey,"texture2",pRealTex->GetTexture2(),curIdx+1))
+                {
+                }/*else if(uct.checkTextureMapping3DUpdate(curKey,pRealTex->GetTextureMapping()))
+                {
+                }*/else{
+                    BOOST_ASSERT_MSG(false,"not implement.");
+                }
+                return uct.getResult();
+            }
         case slg::FBM_TEX:
-            BOOST_ASSERT_MSG(false,"not implement");
-            break;
+            {
+                const slg::FBMTexture *pRealTex = dynamic_cast<const slg::FBMTexture*>(pTex);
+
+                updateCompTexture   uct(*this,pTex,ctx);
+
+                if(uct.checkUpdateField(curKey,"octaves"))
+                {
+                }else if(uct.checkUpdateField(curKey,"roughness"))
+                {
+                }/*else if(uct.checkTextureMapping3DUpdate(curKey,pRealTex->GetTextureMapping()))
+                {
+                }*/else{
+                    BOOST_ASSERT_MSG(false,"not implement.");
+                }
+                return uct.getResult();
+            }
         case slg::MARBLE:
-            BOOST_ASSERT_MSG(false,"not implement");
-            break;
+            {
+                const slg::MarbleTexture *pRealTex = dynamic_cast<const slg::MarbleTexture*>(pTex);
+
+                updateCompTexture   uct(*this,pTex,ctx);
+
+                if(uct.checkUpdateField(curKey,"octaves"))
+                {
+                }else if(uct.checkUpdateField(curKey,"roughness"))
+                {
+                }else if(uct.checkUpdateField(curKey,"scale"))
+                {
+                }else if(uct.checkUpdateField(curKey,"variation"))
+                {
+                }/*else if(uct.checkTextureMapping3DUpdate(curKey,pRealTex->GetTextureMapping()))
+                {
+                }*/else{
+                    BOOST_ASSERT_MSG(false,"not implement.");
+                }
+                return uct.getResult();
+            }
         case slg::DOTS:
-            BOOST_ASSERT_MSG(false,"not implement");
-            break;
+            {
+                const slg::DotsTexture *pRealTex = dynamic_cast<const slg::DotsTexture*>(pTex);
+
+                updateCompTexture   uct(*this,pTex,ctx);
+
+                if(uct.checkUpdateChild(curKey,"inside",pRealTex->GetInsideTex(),curIdx+1))
+                {
+                }else if(uct.checkUpdateChild(curKey,"outside",pRealTex->GetOutsideTex(),curIdx+1))
+                {
+                }else if(uct.checkTextureMapping2DUpdate(curKey,pRealTex->GetTextureMapping()))
+                {
+                }else{
+                    BOOST_ASSERT_MSG(false,"not implement.");
+                }
+                return uct.getResult();
+            }
         case slg::BRICK:
-            BOOST_ASSERT_MSG(false,"not implement");
-            break;
+        {
+            const slg::BrickTexture *pRealTex = dynamic_cast<const slg::BrickTexture*>(pTex);
+
+            updateCompTexture   uct(*this,pTex,ctx);
+
+            if(uct.checkUpdateChild(curKey,"bricktex",pRealTex->GetTexture1(),curIdx+1))
+            {
+            }else if(uct.checkUpdateChild(curKey,"mortartex",pRealTex->GetTexture2(),curIdx+1))
+            {
+            }else if(uct.checkUpdateChild(curKey,"brickmodtex",pRealTex->GetTexture3(),curIdx+1))
+            {
+            }else if(curKey == "brickbond"){
+                int type = boost::lexical_cast<int>(ctx.value);
+                uct.newProps.SetString(uct.prefix + uct.newId + '.' + "brickbond" ,getBondnameFromType((slg::MasonryBond)type));
+            }else if(uct.checkUpdateField(curKey,"brickwidth")){
+            }else if(uct.checkUpdateField(curKey,"brickheight")){
+            }else if(uct.checkUpdateField(curKey,"brickdepth")){
+            }else if(uct.checkUpdateField(curKey,"mortarsize")){
+            }else if(uct.checkUpdateField(curKey,"brickrun")){
+            }else if(uct.checkUpdateField(curKey,"brickbevel")){
+            }/*else if(uct.checkTextureMapping3DUpdate(curKey,pRealTex->GetTextureMapping()))
+            {
+            }*/else{
+                BOOST_ASSERT_MSG(false,"not implement.");
+            }
+            return uct.getResult();
+        }
         case slg::WINDY:
-            BOOST_ASSERT_MSG(false,"not implement");
-            break;
+        {
+            const slg::WindyTexture *pRealTex = dynamic_cast<const slg::WindyTexture*>(pTex);
+            updateCompTexture   uct(*this,pTex,ctx);
+            /*if(uct.checkTextureMapping3DUpdate(curKey,pRealTex->GetTextureMapping()))
+            {
+            }else{
+                BOOST_ASSERT_MSG(false,"not implement.");
+            }*/
+            return uct.getResult();
+        }
         case slg::WRINKLED:
-            BOOST_ASSERT_MSG(false,"not implement");
-            break;
+        {
+            const slg::WindyTexture *pRealTex = dynamic_cast<const slg::WindyTexture*>(pTex);
+            updateCompTexture   uct(*this,pTex,ctx);
+
+            if(uct.checkUpdateField(curKey,"octaves"))
+            {
+            }else if(uct.checkUpdateField(curKey,"roughness"))
+            {
+            }/*else if(uct.checkTextureMapping3DUpdate(curKey,pRealTex->GetTextureMapping()))
+            {
+            }*/else{
+                BOOST_ASSERT_MSG(false,"not implement.");
+            }
+            return uct.getResult();
+        }
         case slg::UV_TEX:
-            BOOST_ASSERT_MSG(false,"not implement");
-            break;
+        {
+            const slg::UVTexture *pRealTex = dynamic_cast<const slg::UVTexture*>(pTex);
+            updateCompTexture   uct(*this,pTex,ctx);
+
+            if(uct.checkTextureMapping2DUpdate(curKey,pRealTex->GetTextureMapping()))
+            {
+            }else{
+                BOOST_ASSERT_MSG(false,"not implement.");
+            }
+            return uct.getResult();
+        }
         case slg::BAND_TEX:
             BOOST_ASSERT_MSG(false,"not implement");
             break;

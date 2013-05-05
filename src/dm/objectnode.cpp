@@ -183,55 +183,58 @@ ObjectNode::dump(type_xml_node &parent,dumpContext &ctx)
         pSelf->append_attribute(pDoc->allocate_attribute(constDef::name,allocate_string(pDoc,m_name)));
     }
 
-	luxrays::ExtMesh*   extMesh = Doc::instance().pDocData->objManager.getExtMesh(id());
-    if(extMesh)
-    {//只有模型存在，我们才继续输出与模型相关的信息。
-        std::string     write_file;
-        conditional_md5 md5(ctx);
-        //boost::filesystem::path target_model = ctx.target / "mesh%%%%%%.ply";
-        //只有在不是multiMesh时我们才可以保存。否则会引发下次加载的模型重复。从而导致材质无法配对。
-        if(this->filepath().length())
-        {//获取映射的文件名。
-            if(ctx.isCopyResource())
-            {//保存资源。
-		        boost::filesystem::path target_model = ctx.target / "mesh%%%%%%.ctm";
+    if(!this->matid().empty())
+    {//只有matid不为空时才会有mesh。
+	    luxrays::ExtMesh*   extMesh = Doc::instance().pDocData->objManager.getExtMesh(id());
+        if(extMesh)
+        {//只有模型存在，我们才继续输出与模型相关的信息。
+            std::string     write_file;
+            conditional_md5 md5(ctx);
+            //boost::filesystem::path target_model = ctx.target / "mesh%%%%%%.ply";
+            //只有在不是multiMesh时我们才可以保存。否则会引发下次加载的模型重复。从而导致材质无法配对。
+            if(this->filepath().length())
+            {//获取映射的文件名。
+                if(ctx.isCopyResource())
+                {//保存资源。
+		            boost::filesystem::path target_model = ctx.target / "mesh%%%%%%.ctm";
+                    boost::filesystem::path target = boost::filesystem::unique_path(target_model);
+                    //extMesh->WritePly(target.string());
+                    SaveCtmFile(this->useplynormals(),extMesh,target.string(),md5);
+                    write_file = target.filename().string();
+                }else{//不保存资源，直接保存m_filepath.
+                    write_file = this->filepath();
+                }
+            }else{//没有定义文件名。此时直接保存资源。
+	            boost::filesystem::path target_model = ctx.target / "mesh%%%%%%.ctm";
                 boost::filesystem::path target = boost::filesystem::unique_path(target_model);
                 //extMesh->WritePly(target.string());
                 SaveCtmFile(this->useplynormals(),extMesh,target.string(),md5);
                 write_file = target.filename().string();
-            }else{//不保存资源，直接保存m_filepath.
-                write_file = this->filepath();
             }
-        }else{//没有定义文件名。此时直接保存资源。
-	        boost::filesystem::path target_model = ctx.target / "mesh%%%%%%.ctm";
-            boost::filesystem::path target = boost::filesystem::unique_path(target_model);
-            //extMesh->WritePly(target.string());
-            SaveCtmFile(this->useplynormals(),extMesh,target.string(),md5);
-            write_file = target.filename().string();
-        }
-        if(md5.isGenerateMD5())
-        {
-            std::string ctxHashValue = md5.hexdigest();
-            pSelf->append_attribute(pDoc->allocate_attribute(constDef::ctxmd5,allocate_string(pDoc,ctxHashValue)));
-
-            const std::string *pName = ctx.queryObjFilepath(ctxHashValue);
-            if(pName)
+            if(md5.isGenerateMD5())
             {
-                ///@todo 由于内容重复，删除刚保存的模型文件。 需要判断，不能删除外部文件。
-                if(ctx.isCopyResource())
-                    boost::filesystem::remove(write_file);
-                write_file = *pName;
-            }else{
-                ctx.addObjMapper(ctxHashValue,write_file);
+                std::string ctxHashValue = md5.hexdigest();
+                pSelf->append_attribute(pDoc->allocate_attribute(constDef::ctxmd5,allocate_string(pDoc,ctxHashValue)));
+
+                const std::string *pName = ctx.queryObjFilepath(ctxHashValue);
+                if(pName)
+                {
+                    ///@todo 由于内容重复，删除刚保存的模型文件。 需要判断，不能删除外部文件。
+                    if(ctx.isCopyResource())
+                        boost::filesystem::remove(write_file);
+                    write_file = *pName;
+                }else{
+                    ctx.addObjMapper(ctxHashValue,write_file);
+                }
             }
+            BOOST_ASSERT_MSG(write_file.length() > 0, "fail to write object data?");
+
+            pSelf->append_attribute(pDoc->allocate_attribute(constDef::file,allocate_string(pDoc,write_file)));
+
+            const slg::Material* pMat = ExtraMaterialManager::getSlgMaterial(this->matid());
+            BOOST_ASSERT_MSG(pMat,"invalid ref material?");
+            Doc::instance().pDocData->matManager.dump(*pSelf,pMat,ctx);
         }
-        BOOST_ASSERT_MSG(write_file.length() > 0, "fail to write object data?");
-
-        pSelf->append_attribute(pDoc->allocate_attribute(constDef::file,allocate_string(pDoc,write_file)));
-
-        const slg::Material* pMat = ExtraMaterialManager::getSlgMaterial(this->matid());
-        BOOST_ASSERT_MSG(pMat,"invalid ref material?");
-        Doc::instance().pDocData->matManager.dump(*pSelf,pMat,ctx);
     }
 
     //不需要输出materialid.这个id在子节点中自己创建。

@@ -28,6 +28,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/unordered_map.hpp>
 #include "dm/xmlutil.h"
+#include "dm/docmat.h"
 #include "importctx.h"
 
 class MD5;
@@ -54,6 +55,7 @@ class ExtraTextureManager
 {
 private:
     friend class DocPrivate;
+    friend struct updateCompTexture;
     ExtraTextureManager(){}
     ~ExtraTextureManager(){}
 
@@ -124,6 +126,18 @@ public:
     std::string    updateTexture(SlgUtil::UpdateContext &ctx,const slg::Texture *pTex,size_t curIdx);
     static const slg::Texture*  getTextureFromKeypath(const slg::Texture *pTex,const std::vector<std::string> &keyPath,size_t curIdx);
 private:
+    ///@brief dump混合材质。
+    std::string     dumpCompTex(luxrays::Properties &prop,const slg::Texture *pTex)
+    {
+        const std::string &id = this->getTextureId(pTex);
+        BOOST_ASSERT_MSG(!id.empty(),"composition texture without id!");
+
+        std::string     prefix = "scene.textures.";
+        prefix = prefix + id + '.';
+        prop.SetString(prefix + constDef::type,DocMat::texGetTypeNameFromType(pTex->GetType()));
+        return id;
+    }
+    std::string dumpImagemap(luxrays::Properties &prop,const slg::ImageMapTexture* pTex);
     static  bool    checkTextureMapping2DUpdate(SlgUtil::UpdateContext &ctx,luxrays::Properties &newProps,const std::string &curKey,const std::string &mapping_prefix,const slg::TextureMapping2D *pMapping);
 
     std::string buildDefaultTexture(SlgUtil::UpdateContext &ctx,const slg::Texture *pTex,int type);
@@ -149,6 +163,9 @@ private:
     }
     ///@brief prefix example:"scene.textures.XXXXXXXXXXXXXXXXX.mapping."
     static  void   dumpTextureMapping2D(const slg::TextureMapping2D *pMapping,luxrays::Properties &props,const std::string &prefix);
+    ///@brief prefix example:"scene.textures.XXXXXXXXXXXXXXXXX.mapping"
+    static  void   dumpTextureMapping3D(const slg::TextureMapping3D *pMapping,luxrays::Properties &props,const std::string &prefix);
+
 
     inline const std::string&  defineAndUpdate(const std::string &id,slg::Scene *scene,const std::string &sceneDef)
     {

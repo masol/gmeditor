@@ -45,6 +45,8 @@ public:
 	void onMenuFileImport(wxCommandEvent &event);
 	/** Processes menu File|Save */
 	void onMenuFileSave(wxCommandEvent &event);
+	void onMenuFileSaveImage(wxCommandEvent &event);
+
 	/** Processes menu File|Export */
 	void onMenuFileExport(wxCommandEvent &event);
 	/** Processes menu File|Quit */

@@ -1090,6 +1090,7 @@ ExtraMaterialManager::updateMaterial(SlgUtil::UpdateContext &ctx,const slg::Mate
                         BOOST_ASSERT(false);
                     }
                 }
+                break;
             case slg::METAL:
                 {
                     const slg::MetalMaterial *pMaterial = dynamic_cast<const slg::MetalMaterial*>(pMat);

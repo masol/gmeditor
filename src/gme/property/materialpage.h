@@ -41,6 +41,18 @@ private:
     void    addMaterialContent(wxPGProperty &matType,type_xml_node *pSelf,int type,const std::string &name);
     void    buildMaterialChoice(wxPGChoices &soc);
 
+    template<class T>
+    T   GetAttributeValue(type_xml_node *pSelf,const char* tagName,T defaultVal)
+    {
+        type_xml_attr *pAttr = pSelf->first_attribute(tagName);
+        if(pAttr)
+        {
+            return boost::lexical_cast<T>(pAttr->value());
+        }
+        return defaultVal;
+    }
+
+    void    addMapping2D(wxPGProperty *pTexType,type_xml_node *pSelf);
     void    addTextureContent(wxPGProperty *pTexType,type_xml_node *pSelf,int type);
     void    addTexture(wxPGProperty &parent,type_xml_node *pParent,const std::string &childTag,int flag = 0);
     void    buildTextureChoice(wxPGChoices &soc);

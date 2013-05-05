@@ -172,6 +172,23 @@ DocImg::getPixels(void)
 }
 
 bool
+DocImg::saveImage(const std::string &fullpath)
+{
+    slg::RenderSession* session = pDocData->getSession();
+
+    if(session && session->film)
+    {
+        session->renderEngine->UpdateFilm();
+	    session->film->UpdateScreenBuffer();
+        session->renderConfig->cfg.SetString("image.filename", fullpath);
+        session->SaveFilmImage();
+        return true;
+    }
+    return false;
+}
+
+
+bool
 DocImg::getData(ImageDataBase *pdata)
 {
     slg::RenderSession* session = pDocData->getSession();
