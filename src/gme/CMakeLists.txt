@@ -44,6 +44,7 @@ set(GME_GL_SRC
 set(GME_PROP_SRC
     property/hdrpage.cpp
     property/materialpage.cpp
+    property/envlightpage.cpp
   )
 
 

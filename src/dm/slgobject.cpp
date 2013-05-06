@@ -20,6 +20,7 @@
 #include "dm/doc.h"
 #include "slgobject.h"
 #include "slgmaterial.h"
+#include "slgsetting.h"
 #include "docprivate.h"
 #include "slg/slg.h"
 #include "luxrays/luxrays.h"
@@ -108,28 +109,35 @@ ExtraObjectManager::removeMesh(slg::Scene *scene,luxrays::ExtMesh *pMesh,SlgUtil
     int ref_count = deleteFromExtMeshCache(scene->extMeshCache,pMesh);
 
     //清理meshDefs.
-    //triangleLights_begin保存了对象对应光源三角形数组的开始位置。
-    int triangleLights_begin = 0;
+    //mesh_idx 指示了本mesh在mesh array中的位置。灯光，材质等信息与位置关联。
+    u_int mesh_idx = 0;
+    //指示这个material是否被共享。
+    bool materialIsShared = false;
     slg::Material   *pRefMaterial = NULL;
     {
-        u_int idx = 0;
         std::vector< luxrays::ExtMesh * >::iterator  it = scene->meshDefs.meshs.begin();
         while(it != scene->meshDefs.meshs.end())
         {
-            if(pMesh != *it)
+            if(pMesh == *it)
             {
-                triangleLights_begin += pMesh->GetTotalTriangleCount();
-            }else{
                 scene->meshDefs.meshs.erase(it);
                 break;
             }
             it++;
-            idx++;
+            mesh_idx++;
         }
-        GME_TRACE("erase mesh at idx = ",idx);
-        std::vector< slg::Material * >::iterator matit = scene->objectMaterials.begin() + idx;
+        GME_TRACE("erase mesh at mesh_idx = ",mesh_idx);
+        std::vector< slg::Material * >::iterator matit = scene->objectMaterials.begin() + mesh_idx;
         pRefMaterial = *matit;
         scene->objectMaterials.erase(matit);
+        BOOST_FOREACH(slg::Material *pMat,scene->objectMaterials)
+        {
+            if(pMat == pRefMaterial)
+            {
+                materialIsShared = true;
+                break;
+            }
+        }
         GME_TRACE("erase mesh material.");
     }
     {//删除mesh的name define.
@@ -146,35 +154,25 @@ ExtraObjectManager::removeMesh(slg::Scene *scene,luxrays::ExtMesh *pMesh,SlgUtil
         }
     }
 
-#if 0
-    //清理triangleLights.这里我们不能删除。只能设置为NULL,否则会引发其它灯光的逻辑关系错位。
+    //清理meshTriLightDefsOffset
+    u_int   meshTriLight_Offset = 0;
     {
-        GME_TRACE("triangleLights_begin = ",triangleLights_begin,";scene->triangleLights.size=",scene->triangleLights.size());
-        GME_TRACE("pMesh->GetTotalTriangleCount()=",pMesh->GetTotalTriangleCount());
-        std::vector<slg::TriangleLight *>::iterator it = scene->triangleLights.begin() + triangleLights_begin;
-        BOOST_ASSERT_MSG( (  ( (*it) == NULL) || ( (*it)->GetMesh() == pMesh && (*it)->GetTriIndex() == 0 ) ),"panic light position!");
-        scene->triangleLights.erase(it,it+pMesh->GetTotalTriangleCount()-1);
+        std::vector< u_int >::iterator meshTriLigh_it = scene->meshTriLightDefsOffset.begin() + mesh_idx;
+        meshTriLight_Offset = *meshTriLigh_it;
+        scene->meshTriLightDefsOffset.erase(meshTriLigh_it);
     }
-#endif
 
-    //检查材质是否是光源.如果是，继续清理triLightDefs
+    //检查材质是否是光源.如果是，继续清理triLightDefs.
     if(ExtraMaterialManager::materialIsLight(pRefMaterial))
-    {//开始寻找mesh对应的光源。
-        std::vector< slg::TriangleLight * >::iterator    it = scene->triLightDefs.begin();
-        while(it != scene->triLightDefs.end())
-        {
-            if( (*it)->GetMesh () == pMesh)
-            {
-                slg::TriangleLight *pTriLight = *it;
-                GME_TRACE("erase light triangle : ",pTriLight->GetTriIndex());
-                ///@fixme: 设置全局三角形数组为空。
-                //scene->triangleLights[scene->triangleLights.begin() + pTriLight->] = NULL;
-
-                it = scene->triLightDefs.erase(it);
-                delete  pTriLight;
-            }else{
-                it++;
-            }
+    {
+        GME_TRACE("pMesh->GetTotalTriangleCount()=",pMesh->GetTotalTriangleCount());
+        unsigned int triCount = pMesh->GetTotalTriangleCount();
+        for(u_int beginIdx = 0; beginIdx < triCount; beginIdx++ )
+        {///@fixme: triangleLights.这里我们不能删除。只能设置为NULL,否则会引发其它灯光的逻辑关系错位。
+            slg::TriangleLight *pTriLight = scene->triLightDefs[meshTriLight_Offset + beginIdx];
+            scene->triLightDefs[meshTriLight_Offset + beginIdx] = NULL;
+            BOOST_ASSERT_MSG(pTriLight->GetMesh() == pMesh,"wrong TriangleLight!");
+            delete pTriLight;
         }
         editor.addAction(slg::AREALIGHTS_EDIT);
     }
@@ -189,8 +187,11 @@ ExtraObjectManager::removeMesh(slg::Scene *scene,luxrays::ExtMesh *pMesh,SlgUtil
         }
     }
 
-    //最后，清理extra信息。
-    Doc::instance().pDocData->matManager.onMaterialRemoved(pRefMaterial);
+    if(!materialIsShared)
+    {
+        //最后，清理extra信息。
+        Doc::instance().pDocData->matManager.onMaterialRemoved(pRefMaterial);
+    }
 
     ///@todo: 我们是否需要对象缓冲？现在删了下次就必须重新加载。
     //最后删除对象。
@@ -215,6 +216,7 @@ ExtraObjectManager::removeMesh(ObjectNode &parent,ObjectNode &self,slg::Scene *s
     //然后删除自身。
     if(!self.matid().empty())
     {
+        ///@fixme this is cause crash at new version slg.change the first solution to set material to null.but null material has problem.then the solution is dump and reload scene.
         luxrays::ExtMesh *pMesh = this->getExtMesh(self.id());
         if(pMesh)
             removeMesh(scene,pMesh,editor);
@@ -474,27 +476,40 @@ bool
 ExtraObjectManager::importAiNode(const aiScene *assimpScene,aiNode* pNode,ObjectNode &objNode,ImportContext &ctx)
 {
     bool    bAdd = false;
-    if(pNode->mNumMeshes > 1)
-    {//超过多于1个mesh.需要在当前mesh下构建子节点。
+    unsigned int tricount = 0;
+    for(unsigned int i = 0; i < pNode->mNumMeshes; i++)
+    {
+        aiMesh  *pMesh = assimpScene->mMeshes[pNode->mMeshes[i]];
+        if(pMesh->mPrimitiveTypes & aiPrimitiveType_TRIANGLE)
+        {
+            tricount++;
+        }
+    }
+
+    if(pNode->mNumMeshes > 0)
+    {
         for(unsigned int i = 0; i < pNode->mNumMeshes; i++)
         {
             aiMesh  *pMesh = assimpScene->mMeshes[pNode->mMeshes[i]];
-            ObjectNode  obj;
-            ///@todo error revovery
-            if(importAiMesh(assimpScene,pMesh,obj,ctx))
+            if(tricount == 1)
             {
-                objNode.addChild(obj);
-                bAdd = true;
+                if(importAiMesh(assimpScene,pMesh,objNode,ctx))
+                {
+                    bAdd = true;
+                    break;
+                }
+            }else{
+                ObjectNode  obj;
+                ///@todo error revovery
+                if(importAiMesh(assimpScene,pMesh,obj,ctx))
+                {
+                    objNode.addChild(obj);
+                    bAdd = true;
+                }
             }
         }
-    }else if(pNode->mNumMeshes)
-    {
-        aiMesh  *pMesh = assimpScene->mMeshes[pNode->mMeshes[0]];
-        if(importAiMesh(assimpScene,pMesh,objNode,ctx))
-        {
-            bAdd = true;
-        }
     }
+
     //开始处理孩子。
     for(unsigned int i = 0; i < pNode->mNumChildren; i++)
     {
@@ -659,6 +674,11 @@ ExtraObjectManager::importSpScene(const std::string &path,ObjectNode &parentNode
                     {//load camera database.
                         Doc::instance().pDocData->camManager.findAndImportCamera(*pCamera);
                     }
+                    type_xml_node *pLights = pScene->first_node(constDef::lights);
+                    if(pLights)
+                    {//load lights define.
+                        ExtraSettingManager::createLights(ctx,*pLights);
+                    }
                 }
                 ///@brief load object library here.
                 if(!pObjects)
@@ -716,6 +736,12 @@ ExtraObjectManager::importObjects(const std::string& path,ObjectNode &obj,Import
             //从root开始加载数据。
             if(importAiNode(assimpScene,assimpScene->mRootNode,obj,ctx))
             {
+                //再次检查是否只有一个孩子，如果是，加入到当前节点。否则需要把obj的matid等信息清空。
+                if(obj.size())
+                {//有孩子，清空自身matid等信息。
+                    obj.m_filepath.clear();
+                    obj.m_matid.clear();
+                }
                 bAdd = true;
             }
         }

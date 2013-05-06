@@ -37,17 +37,17 @@ void FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) {
 
 static
 void LuxRaysDebugHandler(const char *msg) {
-//	std::cerr << "[LuxRays] " << msg << std::endl;
+	std::cerr << "[LuxRays] " << msg << std::endl;
 }
 
 static
 void SDLDebugHandler(const char *msg) {
-//	std::cerr << "[SDL] " << msg << std::endl;
+	std::cerr << "[SDL] " << msg << std::endl;
 }
 
 static
 void SLGDebugHandler(const char *msg) {
-//	std::cerr << "[SLG] " << msg << std::endl;
+	std::cerr << "[SLG] " << msg << std::endl;
 }
 
 

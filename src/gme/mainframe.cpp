@@ -27,6 +27,7 @@
 #include "dm/docctl.h"
 #include "dm/docimg.h"
 #include <boost/locale.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/bind.hpp>
 #include "propgrid.h"
 #include "data/xpmres.h"
@@ -365,6 +366,16 @@ void
 MainFrame::onMenuFileSave(wxCommandEvent &event)
 {
 	gme::DocIO  dio;
+	if(m_filepath.empty() || !boost::iends_with(m_filepath,".sps"))
+	{
+        SaveSceneDialog dialog(this);
+        m_filepath.clear();
+        if ( dialog.ShowModal() == wxID_OK )
+        {
+            m_filepath = dialog.GetPath();
+        }
+
+	}
 	if(!m_filepath.empty())
 	{
 	   dio.exportScene(m_filepath,false);

@@ -142,8 +142,9 @@ const char* constDef::clipHither = "clipHither";
 const char* constDef::clipYon = "clipYon";
 const char* constDef::lensRadius = "lensRadius";
 const char* constDef::focalDistance = "focalDistance";
-
-
+const char* constDef::envlight = "envlight";
+const char* constDef::sunlight = "sunlight";
+const char* constDef::lights = "lights";
 
 ObjectNode*
 ObjectNode::findObject(const std::string &id,ObjectNodePath *pPath)

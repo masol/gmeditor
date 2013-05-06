@@ -20,6 +20,7 @@
 #define  GME_PROPERTY_MATERIALPAGE_H
 
 #include <wx/wx.h>
+#include <boost/lexical_cast.hpp>
 #include "gmeproppage.h"
 #include "dm/xmlutil.h"
 
@@ -58,15 +59,6 @@ private:
     void    buildTextureChoice(wxPGChoices &soc);
     ///@brief 从tag返回一个友好的名称。
     std::string     getNameFromTagName(const std::string &tag);
-    inline  void    removeChild(wxPGProperty *parent)
-    {
-        unsigned int childCount = parent->GetChildCount();
-        for(unsigned int idx = 0; idx < childCount; idx++)
-        {
-            this->DeleteProperty(parent->Item(idx));
-        }
-//        this->RefreshProperty(parent);
-    }
 public:
     MaterialPage();
     virtual ~MaterialPage();

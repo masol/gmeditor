@@ -36,6 +36,7 @@
 #include "slgobject.h"
 #include "slgmaterial.h"
 #include "slgtexture.h"
+#include "slgsetting.h"
 #include "dm/setting.h"
 #include "dm/localsetting.h"
 
@@ -234,71 +235,73 @@ DocIO::initAndStartScene(slg::Scene *scene)
         initViewAllCamera(scene,width,height);
     }
 
-
-    bool    hasLight = false;
-    //gme::LocalSetting::EnvironmentHDR::setFile("/home/gmeditor/build/scenes/simple-mat/arch.exr");
-    if(gme::LocalSetting::EnvironmentHDR::hasHDR())
+    //如果scene中没有定义灯光，继续定义灯光。
+    if(!scene->envLight && !scene->sunLight)
     {
-        std::stringstream   ss;
-
-        ss << "scene.infinitelight.file = " << gme::LocalSetting::EnvironmentHDR::getFile() << std::endl;
-        float gamma = gme::LocalSetting::EnvironmentHDR::getGamma();
-        if(!gme::LocalSetting::EnvironmentHDR::isDefaultGamma(gamma))
+        bool    hasLight = false;
+        //gme::LocalSetting::EnvironmentHDR::setFile("/home/gmeditor/build/scenes/simple-mat/arch.exr");
+        if(gme::LocalSetting::EnvironmentHDR::hasHDR())
         {
-            ss << "scene.infinitelight.gamma = " << gamma << std::endl;
+            std::stringstream   ss;
+
+            ss << "scene.infinitelight.file = " << gme::LocalSetting::EnvironmentHDR::getFile() << std::endl;
+            float gamma = gme::LocalSetting::EnvironmentHDR::getGamma();
+            if(!gme::LocalSetting::EnvironmentHDR::isDefaultGamma(gamma))
+            {
+                ss << "scene.infinitelight.gamma = " << gamma << std::endl;
+            }
+            ss << "scene.infinitelight.gain = " << gme::LocalSetting::EnvironmentHDR::getGain() << std::endl;
+            scene->AddInfiniteLight(ss.str());
+            hasLight = true;
         }
-        ss << "scene.infinitelight.gain = " << gme::LocalSetting::EnvironmentHDR::getGain() << std::endl;
-        scene->AddInfiniteLight(ss.str());
-        hasLight = true;
-    }
 
-    if(gme::LocalSetting::EnvironmentSky::hasSky())
-    {
-        std::stringstream   ss;
-
-        ss << "scene.skylight.dir = " << gme::LocalSetting::EnvironmentSky::getDir() << std::endl;
-        float t = gme::LocalSetting::EnvironmentSky::getTurbidity();
-        if(!gme::LocalSetting::EnvironmentSky::isDefaultTurbidity(t))
+        if(gme::LocalSetting::EnvironmentSky::hasSky())
         {
-            ss << "scene.skylight.turbidity = " << t << std::endl;
+            std::stringstream   ss;
+
+            ss << "scene.skylight.dir = " << gme::LocalSetting::EnvironmentSky::getDir() << std::endl;
+            float t = gme::LocalSetting::EnvironmentSky::getTurbidity();
+            if(!gme::LocalSetting::EnvironmentSky::isDefaultTurbidity(t))
+            {
+                ss << "scene.skylight.turbidity = " << t << std::endl;
+            }
+            ss << "scene.skylight.gain = " << gme::LocalSetting::EnvironmentSky::getGain() << std::endl;
+            scene->AddSkyLight(ss.str());
+            hasLight = true;
         }
-        ss << "scene.skylight.gain = " << gme::LocalSetting::EnvironmentSky::getGain() << std::endl;
-        scene->AddSkyLight(ss.str());
-        hasLight = true;
-    }
 
-    if(gme::LocalSetting::EnvironmentSun::hasSun())
-    {
-        std::stringstream   ss;
-
-        ss << "scene.sunlight.dir = " << gme::LocalSetting::EnvironmentSun::getDir() << std::endl;
-        float t = gme::LocalSetting::EnvironmentSun::getTurbidity();
-        if(!gme::LocalSetting::EnvironmentSun::isDefaultTurbidity(t))
+        if(gme::LocalSetting::EnvironmentSun::hasSun())
         {
-            ss << "scene.sunlight.turbidity = " << t << std::endl;
+            std::stringstream   ss;
+
+            ss << "scene.sunlight.dir = " << gme::LocalSetting::EnvironmentSun::getDir() << std::endl;
+            float t = gme::LocalSetting::EnvironmentSun::getTurbidity();
+            if(!gme::LocalSetting::EnvironmentSun::isDefaultTurbidity(t))
+            {
+                ss << "scene.sunlight.turbidity = " << t << std::endl;
+            }
+            ss << "scene.sunlight.gain = " << gme::LocalSetting::EnvironmentSun::getGain() << std::endl;
+            scene->AddSunLight(ss.str());
+            hasLight = true;
         }
-        ss << "scene.sunlight.gain = " << gme::LocalSetting::EnvironmentSun::getGain() << std::endl;
-        scene->AddSunLight(ss.str());
-        hasLight = true;
-    }
 
 
-    if(!hasLight)
-    {
-        scene->AddSkyLight(
-                "scene.skylight.dir = 1.0 1.0 1.0\n"
-                "scene.skylight.turbidity = 2.2\n"
-                "scene.skylight.gain = 1.0 1.0 1.0\n"
-                );
-//        scene->AddSunLight(
-//                "scene.sunlight.dir = 0.166974 0.59908 0.783085\n"
-//                "scene.sunlight.turbidity = 2.2\n"
-//                "scene.sunlight.gain = 0.8 0.8 0.8\n"
-//                );
+        if(!hasLight)
+        {
+            scene->AddSkyLight(
+                    "scene.skylight.dir = 1.0 1.0 1.0\n"
+                    "scene.skylight.turbidity = 2.2\n"
+                    "scene.skylight.gain = 1.0 1.0 1.0\n"
+                    );
+    //        scene->AddSunLight(
+    //                "scene.sunlight.dir = 0.166974 0.59908 0.783085\n"
+    //                "scene.sunlight.turbidity = 2.2\n"
+    //                "scene.sunlight.gain = 0.8 0.8 0.8\n"
+    //                );
+        }
     }
 
     std::stringstream     confgSS;
-
     confgSS << "image.width = " << (int)width << std::endl;
     confgSS << "image.height = " << (int)height << std::endl;
     confgSS << "opencl.platform.index = " << -1 << std::endl;
@@ -451,6 +454,13 @@ DocIO::exportSpoloScene(const std::string &pathstring,bool bExportRes)
             }
             dumpContext     ctx(flags,boost::filesystem::path(pathstring).parent_path());
             pDocData->objManager.dump(*pNode,ctx);
+
+            //dump lights.
+            {
+                type_xml_node   *pLights = xmldoc.allocate_node(NS_RAPIDXML::node_element,constDef::lights);
+                xmldoc.append_node(pLights);
+                ExtraSettingManager::dump(*pLights,ctx);
+            }
 
             //dump camera.
             type_xml_node * pCameras = xmldoc.allocate_node(NS_RAPIDXML::node_element,"cameras");

@@ -37,43 +37,51 @@ DocObj::importObject(const std::string &path,ObjectNode *pParent)
     if(pDocData->m_session.get() == NULL)
         return false;
 
-    ImportContext   ctx(pDocData->m_session->renderConfig->scene,path);
-
-    SlgUtil::Editor editor(pDocData->m_session.get());
-    if(!pParent)
-    {
-        pParent = &getRootObject();
-    }
-
     bool    bLoadSuc = false;
-    if(boost::iends_with(path,".sps"))
-    {//importSpScene中假定传入Parent对象。
-        int count = ExtraObjectManager::importSpScene(path,*pParent,ctx);
-        bLoadSuc = (count > 0);
-    }else{
-        ObjectNode  node;
-        if(pDocData->objManager.importObjects(path,node,ctx))
+    {
+        ImportContext   ctx(pDocData->m_session->renderConfig->scene,path);
+        SlgUtil::Editor editor(pDocData->m_session.get());
+        if(!pParent)
         {
-            if(node.isPureGroup())
-            {//减少层数。
-                ObjectNode::type_child_container::iterator it = node.begin();
-                while(it != node.end())
-                {
-                    pParent->addChild(*it);
-                    it++;
+            pParent = &getRootObject();
+        }
+
+        if(boost::iends_with(path,".sps"))
+        {//importSpScene中假定传入Parent对象。
+            int count = ExtraObjectManager::importSpScene(path,*pParent,ctx);
+            bLoadSuc = (count > 0);
+        }else{
+            ObjectNode  node;
+            if(pDocData->objManager.importObjects(path,node,ctx))
+            {
+                if(node.isPureGroup())
+                {//减少层数。
+                    ObjectNode::type_child_container::iterator it = node.begin();
+                    while(it != node.end())
+                    {
+                        pParent->addChild(*it);
+                        it++;
+                    }
+                }else{
+                    pParent->addChild(node);
                 }
-            }else{
-                pParent->addChild(node);
+                bLoadSuc = true;
             }
-            bLoadSuc = true;
+        }
+
+        if(bLoadSuc)
+        {
+            editor.addAction(ctx.getAction());
+            pDocData->fireSelection(DocPrivate::SEL_ITEMCHILDADDED,pParent->id());
         }
     }
 
     if(bLoadSuc)
     {
-        editor.addAction(ctx.getAction());
-        pDocData->fireSelection(DocPrivate::SEL_ITEMCHILDADDED,pParent->id());
+        pDocData->m_session->Stop();
+        pDocData->m_session->Start();
     }
+
 
     return bLoadSuc;
 }

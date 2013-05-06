@@ -76,6 +76,9 @@ namespace gme
 		static  const char* clipYon;
 		static  const char* lensRadius;
 		static  const char* focalDistance;
+		static  const char* lights;
+		static  const char* envlight;
+		static  const char* sunlight;
     };
 
     inline const char* getFilepathFromDocument(const type_xml_node &node)

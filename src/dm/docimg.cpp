@@ -178,10 +178,15 @@ DocImg::saveImage(const std::string &fullpath)
 
     if(session && session->film)
     {
-        session->renderEngine->UpdateFilm();
-	    session->film->UpdateScreenBuffer();
-        session->renderConfig->cfg.SetString("image.filename", fullpath);
-        session->SaveFilmImage();
+        try{
+            session->renderEngine->UpdateFilm();
+            session->film->UpdateScreenBuffer();
+            session->renderConfig->cfg.SetString("image.filename", fullpath);
+            session->SaveFilmImage();
+        }catch(std::exception err)
+        {
+            std::cerr << err.what() << std::endl;
+        }
         return true;
     }
     return false;

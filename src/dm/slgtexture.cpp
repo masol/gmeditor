@@ -1922,7 +1922,7 @@ ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Textur
             }
         case slg::FBM_TEX:
             {
-                const slg::FBMTexture *pRealTex = dynamic_cast<const slg::FBMTexture*>(pTex);
+//                const slg::FBMTexture *pRealTex = dynamic_cast<const slg::FBMTexture*>(pTex);
 
                 updateCompTexture   uct(*this,pTex,ctx);
 
@@ -1939,7 +1939,7 @@ ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Textur
             }
         case slg::MARBLE:
             {
-                const slg::MarbleTexture *pRealTex = dynamic_cast<const slg::MarbleTexture*>(pTex);
+//                const slg::MarbleTexture *pRealTex = dynamic_cast<const slg::MarbleTexture*>(pTex);
 
                 updateCompTexture   uct(*this,pTex,ctx);
 
@@ -2005,7 +2005,7 @@ ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Textur
         }
         case slg::WINDY:
         {
-            const slg::WindyTexture *pRealTex = dynamic_cast<const slg::WindyTexture*>(pTex);
+//            const slg::WindyTexture *pRealTex = dynamic_cast<const slg::WindyTexture*>(pTex);
             updateCompTexture   uct(*this,pTex,ctx);
             /*if(uct.checkTextureMapping3DUpdate(curKey,pRealTex->GetTextureMapping()))
             {
@@ -2016,7 +2016,7 @@ ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Textur
         }
         case slg::WRINKLED:
         {
-            const slg::WindyTexture *pRealTex = dynamic_cast<const slg::WindyTexture*>(pTex);
+//            const slg::WindyTexture *pRealTex = dynamic_cast<const slg::WindyTexture*>(pTex);
             updateCompTexture   uct(*this,pTex,ctx);
 
             if(uct.checkUpdateField(curKey,"octaves"))

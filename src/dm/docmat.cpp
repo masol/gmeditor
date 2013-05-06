@@ -356,9 +356,14 @@ DocMat::updateProperty(const std::vector<std::string> &keyPath,const std::string
                         ret = UPDATE_ACCEPT;
                     }
 
-                    editor.addAction(slg::MATERIALS_EDIT);
-                    if (ExtraMaterialManager::materialIsLight(newMat))
-                        editor.addAction(slg::AREALIGHTS_EDIT);
+                    if(context.bVeto)
+                    {
+                        editor.resetAction();
+                    }else{
+                        editor.addAction(slg::MATERIALS_EDIT);
+                        if (ExtraMaterialManager::materialIsLight(newMat))
+                            editor.addAction(slg::AREALIGHTS_EDIT);
+                    }
                 }
             }catch(std::exception e)
             {

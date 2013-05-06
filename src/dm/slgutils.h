@@ -42,13 +42,16 @@ public:
         inline void  needRefresh(bool v){
             m_bNeedRefresh = v;
         }
+        inline void  resetAction(void){
+            m_session->editActions.Reset();
+        }
         inline ~Editor()
         {
             if (m_session->editActions.Has(slg::MATERIALS_EDIT)) {
                 m_session->renderConfig->scene->RemoveUnusedMaterials();
                 m_session->renderConfig->scene->RemoveUnusedTextures();
             }
-            if(m_bNeedRefresh || m_session->editActions.Has(slg::MATERIAL_TYPES_EDIT))
+            if(m_bNeedRefresh)// || m_session->editActions.Has(slg::MATERIAL_TYPES_EDIT))
             {
                 m_session->editActions.Reset();
                 m_session->EndEdit();

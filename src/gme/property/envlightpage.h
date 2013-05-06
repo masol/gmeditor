@@ -16,67 +16,41 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_DM_DOC_H
-#define  GME_DM_DOC_H
+#ifndef  GME_PROPERTY_ENVLIGHTPAGE_H
+#define  GME_PROPERTY_ENVLIGHTPAGE_H
 
-#include "utils/singleton.h"
-#include <boost/thread/recursive_mutex.hpp>
-
+#include <wx/wx.h>
+#include <boost/lexical_cast.hpp>
+#include "gmeproppage.h"
+#include "dm/xmlutil.h"
+#include "dm/docsetting.h"
 
 namespace gme{
 
-class DocPrivate;
-class Doc : public Singleton<Doc>
+class EnvLightPage : public GmePropPage
 {
-protected:
-    friend class DocScopeLocker;
-    friend class ExtraObjectManager;
-    friend class ExtraMaterialManager;
-    friend class ExtraTextureManager;
-    friend class ExtraSettingManager;
-    friend class SlgMaterial2Name;
-    friend class SlgTexture2Name;
-	friend class ObjectNode;
-    friend class Singleton<Doc>;
-    typedef Singleton<Doc>   inherited;
-    Doc(void);
-    boost::recursive_mutex      m_mutex;
-    DocPrivate                  *pDocData;
 private:
-    /** @brief 锁定文档。
-    **/
-    inline  void    lock(){
-        m_mutex.lock();
-    }
-    /** @brief 解锁文档。
-    **/
-    inline  void    unlock(){
-        m_mutex.unlock();
-    }
-    bool    isValid(void);
+    typedef GmePropPage  inherit;
+    void    clearPage(void);
+    void    buildPage(void);
+    void    appendEnvLight(wxPGProperty* pType,DocSetting &setting);
+    void    appendSunLight(wxPGProperty* pEnable,DocSetting &setting);
+    static  const unsigned int DISABLE_LIGHTER = 0x100;
 public:
-    ~Doc(void);
-};
-
-class DocScopeLocker
-{
+    EnvLightPage();
+    virtual ~EnvLightPage();
+private:
+    bool OnEnvtypeChanged(wxPGProperty* p,int type);
 protected:
-    DocPrivate   *pDocData;
-public:
-    DocScopeLocker() : pDocData(Doc::instance().pDocData)
-    {
-        Doc::instance().lock();
-    }
-    ~DocScopeLocker(){
-        Doc::instance().unlock();
-    }
-    inline bool    isValid(void)const{
-        return Doc::instance().isValid();
-    }
+    void OnPropertyChanging( wxPropertyGridEvent& event );
+    void OnPropertyChange( wxPropertyGridEvent& event );
+
+	void  onDocumentClosed(void);
+	void  onDocumentOpend(void);
+private:
+    DECLARE_EVENT_TABLE()
 };
 
 }
 
-
-
-#endif  //GME_DM_DOC_H
+#endif //GME_PROPERTY_ENVLIGHTPAGE_H

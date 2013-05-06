@@ -33,6 +33,15 @@ protected:
     {
         return m_pageShown;
     }
+    inline  void    removeChild(wxPGProperty *parent)
+    {
+        unsigned int childCount = parent->GetChildCount();
+        for(unsigned int idx = 0; idx < childCount; idx++)
+        {
+            this->DeleteProperty(parent->Item(idx));
+        }
+//        this->RefreshProperty(parent);
+    }
 public:
     GmePropPage()
     {

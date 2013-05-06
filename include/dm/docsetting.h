@@ -23,6 +23,13 @@
 #include "dm/xmlutil.h"
 #include <boost/unordered_map.hpp>
 #include "dm/docmat.h"
+#include "luxrays/luxrays.h"
+#include "luxrays/core/spectrum.h"
+
+namespace slg
+{
+    class Scene;
+}
 
 namespace gme
 {
@@ -43,45 +50,33 @@ public:
     void   setEngineType(int type);
     int    getAccelType(void);
     void   setAccelType(int type);
+
+    //light(evnlight and sunlight) interface:
+    //void  getEnvLight(type_xml_node &parent);
+    bool  changeHDRfile(const std::string &fullpath);
+    bool  changeEnvGain(const luxrays::Spectrum &g);
+    bool  changeEnvUDelta(float d);
+    bool  changeEnvVDelta(float d);
+    bool  changeSkyEnv(void);
+    bool  changeSkyDir(const luxrays::Vector &dir);
+    bool  changeSkyTurbidity(float t);
+    bool  disableEnv(void);
+    bool  disableSun(void);
+    bool  enableSun(void);
+    bool  changeSunDir(const luxrays::Vector &dir);
+    bool  changeSunGain(const luxrays::Spectrum &g);
+    bool  changeSunTurbidity(float t);
+    bool  changeSunRelsize(float t);
+    
+    slg::Scene* getScene(void);
+	const std::string&   getHDRLighterPath(void);
+    //
     //platform 接口: @todo: 是否暴露？
 //    int    getUsedCPU(void);
 //    int    getOpenclPlatformId(void);
 //    void   getUsedGPU(std::string &gpu);
 private:
 
-};
-
-class XmlNodeToProps
-{
-public:
-	XmlNodeToProps(){};
-	~XmlNodeToProps(){};
-
-	// convert xmlNode to propMap
-	void	ToToneMapProps(type_xml_node* pNode,
-							boost::unordered_map< std::string, boost::unordered_map<std::string, std::string> > &propMap);
-private:
-
-};
-
-class DocSettingHelper
-{
-public:
-	DocSettingHelper(){};
-	~DocSettingHelper(){};
-
-	// get toneMap properties
-	bool getToneMap(boost::unordered_map< std::string, boost::unordered_map<std::string, std::string> > &propMap);
-
-	// set properties
-	bool setToneMapProperty(const std::string &propName, const std::string &propValue);
-
-	// get material properties by id
-	type_xml_node*   getMaterial(const std::string &id, type_xml_node &parent);
-private:
-	DocSetting		m_docSetting;
-	XmlNodeToProps	m_nodeToProps;
-	DocMat			m_docMat;
 };
 
 }

@@ -24,7 +24,6 @@
 #include <boost/bind.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/uuid/uuid.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
 #include <wx/propgrid/advprops.h>
 #include "../stringutil.h"

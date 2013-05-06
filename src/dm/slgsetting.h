@@ -16,67 +16,33 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_DM_DOC_H
-#define  GME_DM_DOC_H
+#ifndef  GME_DM_SLGSETTING_H
+#define  GME_DM_SLGSETTING_H
 
-#include "utils/singleton.h"
-#include <boost/thread/recursive_mutex.hpp>
+#include "slg/slg.h"
+#include "slg/rendersession.h"
+#include "slgutils.h"
+#include "importctx.h"
 
 
 namespace gme{
 
-class DocPrivate;
-class Doc : public Singleton<Doc>
-{
-protected:
-    friend class DocScopeLocker;
-    friend class ExtraObjectManager;
-    friend class ExtraMaterialManager;
-    friend class ExtraTextureManager;
-    friend class ExtraSettingManager;
-    friend class SlgMaterial2Name;
-    friend class SlgTexture2Name;
-	friend class ObjectNode;
-    friend class Singleton<Doc>;
-    typedef Singleton<Doc>   inherited;
-    Doc(void);
-    boost::recursive_mutex      m_mutex;
-    DocPrivate                  *pDocData;
+class ExtraSettingManager{
+public:
+    static void dump(type_xml_node &parent,dumpContext &ctx);
+    static void createLights(ImportContext &ctx,type_xml_node &parents);
+    static const std::string&  getImageMapPath(const slg::ImageMapCache &imcache,const slg::ImageMap *im);
 private:
-    /** @brief 锁定文档。
-    **/
-    inline  void    lock(){
-        m_mutex.lock();
-    }
-    /** @brief 解锁文档。
-    **/
-    inline  void    unlock(){
-        m_mutex.unlock();
-    }
-    bool    isValid(void);
-public:
-    ~Doc(void);
-};
-
-class DocScopeLocker
-{
-protected:
-    DocPrivate   *pDocData;
-public:
-    DocScopeLocker() : pDocData(Doc::instance().pDocData)
+    static bool isDefault_turbidity(float tur)
     {
-        Doc::instance().lock();
+        return (tur == 2.2f);
     }
-    ~DocScopeLocker(){
-        Doc::instance().unlock();
-    }
-    inline bool    isValid(void)const{
-        return Doc::instance().isValid();
+    static bool isDefault_relSize(float rel)
+    {
+        return (rel == 1.0f);
     }
 };
 
 }
 
-
-
-#endif  //GME_DM_DOC_H
+#endif //GME_DM_SLGSETTING_H

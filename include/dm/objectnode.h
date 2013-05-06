@@ -217,6 +217,10 @@ public:
         m_children.clear();
     }
     typedef std::vector<ObjectNode> type_child_container;
+    inline type_child_container::size_type size(void)const
+    {
+        return m_children.size();
+    }
     inline type_child_container::iterator  begin(){
         return m_children.begin();
     }
