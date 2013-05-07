@@ -203,6 +203,48 @@ ExtraSettingManager::createLights(ImportContext &ctx,type_xml_node &parents)
 }
 
 
+int
+ExtraSettingManager::getLighterNumber(slg::Scene *scene)
+{
+    int litNum = 0;
+    if(scene->envLight)
+        litNum++;
+    if(scene->sunLight)
+        litNum++;
+
+    BOOST_FOREACH(u_int offset,scene->meshTriLightDefsOffset)
+    {
+        if(offset != NULL_INDEX)
+        {
+            litNum++;
+        }
+    }
+    return litNum;
+}
+
+bool
+ExtraSettingManager::hasTwoOrMoreLighter(slg::Scene *scene)
+{
+    int litNum = 0;
+    if(scene->envLight)
+        litNum++;
+    if(scene->sunLight)
+        litNum++;
+    if(litNum >= 2)
+        return true;
+
+    //u_int NULL_INDEX = (u_int)0xFFFFFFFF;
+    BOOST_FOREACH(u_int offset,scene->meshTriLightDefsOffset)
+    {
+        if(offset != NULL_INDEX && ++litNum >= 2)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+
 const std::string&
 ExtraSettingManager::getImageMapPath(const slg::ImageMapCache &imcache,const slg::ImageMap *im)
 {

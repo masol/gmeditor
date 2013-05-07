@@ -33,12 +33,22 @@ private:
     typedef wxScrolledWindow    inherited;
     GlRenderFrame       *m_glframe;
     wxBoxSizer          *m_sizer;
+    bool                m_bEnable;
 protected:
     void onDocumentSizeChanged(int w,int h);
     bool onEditModeChanged(const boost::any &nvar);
     void updateViewmode(int viewModeCmds);
     void setViewmode(int m);
 public:
+    inline  bool    enable(void)const
+    {
+        return m_bEnable;
+    }
+    inline  void    enable(bool e)
+    {
+        m_bEnable = e;
+    }
+
     GlRenderView(wxFrame* parent);
     virtual ~GlRenderView();
     void    setViewmodeFromCmd(int cmds);

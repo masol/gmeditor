@@ -180,8 +180,8 @@ ObjectView::addChild(wxTreeListItem& parent,const ObjectNode &node,DocMat &objop
 {
 	wxTreeListItem item = m_treelist->AppendItem(parent,node.name());
     //here,we set item text to materail name,not matid!
-    m_treelist->SetItemText(item, 1, objop.getMatName(node.matid()));
-    m_treelist->SetItemText(item, 2, "");
+//    m_treelist->SetItemText(item, 1, objop.getMatName(node.matid()));
+//    m_treelist->SetItemText(item, 2, "");
     m_treelist->SetItemData(item,new ObjectViewClientData(node.id(),node.matid()));
     ObjectNode::type_child_container::const_iterator it = node.begin();
     while(it != node.end())
@@ -202,14 +202,14 @@ ObjectView::CreateTreeListCtrl(long style)
                        wxCOL_WIDTH_AUTOSIZE,
                        wxALIGN_LEFT,
                        wxCOL_RESIZABLE | wxCOL_SORTABLE);
-    tree->AppendColumn(gmeWXT("材质"),
-                       tree->WidthFor("0123456789"),
-                       wxALIGN_RIGHT,
-                       wxCOL_RESIZABLE | wxCOL_SORTABLE);
-    tree->AppendColumn(gmeWXT("引用对象"),
-                       tree->WidthFor("0123456789"),
-                       wxALIGN_RIGHT,
-                       wxCOL_RESIZABLE | wxCOL_SORTABLE);
+//    tree->AppendColumn(gmeWXT("材质"),
+//                       tree->WidthFor("0123456789"),
+//                       wxALIGN_RIGHT,
+//                       wxCOL_RESIZABLE | wxCOL_SORTABLE);
+//    tree->AppendColumn(gmeWXT("引用对象"),
+//                       tree->WidthFor("0123456789"),
+//                       wxALIGN_RIGHT,
+//                       wxCOL_RESIZABLE | wxCOL_SORTABLE);
     return tree;
 }
 

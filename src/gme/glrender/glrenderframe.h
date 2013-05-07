@@ -62,6 +62,8 @@ protected:
     long     m_lastx;
     long     m_lasty;
     int      m_action;
+    ///@brief 是否允许编辑?
+    bool     m_bEnable;
     enum{
         ACTION_INVALID,
         ACTION_CAM_ROTATE,
@@ -116,6 +118,14 @@ protected:
 public:
     GlRenderFrame(wxWindow* parent,int* args,int vm);
     virtual ~GlRenderFrame();
+    inline bool    enable(void)const
+    {
+        return m_bEnable;
+    }
+    inline void    enable(bool e)
+    {
+        m_bEnable = e;
+    }
     inline int     viewMode(void)const
     {
         return m_viewMode;

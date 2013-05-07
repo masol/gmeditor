@@ -21,6 +21,7 @@
 #include "dm/docmat.h"
 #include "slgmaterial.h"
 #include "slgtexture.h"
+#include "slgsetting.h"
 #include "utils/MD5.h"
 
 namespace gme{
@@ -1032,9 +1033,15 @@ ExtraMaterialManager::updateMaterial(SlgUtil::UpdateContext &ctx,const slg::Mate
     {//最后一级。这里就必然是material type.
         int type = boost::lexical_cast<int>(ctx.value);
 
-        ctx.updatedId = buildDefaultMaterial(ctx,pMat,type);
-        ctx.idIsMat = true;
-        ctx.bGenNode = true;
+        int lightNum = ExtraMaterialManager::materialLightNum(pMat);
+        if(!lightNum || lightNum < ExtraSettingManager::getLighterNumber(ctx.editor.scene()))
+        {
+            ctx.updatedId = buildDefaultMaterial(ctx,pMat,type);
+            ctx.idIsMat = true;
+            ctx.bGenNode = true;
+        }else{
+            ctx.bVeto = true;
+        }
     }else
     {
         ExtraTextureManager &texManager = Doc::instance().pDocData->texManager;
@@ -1042,8 +1049,22 @@ ExtraMaterialManager::updateMaterial(SlgUtil::UpdateContext &ctx,const slg::Mate
         std::string prefix = "scene.materials." + matId + '.';
         const std::string &curKey = ctx.keyPath[curIdx];
 
-        if(checkAndUpdateDisableTexture(texManager,ctx,curKey,prefix,constDef::emission,pMat->GetEmitTexture(),curIdx))
-        {
+        //if(checkAndUpdateDisableTexture(texManager,ctx,curKey,prefix,constDef::emission,pMat->GetEmitTexture(),curIdx))
+        if(curKey == constDef::emission)
+        {//请求切换灯光。
+            std::string key = prefix + constDef::emission;
+            std::string texValue = texManager.updateTexture(ctx,pMat->GetEmitTexture(),curIdx+1);
+            if(texValue.empty())
+            {//灯光被禁止。检查是否可以被禁止。
+                if(ExtraMaterialManager::materialLightNum(pMat) < ExtraSettingManager::getLighterNumber(ctx.editor.scene()))
+                {
+                    ctx.props.Delete(key);
+                }else{
+                    ctx.bVeto = true;
+                }
+            }else{
+                ctx.props.SetString(key,texValue);
+            }
         }else if(checkAndUpdateDisableTexture(texManager,ctx,curKey,prefix,constDef::bumptex,pMat->GetBumpTexture(),curIdx))
         {
         }else if(checkAndUpdateDisableTexture(texManager,ctx,curKey,prefix,constDef::normaltex,pMat->GetNormalTexture(),curIdx))
@@ -1488,6 +1509,25 @@ ExtraMaterialManager::createMatteMaterial(ImportContext &ctx,const std::string& 
     else{
         createGrayMaterial(ctx,id);
     }
+}
+
+int
+ExtraMaterialManager::materialLightNum(const slg::Material *pmat)
+{
+    int     num = 0;
+    if(!pmat)
+        return num;
+    if(pmat->IsLightSource())
+    {
+        num++;
+    }
+    const slg::MixMaterial *pMix = dynamic_cast<const slg::MixMaterial*>(pmat);
+    if(pMix)
+    {
+        num += materialIsLight(pMix->GetMaterialA());
+        num += materialIsLight(pMix->GetMaterialB());
+    }
+    return num;
 }
 
 

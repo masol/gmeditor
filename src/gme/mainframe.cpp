@@ -478,7 +478,7 @@ MainFrame::onUpdateMenuEditDelete(wxUpdateUIEvent& event)
 void
 MainFrame::onUpdateSaveAndEdit(wxUpdateUIEvent &event)
 {
-	event.Enable(!m_filepath.empty());
+//	event.Enable(!m_filepath.empty());
 }
 
 

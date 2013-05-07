@@ -32,6 +32,10 @@ public:
     static void dump(type_xml_node &parent,dumpContext &ctx);
     static void createLights(ImportContext &ctx,type_xml_node &parents);
     static const std::string&  getImageMapPath(const slg::ImageMapCache &imcache,const slg::ImageMap *im);
+    ///@brief 指示场景中是否有超过两个(含2个)灯光。
+    static bool hasTwoOrMoreLighter(slg::Scene *scene);
+    ///@brief 返回场景中的光源总数。
+    static int getLighterNumber(slg::Scene *scene);
 private:
     static bool isDefault_turbidity(float tur)
     {

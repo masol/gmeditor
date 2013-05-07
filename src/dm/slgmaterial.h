@@ -103,8 +103,13 @@ public:
     /** @brief 从xmlnode中定义一个材质。如果id未指定，尝试从xmlnode中读入，否则会自动创建一个随机id.
     **/
     void createMaterial(ImportContext &ctx,std::string& id,type_xml_node &xmlnode);
-    ///@brief 改进slg缺陷，递归检查一个材质是否是光源。
+    /**@brief 改进slg缺陷，递归检查一个材质是否是光源。
+    **/
     static  bool    materialIsLight(const slg::Material *pmat);
+    /**@brief get the lighter number this material contain.
+     * @return the lighter number this material contain.
+    **/
+    static  int     materialLightNum(const slg::Material *pmat);
 
     ///@brief fix slg's ToProperties bug.
     const std::string&    dump(luxrays::Properties &prop,const slg::Material* pMat);

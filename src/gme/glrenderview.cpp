@@ -36,6 +36,7 @@ const char* GlRenderView::vm_opt_path = "window.editor.viewmode";
 
 GlRenderView::GlRenderView(wxFrame* parent) : inherited(parent,wxID_ANY)
 {
+    m_bEnable = true;
     //初始化显示模式。
     int viewMode = Option::instance().get<int>(vm_opt_path,GlRenderFrame::VM_DOCSIZE);
 

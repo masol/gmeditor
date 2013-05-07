@@ -119,7 +119,7 @@ DocSetting::disableSun(void)
     if(session && session->renderConfig->scene)
     {
         slg::Scene  *scene = session->renderConfig->scene;
-        if(scene->sunLight)
+        if(ExtraSettingManager::hasTwoOrMoreLighter(scene) && scene->sunLight)
         {
             session->Stop();
             delete scene->sunLight;
@@ -139,7 +139,7 @@ DocSetting::disableEnv(void)
     if(session && session->renderConfig->scene)
     {
         slg::Scene  *scene = session->renderConfig->scene;
-        if(scene->envLight)
+        if(ExtraSettingManager::hasTwoOrMoreLighter(scene) && scene->envLight)
         {
             session->Stop();
             delete scene->envLight;
@@ -154,7 +154,6 @@ DocSetting::disableEnv(void)
 bool
 DocSetting::changeSunTurbidity(float t)
 {
-    bool    bSetOK = false;
 	slg::RenderSession* session = pDocData->getSession();
     if(session && session->renderConfig->scene->sunLight)
     {
@@ -169,7 +168,6 @@ DocSetting::changeSunTurbidity(float t)
 bool
 DocSetting::changeSunRelsize(float s)
 {
-    bool    bSetOK = false;
 	slg::RenderSession* session = pDocData->getSession();
     if(session && session->renderConfig->scene->sunLight)
     {
@@ -184,7 +182,6 @@ DocSetting::changeSunRelsize(float s)
 bool
 DocSetting::changeSunGain(const luxrays::Spectrum &g)
 {
-    bool    bSetOK = false;
 	slg::RenderSession* session = pDocData->getSession();
     if(session && session->renderConfig->scene->sunLight)
     {
@@ -199,7 +196,6 @@ DocSetting::changeSunGain(const luxrays::Spectrum &g)
 bool
 DocSetting::changeSunDir(const luxrays::Vector &dir)
 {
-    bool    bSetOK = false;
 	slg::RenderSession* session = pDocData->getSession();
     if(session && session->renderConfig->scene->sunLight)
     {
@@ -215,7 +211,6 @@ DocSetting::changeSunDir(const luxrays::Vector &dir)
 bool
 DocSetting::changeSkyDir(const luxrays::Vector &dir)
 {
-    bool    bSetOK = false;
 	slg::RenderSession* session = pDocData->getSession();
     if(session && session->renderConfig->scene->envLight)
     {
@@ -234,7 +229,6 @@ DocSetting::changeSkyDir(const luxrays::Vector &dir)
 bool
 DocSetting::changeSkyTurbidity(float t)
 {
-    bool    bSetOK = false;
 	slg::RenderSession* session = pDocData->getSession();
     if(session && session->renderConfig->scene->envLight)
     {
@@ -253,7 +247,6 @@ DocSetting::changeSkyTurbidity(float t)
 bool
 DocSetting::changeEnvUDelta(float d)
 {
-    bool    bSetOK = false;
 	slg::RenderSession* session = pDocData->getSession();
     if(session && session->renderConfig->scene->envLight)
     {
@@ -272,7 +265,6 @@ DocSetting::changeEnvUDelta(float d)
 bool
 DocSetting::changeEnvVDelta(float d)
 {
-    bool    bSetOK = false;
 	slg::RenderSession* session = pDocData->getSession();
     if(session && session->renderConfig->scene->envLight)
     {
@@ -291,7 +283,6 @@ DocSetting::changeEnvVDelta(float d)
 bool
 DocSetting::changeEnvGain(const luxrays::Spectrum &g)
 {
-    bool    bSetOK = false;
 	slg::RenderSession* session = pDocData->getSession();
     if(session && session->renderConfig->scene->envLight)
     {
