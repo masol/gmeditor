@@ -40,7 +40,7 @@ public:
     EnvLightPage();
     virtual ~EnvLightPage();
 private:
-    bool OnEnvtypeChanged(wxPGProperty* p,int type);
+    bool OnEnvtypeChanged(wxPGProperty* p,unsigned int type);
 protected:
     void OnPropertyChanging( wxPropertyGridEvent& event );
     void OnPropertyChange( wxPropertyGridEvent& event );

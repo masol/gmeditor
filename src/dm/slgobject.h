@@ -49,29 +49,6 @@ private:
     /** @brief  保存了mesh组。根节点只作为容器节点存在，数据无效。
     **/
     ObjectNode                              m_objectGroup;
-    /** @brief 保存了被删除的object(只保存mesh,不保存组节点).不再使用强制数据删除，所有删除的object数据并未删除，只是被移到这里。
-    **/
-    struct  removedObject{
-    private:
-        inline void    assignFrom(const removedObject& ref)
-        {
-            mesh = ref.mesh;
-            materialProps = ref.materialProps;
-        }
-    public:
-        ObjectNode              mesh;
-        luxrays::Properties     materialProps;
-        removedObject(const removedObject& ref)
-        {
-            assignFrom(ref);
-        }
-        inline removedObject& operator=(const removedObject &ref)
-        {
-            assignFrom(ref);
-            return *this;
-        }
-    };
-    std::vector<removedObject>                 m_removedObject;
 public:
     inline  ObjectNode*     findObject(const std::string &id)
     {
@@ -79,7 +56,6 @@ public:
     }
     void    clear(){
         m_objectGroup.clear();
-        m_removedObject.clear();
     }
     inline  ObjectNode&     getRoot(void){
         return m_objectGroup;

@@ -11,7 +11,7 @@
 //  or FITNESS FOR A PARTICULAR PURPOSE.                                    //
 //                                                                          //
 //  You should have received a copy of the LGPL License along with this     //
-//  program.  iiiiIf not, see <http://www.render001.com/gmeditor/licenses>.     //
+//  program.  If not, see <http://www.render001.com/gmeditor/licenses>.     //
 //                                                                          //
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
@@ -33,6 +33,7 @@
 #include "data/xpmres.h"
 #include "glrenderview.h"
 #include "filedialog.h"
+#include "gmestatus.h"
 
 namespace gme{
 
@@ -54,6 +55,8 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
     EVT_UPDATE_UI_RANGE(cmd::GID_PANE_BEGIN,cmd::GID_PANE_END,MainFrame::onUpdateViewPane)
     EVT_MENU_RANGE(cmd::GID_VM_BEGIN,cmd::GID_VM_END,MainFrame::onViewmodeChanged)
     EVT_UPDATE_UI_RANGE(cmd::GID_VM_BEGIN,cmd::GID_VM_END,MainFrame::onUpdateViewmode)
+    EVT_MENU_RANGE(cmd::GID_MD_START,cmd::GID_MD_END,MainFrame::onEditmodeChanged)
+    EVT_UPDATE_UI_RANGE(cmd::GID_MD_START,cmd::GID_MD_END,MainFrame::onUpdateEditmode)
 
 	EVT_UPDATE_UI(wxID_DELETE,MainFrame::onUpdateMenuEditDelete)
 	EVT_UPDATE_UI(cmd::GID_RENDER_START,MainFrame::onUpdateRenderStart)
@@ -61,13 +64,16 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_SIZE(MainFrame::onSize)
 	EVT_CLOSE(MainFrame::onClose)
 
+
+    EVT_MOUSEWHEEL(MainFrame::mouseWheelMoved)
+
+
 END_EVENT_TABLE()
 
 MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
                   wxDefaultPosition, wxSize(800,600),
                   wxDEFAULT_FRAME_STYLE)
 {
-    m_pGauge = NULL;
     createMenubar();
 	createToolbar();
     createStatusbar();
@@ -138,10 +144,20 @@ MainFrame::createMenubar()
         wxMenu *pEditMenu = new wxMenu();
 		pEditMenu->Append(cmd::GID_IMPORT, gmeWXT("导入(&I)"), gmeWXT("从文件中导入模型到当前场景"));
         pEditMenu->Append(wxID_DELETE, gmeWXT("删除(&D)"), gmeWXT("删除选中模型"));
+
 		pEditMenu->AppendSeparator();
 		pEditMenu->Append(cmd::GID_RENDER_START,gmeWXT("开始渲染"),gmeWXT("开始渲染当前场景"));
 		pEditMenu->Append(cmd::GID_RENDER_STOP,gmeWXT("结束渲染"),gmeWXT("结束当前场景的渲染"));
 		pEditMenu->Append(cmd::GID_RENDER_PAUSE,gmeWXT("暂停渲染"),gmeWXT("暂停渲染当前场景"));
+
+		pEditMenu->AppendSeparator();
+        wxMenu *pEditmodeMenu = new wxMenu();
+		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_LOCK, gmeWXT("锁定(&L)"), gmeWXT("锁定窗口。"));
+		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_PANE, gmeWXT("平移(&P)"), gmeWXT("平移控制。"));
+		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_ROTATE, gmeWXT("旋转(&R)"), gmeWXT("自身旋转。"));
+		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_ROTATE_AROUND_CENTER, gmeWXT("中心点旋转(&C)"), gmeWXT("绕摄像机焦点旋转。"));
+		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_ZOOM, gmeWXT("缩放(&Z)"), gmeWXT("缩放控制。"));
+        pEditMenu->AppendSubMenu(pEditmodeMenu,gmeWXT("编辑模式(&M)"),gmeWXT("控制主窗口的编辑模式。"));
 
         pMenuBar->Append(pEditMenu, gmeWXT("编辑(&E)"));
     }
@@ -238,12 +254,9 @@ void
 MainFrame::createStatusbar()
 {
     DECLARE_WXCONVERT;
-    wxStatusBar *pStatusBar = CreateStatusBar(SFP_TOTOAL);
-    int w[SFP_TOTOAL] = {-10,-7,-1,-1,-1};
-    pStatusBar->SetStatusWidths(SFP_TOTOAL,w);
-    m_pGauge = new wxGauge(pStatusBar, wxID_ANY, 100);
-    m_pGauge->SetValue(50);
-    updateProgressbar();
+    wxStatusBar *pStatusBar = new GMEStatusBar(this,wxSTB_DEFAULT_STYLE);
+    this->SetStatusBar(pStatusBar);
+    this->PositionStatusBar();
 	SetStatusText(gmeWXT("就绪"), 0);
 }
 
@@ -263,8 +276,20 @@ void
 MainFrame::onSize(wxSizeEvent& event)
 {
     //adjust status bar size.
-    updateProgressbar();
 }
+
+void
+MainFrame::onEditmodeChanged(wxCommandEvent &event)
+{
+    this->m_renderView->setEditmodeFromCmd(event.GetId());
+}
+
+void
+MainFrame::onUpdateEditmode(wxUpdateUIEvent &event)
+{
+    event.Check(this->m_renderView->getEditmodeCmd() == event.GetId());
+}
+
 
 void
 MainFrame::onViewmodeChanged(wxCommandEvent &event)

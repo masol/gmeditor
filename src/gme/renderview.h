@@ -29,8 +29,10 @@ class RenderView : public wxScrolledWindow
 typedef wxScrolledWindow    inherited;
 protected:
     boost::posix_time::ptime    m_micro_tick;
+    boost::posix_time::ptime    m_last_update_tick;
     float    opt_RotateStep;
     long     opt_MinEditInterval;
+    long     opt_MinUpdateInterval;
     long     m_lastx;
     long     m_lasty;
     int      m_action;

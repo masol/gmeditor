@@ -35,8 +35,8 @@ class MainFrame : public wxFrame {
 public:
     MainFrame(wxWindow* parent);
     virtual ~MainFrame();
+protected:
 	void onClose(wxCloseEvent& event);
-public:
     void onSize(wxSizeEvent& event);
 
 	/** Processes menu File|Open */
@@ -79,19 +79,18 @@ public:
 	/** Updata Render Stop UI**/
 	void onUpdateRenderStop(wxUpdateUIEvent& event);
 
+    void onEditmodeChanged(wxCommandEvent &event);
+    void onUpdateEditmode(wxUpdateUIEvent &event);
+
 	void onViewmodeChanged(wxCommandEvent &event);
     void onUpdateViewmode(wxUpdateUIEvent &event);
 	/** Update Save\Export\Import UI**/
 	void onUpdateSaveAndEdit(wxUpdateUIEvent &event);
-
-	enum{
-		SFP_INFO = 0,
-		SFP_STAT = 1,
-		SFP_TIME_ELAPSE = 2,
-		SFP_PROG = 3,
-		SFP_TIME_TOTAL = 4,
-		SFP_TOTOAL = 5
-	};
+    void mouseWheelMoved(wxMouseEvent& event)
+    {
+        int i = 0;
+    }
+public:
     inline static  boost::function<bool (std::string &)>&  getImageFilepathFunc(void)
     {
         return sv_getImageFilepath;
@@ -100,17 +99,7 @@ private:
     static  boost::function<bool (std::string &)>   sv_getImageFilepath;
 	bool getImageFilepath(std::string &result);
     wxAuiPaneInfo&  getPaneFromCmdID(int cmdid);
-    inline void updateProgressbar(){
-        wxRect rect;
-        wxStatusBar *pSB = this->GetStatusBar();
-        if(pSB && pSB->GetFieldRect(SFP_PROG,rect))
-        {
-            m_pGauge->SetSize(rect.GetWidth(),rect.GetHeight());
-            m_pGauge->Move(rect.x,rect.y);
-        }
-    }
 	//not need free members.
-    wxGauge         *m_pGauge;
     ObjectView      *m_objectView;
     GlRenderView    *m_renderView;
 	PropFrame       *m_propFrame;

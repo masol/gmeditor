@@ -217,6 +217,9 @@ DocIO::loadSlgScene(const std::string &path)
     {
         std::cerr << err.what() << "(" << err.err() << ")" << std::endl;
         pDocData->m_session.reset();
+    }catch(std::runtime_error err)
+    {
+        pDocData->m_session.reset();
     }
     return false;
 }

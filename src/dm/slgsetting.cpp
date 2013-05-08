@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "config.h"
+#include "utils/pathext.h"
 #include "dm/doc.h"
 #include "slgsetting.h"
 #include "docprivate.h"
@@ -43,8 +44,24 @@ ExtraSettingManager::dump(type_xml_node &parent,dumpContext &ctx)
             pSelf->append_attribute(allocate_attribute(pDoc,constDef::type,"infinite"));
 
             //get the file path and output it.
-            std::string fullpath = boost::filesystem::canonical(getImageMapPath(scene->imgMapCache,pRealLight->GetImageMap()),ctx.target).string();
-            pSelf->append_attribute(allocate_attribute(pDoc,constDef::file,fullpath));
+
+            const std::string  &imagePath = getImageMapPath(scene->imgMapCache,pRealLight->GetImageMap());
+
+            ///@fixme we need a document path,here imagePath may base document path.
+            boost::filesystem::path src_fullpath = boost::filesystem::absolute(imagePath,boost::filesystem::current_path());
+            std::string write_file;
+            if(ctx.isCopyResource())
+            {//保存资源。
+	            boost::filesystem::path target = ctx.target / src_fullpath.filename();
+                target = boost::filesystem::gme_ext::ensureNonExistFile(target);
+
+                boost::filesystem::copy(src_fullpath,target);
+                write_file = target.filename().string();
+            }else{//不保存资源，直接保存src_filepath.
+                write_file = src_fullpath.filename().string();
+            }
+
+            pSelf->append_attribute(allocate_attribute(pDoc,constDef::file,write_file));
 
             luxrays::Spectrum   gain = pRealLight->GetGain();
             std::string gainStr = boost::str(boost::format("%f %f %f")%gain.r%gain.g%gain.b);
@@ -126,7 +143,8 @@ ExtraSettingManager::createLights(ImportContext &ctx,type_xml_node &parents)
                 if(pFile)
                 {
                     type = slg::TYPE_IL;
-                    ss << "scene.infinitelight.file = " << pFile->value() << std::endl;
+                    boost::filesystem::path fullpath = boost::filesystem::absolute(pFile->value(),ctx.docBasepath());
+                    ss << "scene.infinitelight.file = " << fullpath.string() << std::endl;
                     type_xml_attr   *prop = pLights->first_attribute("gain");
                     if(prop)
                     {

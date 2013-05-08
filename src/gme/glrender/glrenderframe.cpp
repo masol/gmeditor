@@ -21,6 +21,7 @@
 #include "dm/docimg.h"
 #include "dm/doccamera.h"
 #include "glrenderframe.h"
+#include "../cmdids.h"
 
 
 namespace gme{
@@ -48,6 +49,8 @@ GlRenderFrame::GlRenderFrame(wxWindow* parent,int *args,int vm) : inherited(pare
 {
     m_context.reset(new wxGLContext(this));
 
+    m_edit_mode = cmd::GID_MD_ROTATE;
+
     m_needClearColor = true;
     m_rorateAroundTarget = false;
 
@@ -58,7 +61,6 @@ GlRenderFrame::GlRenderFrame(wxWindow* parent,int *args,int vm) : inherited(pare
     m_docWidth = m_docHeight = 0;
     ///@todo: connection from option.
     SetMinSize( wxSize(20, 20) );
-    m_action = ACTION_INVALID;
     opt_RotateStep = 4.f;
     m_micro_tick = boost::posix_time::microsec_clock::local_time();
     //0.2 second.
@@ -229,6 +231,54 @@ GlRenderFrame::translateCam(wxMouseEvent& event)
 }
 
 void
+GlRenderFrame::zoomCam(wxMouseEvent& event)
+{
+    boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
+    boost::posix_time::time_duration diff = now - m_micro_tick;
+    if(diff.total_milliseconds() > opt_MinEditInterval)
+    {
+        long x,y;
+        event.GetPosition(&x,&y);
+		if(x != m_lastx || y != m_lasty)
+		{
+			gme::DocCamera doccam;
+			int doc_diffy = YDiffV2D(m_lasty - y);
+            float step = (float)doc_diffy / 10.0f;
+
+            doccam.straightTranslate( step * getFactor(event));
+
+			m_lastx = x;
+			m_lasty = y;
+			m_micro_tick = now;
+		}
+    }
+}
+
+
+void
+GlRenderFrame::rotateCamAroundCenter(wxMouseEvent& event)
+{
+    boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
+    boost::posix_time::time_duration diff = now - m_micro_tick;
+    if(diff.total_milliseconds() > opt_MinEditInterval)
+    {
+        long x,y;
+        event.GetPosition(&x,&y);
+		if(x != m_lastx || y != m_lasty)
+		{
+			gme::DocCamera doccam;
+			int doc_diffx = XDiffV2D(m_lastx - x);
+			int doc_diffy = YDiffV2D(m_lasty - y);
+            doccam.targetRotate(doc_diffx, doc_diffy,getFactor(event));
+			m_lastx = x;
+			m_lasty = y;
+			m_micro_tick = now;
+		}
+    }
+}
+
+
+void
 GlRenderFrame::rotateCam(wxMouseEvent& event)
 {
     boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
@@ -242,12 +292,7 @@ GlRenderFrame::rotateCam(wxMouseEvent& event)
 			gme::DocCamera doccam;
 			int doc_diffx = XDiffV2D(m_lastx - x);
 			int doc_diffy = YDiffV2D(m_lasty - y);
-			if(m_rorateAroundTarget)
-			{
-                doccam.targetRotate(doc_diffx, doc_diffy,getFactor(event));
-			}else{
-                doccam.rotate(doc_diffx, doc_diffy,getFactor(event));
-			}
+            doccam.rotate(doc_diffx, doc_diffy,getFactor(event));
 			m_lastx = x;
 			m_lasty = y;
 			m_micro_tick = now;
@@ -260,10 +305,28 @@ void GlRenderFrame::mouseLeftDown(wxMouseEvent& event)
     event.GetPosition(&m_lastx,&m_lasty);
 }
 
+void GlRenderFrame::doMouseEvent(wxMouseEvent& event)
+{
+    switch(m_edit_mode)
+    {
+    case cmd::GID_MD_PANE:
+        translateCam(event);
+        break;
+    case cmd::GID_MD_ROTATE:
+        rotateCam(event);
+        break;
+    case cmd::GID_MD_ROTATE_AROUND_CENTER:
+        rotateCamAroundCenter(event);
+        break;
+    case cmd::GID_MD_ZOOM:
+        zoomCam(event);
+        break;
+    }
+}
+
 void GlRenderFrame::mouseLeftReleased(wxMouseEvent& event)
 {
-//    wxMessageBox( wxT("You pressed a custom button") );
-    rotateCam(event);
+    doMouseEvent(event);
 }
 
 void GlRenderFrame::mouseMiddleDown(wxMouseEvent& event)
@@ -273,7 +336,6 @@ void GlRenderFrame::mouseMiddleDown(wxMouseEvent& event)
 
 void GlRenderFrame::mouseMiddleReleased(wxMouseEvent& event)
 {
-    translateCam(event);
 }
 
 void GlRenderFrame::mouseLeftWindow(wxMouseEvent& event)
@@ -282,14 +344,18 @@ void GlRenderFrame::mouseLeftWindow(wxMouseEvent& event)
 
 void GlRenderFrame::mouseMoved(wxMouseEvent& event)
 {
+    if(m_edit_mode == cmd::GID_MD_LOCK)
+        return;
     bool   bLeftdown = event.ButtonIsDown(wxMOUSE_BTN_LEFT);
     bool   bMiddledown = event.ButtonIsDown(wxMOUSE_BTN_MIDDLE);
     if(bLeftdown && bMiddledown)
-    {
+    {//left_middle down.
+        zoomCam(event);
     }else if(bLeftdown)
-    {
-        rotateCam(event);
-    }else if(bMiddledown)
+    {//根据编辑模式
+        doMouseEvent(event);
+    }
+    else if(bMiddledown)
     {
         translateCam(event);
     }
@@ -297,6 +363,8 @@ void GlRenderFrame::mouseMoved(wxMouseEvent& event)
 
 void GlRenderFrame::mouseWheelMoved(wxMouseEvent& event)
 {
+    if(m_edit_mode == cmd::GID_MD_LOCK)
+        return;
     boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
     boost::posix_time::time_duration diff = now - m_micro_tick;
     if(diff.total_milliseconds() > opt_MinEditInterval)

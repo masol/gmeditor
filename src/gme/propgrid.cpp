@@ -37,8 +37,6 @@
 
 #include <wx/artprov.h>
 #include "stringutil.h"
-#include "property.h"
-#include "mainframe.h"
 
 namespace gme{
 

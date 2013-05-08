@@ -308,24 +308,25 @@ DocSetting::changeHDRfile(const std::string &fullpath)
     if(session && session->renderConfig->scene)
     {
         slg::Scene  *scene = session->renderConfig->scene;
-        if(scene->envLight)
-        {
-            luxrays::Properties prop;
-            if(scene->envLight->GetType () == slg::TYPE_IL)
-            {
-                luxrays::Properties prop = scene->envLight->ToProperties(scene->imgMapCache);
-            }
-            prop.SetString("scene.infinitelight.file",fullpath);
 
-            //SlgUtil::Editor editor(session);
-            session->Stop();
-            delete scene->envLight;
-            scene->envLight = NULL;
-            scene->AddInfiniteLight(prop);
-            session->Start();
-            //editor.addAction(slg::INFINITELIGHT_EDIT);
-            bSetOK = true;
+        luxrays::Properties prop;
+        if(scene->envLight && scene->envLight->GetType () == slg::TYPE_IL)
+        {
+            prop = scene->envLight->ToProperties(scene->imgMapCache);
         }
+        prop.SetString("scene.infinitelight.file",fullpath);
+
+        //SlgUtil::Editor editor(session);
+        session->Stop();
+		if(scene->envLight)
+		{
+			delete scene->envLight;
+			scene->envLight = NULL;
+		}
+        scene->AddInfiniteLight(prop);
+        session->Start();
+        //editor.addAction(slg::INFINITELIGHT_EDIT);
+        bSetOK = true;
     }
     return bSetOK;
 }

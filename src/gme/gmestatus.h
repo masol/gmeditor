@@ -16,48 +16,56 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef GME_PROPERTY_H
-#define GME_PROPERTY_H
+#ifndef  GME_GMESTATUS_H
+#define  GME_GMESTATUS_H
 
-#include <wx/propgrid/propgrid.h>
-#include "dm/xmlutil.h"
+#include <wx/wx.h>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace gme{
 
-class PropertyBase
+class GMEStatusBar : public wxStatusBar
 {
 public:
-	PropertyBase(){};
-	~PropertyBase(){};
-	
-	virtual void create(wxPGProperty *parent, type_xml_node *pNode) = 0;
-private:
+    typedef    wxStatusBar     inherit;
+    GMEStatusBar(wxWindow *parent, long style = wxSTB_DEFAULT_STYLE);
+    virtual ~GMEStatusBar();
+protected:
+	enum{
+		Field_TEXT,
+		Field_END,
+		Field_PROGRESS,
+		Field_CONVERGENCE,
+		Field_PASS,
+		Field_TIME,
+		Field_RPS,
+		Field_SPS,
+		Field_TOTOAL
+	};
 
+    void UpdateInfo();
+
+    // event handlers
+    void OnSize(wxSizeEvent& event);
+    void OnIdle(wxIdleEvent& event);
+    void OnGaugeClick(wxMouseEvent& event);
+    void OnSetPass(wxCommandEvent &event);
+    void OnSetTime(wxCommandEvent &event);
+    void OnSetConvergence(wxCommandEvent &event);
+    void OnClearCondition(wxCommandEvent &event);
+    void SetTimeField(unsigned int time,int field_id);
+private:
+    wxStaticBitmap *m_statbmp;
+    wxGauge        *m_pGauge;
+    int             m_targetPass;   //目标pass.
+    int             m_targetTime;   //目标时间。
+    int             m_targetConv;   //目标覆盖率。
+    boost::posix_time::ptime    m_micro_tick;   //控制刷新率.
+    int             opt_refresh_tick;   //0.5s default
+
+    DECLARE_EVENT_TABLE()
 };
 
-class MaterialProperty : public PropertyBase
-{
-public:
-	MaterialProperty();
-	~MaterialProperty(){};
-	
-	void	 create(wxPGProperty *parent, type_xml_node *pNode);
+} //end namespace gme
 
-private:
-	wxPGChoices m_soc;
-};
-
-class TexProperty : public PropertyBase
-{
-public:
-	TexProperty();
-	~TexProperty(){};
-	
-	void create(wxPGProperty *parent, type_xml_node *pNode);
-private:
-	wxPGChoices m_soc;
-};
-
-
-}
-#endif // GME_PROPERTY_H
+#endif //GME_GMESTATUS_H

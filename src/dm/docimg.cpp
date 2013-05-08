@@ -194,19 +194,36 @@ DocImg::saveImage(const std::string &fullpath)
 
 
 bool
+DocImg::getRenderInfo(RenderInfo &ri)
+{
+    slg::RenderSession* session = pDocData->getSession();
+
+    if(session && session->film)
+    {
+        ri.convergence = session->renderEngine->GetConvergence();
+        ri.elapsedTime = session->renderEngine->GetRenderingTime();
+        ri.pass = session->renderEngine->GetPass();
+        ri.totalRaysSec = session->renderEngine->GetTotalRaysSec();
+        ri.totalSamplesSec = session->renderEngine->GetTotalSamplesSec();
+        return true;
+    }
+    return false;
+}
+
+bool
 DocImg::getData(ImageDataBase *pdata)
 {
     slg::RenderSession* session = pDocData->getSession();
 
     if(session && session->film)
     {
-        char    captionBuffer[1024];
-    	sprintf(captionBuffer, "[Pass %3d][Avg. samples/sec % 3.2fM][Avg. rays/sec % 4dK on %.1fK tris]",
-		    session->renderEngine->GetPass(),
-		    session->renderEngine->GetTotalSamplesSec() / 1000000.0,
-		    int(session->renderEngine->GetTotalRaysSec() / 1000.0),
-		    session->renderConfig->scene->dataSet->GetTotalTriangleCount() / 1000.f);
-		std::cerr << captionBuffer << std::endl;
+//        char    captionBuffer[1024];
+//    	sprintf(captionBuffer, "[Pass %3d][Avg. samples/sec % 3.2fM][Avg. rays/sec % 4dK on %.1fK tris]",
+//		    session->renderEngine->GetPass(),
+//		    session->renderEngine->GetTotalSamplesSec() / 1000000.0,
+//		    int(session->renderEngine->GetTotalRaysSec() / 1000.0),
+//		    session->renderConfig->scene->dataSet->GetTotalTriangleCount() / 1000.f);
+//		std::cerr << captionBuffer << std::endl;
 
         session->renderEngine->UpdateFilm();
 	    session->film->UpdateScreenBuffer();

@@ -30,13 +30,13 @@ namespace gme{
 
 const char* GlRenderView::vm_opt_path = "window.editor.viewmode";
 
-//BEGIN_EVENT_TABLE(GlRenderView, inherited)
-//END_EVENT_TABLE()
-//
+BEGIN_EVENT_TABLE(GlRenderView, GlRenderView::inherited)
+    EVT_MOUSEWHEEL(GlRenderView::mouseWheelMoved)
+END_EVENT_TABLE()
+
 
 GlRenderView::GlRenderView(wxFrame* parent) : inherited(parent,wxID_ANY)
 {
-    m_bEnable = true;
     //初始化显示模式。
     int viewMode = Option::instance().get<int>(vm_opt_path,GlRenderFrame::VM_DOCSIZE);
 
@@ -161,6 +161,18 @@ void
 GlRenderView::setViewmodeFromCmd(int cmds)
 {
     this->setViewmode(getViewmodeFromCmd(cmds));
+}
+
+void
+GlRenderView::setEditmodeFromCmd(int mode)
+{
+    this->m_glframe->editMode(mode);
+}
+
+int
+GlRenderView::getEditmodeCmd(void)
+{
+    return  this->m_glframe->editMode();
 }
 
 

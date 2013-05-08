@@ -42,7 +42,7 @@ namespace gme{
 
 
 bool
-EnvLightPage::OnEnvtypeChanged(wxPGProperty* p,int type)
+EnvLightPage::OnEnvtypeChanged(wxPGProperty* p,unsigned int type)
 {
     bool    bChangeOk = false;
     DocSetting   setting;
@@ -87,7 +87,7 @@ EnvLightPage::OnPropertyChanging( wxPropertyGridEvent& event )
         BOOST_ASSERT(any_value.CheckType<int>());
         int type = any_value.As<int>();
 
-        if(!OnEnvtypeChanged(p,type) && event.CanVeto())
+        if(!OnEnvtypeChanged(p,(unsigned int)type) && event.CanVeto())
         {
             event.Veto();
         }

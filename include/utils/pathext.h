@@ -22,6 +22,7 @@
 //#define BOOST_FILESYSTEM_VERSION 3
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/lexical_cast.hpp>
 
 /**
  * @file        pathext.h
@@ -48,6 +49,26 @@ namespace gme_ext{
 	/** @brief 获取指定路径的后缀。
 	**/
 	std::string   get_extension(const std::string &path);
+
+
+    /** @brief 在给定文件名的基础上，通过添加数字后缀的方式返回一个尚未创建的文件。
+    **/
+	inline boost::filesystem::path     ensureNonExistFile(const boost::filesystem::path &src_target)
+	{
+        if(boost::filesystem::exists(src_target))
+        {//目标文件已经存在。添加后缀.
+            boost::filesystem::path target(src_target);
+            std::string extension = target.extension().string();
+            const std::string &fullpath = target.string();
+            std::string stempath = target.string().substr(0,fullpath.length() - extension.length());
+            int suffix = 1;
+            do{
+                target = boost::filesystem::path(stempath + boost::lexical_cast<std::string>(suffix++) + extension);
+            }while(boost::filesystem::exists(target));
+            return target;
+        }
+        return src_target;
+	}
 
     inline char    getSeparator(void)
     {

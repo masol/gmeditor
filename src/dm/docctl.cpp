@@ -33,7 +33,7 @@ DocCtl::isRuning()
 bool
 DocCtl::start()
 {
-    if(pDocData->m_session)
+    if(pDocData->m_session && !pDocData->m_started)
     {
         pDocData->m_session->Start();
         pDocData->m_started = true;
@@ -45,7 +45,7 @@ DocCtl::start()
 bool
 DocCtl::stop()
 {
-    if(pDocData->m_session)
+    if(pDocData->m_session && pDocData->m_started)
     {
         pDocData->m_session->Stop();
         pDocData->m_started = false;

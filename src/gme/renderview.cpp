@@ -51,6 +51,10 @@ RenderView::RenderView(wxFrame* parent) : inherited(parent)
     m_micro_tick = boost::posix_time::microsec_clock::local_time();
     //0.2 second.
     opt_MinEditInterval = 200;
+
+    //default is 3.3fps.
+    m_last_update_tick = boost::posix_time::microsec_clock::local_time();
+    opt_MinUpdateInterval = 300;
 }
 
 RenderView::~RenderView()
@@ -60,7 +64,14 @@ RenderView::~RenderView()
 void
 RenderView::onIdle(wxIdleEvent &event)
 {
-    this->Update();
+    boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
+    boost::posix_time::time_duration diff = now - m_last_update_tick;
+    if(diff.total_milliseconds() > opt_MinUpdateInterval)
+    {
+        this->Update();
+        m_last_update_tick = now;
+    }
+    event.Skip();
 }
 
 /*

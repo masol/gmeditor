@@ -75,10 +75,18 @@ struct ImageDataScroll : public ImageDataBase
 class DocImg : public DocScopeLocker
 {
 public:
+    struct  RenderInfo{
+        unsigned int    pass;
+        float           convergence;
+        double          elapsedTime;
+        double          totalRaysSec;
+        double          totalSamplesSec;
+    };
     typedef boost::function<void (int,int)>     type_imagesize_handler;
 protected:
     bool    getData(ImageDataScale *pdata,int w, int h,const float* pixels);
 public:
+    bool    getRenderInfo(RenderInfo &ri);
     bool    getSize(int &w,int &h);
     bool    setSize(int w,int h);
     void    onImagesizeChanged(type_imagesize_handler handler);

@@ -810,16 +810,8 @@ ExtraTextureManager::dump(type_xml_node &parent,const std::string &tag,const slg
                         boost::filesystem::path     origpath(*porigPath);
                         boost::filesystem::path   target = ctx.target;
                         target /= origpath.filename();
-                        if(boost::filesystem::exists(target))
-                        {//目标文件已经存在。添加后缀.
-                            std::string extension = target.extension().string();
-                            const std::string &fullpath = target.string();
-                            std::string stempath = target.string().substr(0,fullpath.length() - extension.length());
-                            int suffix = 1;
-                            do{
-                                target = boost::filesystem::path(stempath + boost::lexical_cast<std::string>(suffix++) + extension);
-                            }while(boost::filesystem::exists(target));
-                        }
+
+                        target = boost::filesystem::gme_ext::ensureNonExistFile(target);
                         //pImage->WriteImage(target.string());
                         //直接拷贝原始文件。
                         boost::filesystem::copy(*porigPath,target);

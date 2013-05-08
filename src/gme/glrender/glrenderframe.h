@@ -61,15 +61,7 @@ protected:
     long     opt_MinEditInterval;
     long     m_lastx;
     long     m_lasty;
-    int      m_action;
-    ///@brief 是否允许编辑?
-    bool     m_bEnable;
-    enum{
-        ACTION_INVALID,
-        ACTION_CAM_ROTATE,
-        ACTION_CAM_TRANSLATE,
-        ACTION_MAX
-    };
+    int      m_edit_mode; //左钮编辑模式。
     inline float  getFactor(wxMouseEvent& event)
     {
         float factor = 1.0f;
@@ -81,7 +73,9 @@ protected:
     }
     void    rotateCam(wxMouseEvent& event);
     void    translateCam(wxMouseEvent& event);
-
+    void    rotateCamAroundCenter(wxMouseEvent& event);
+    void    zoomCam(wxMouseEvent& event);
+    void    doMouseEvent(wxMouseEvent& event);
     ///@brief virtual coord to document coord translate. update after background draw called.
     ///@detail our coord transform no rotation.
     Eigen::Vector2f     m_v2dTranslate;
@@ -118,13 +112,13 @@ protected:
 public:
     GlRenderFrame(wxWindow* parent,int* args,int vm);
     virtual ~GlRenderFrame();
-    inline bool    enable(void)const
+    inline int     editMode(void)const
     {
-        return m_bEnable;
+        return m_edit_mode;
     }
-    inline void    enable(bool e)
+    inline void    editMode(int mode)
     {
-        m_bEnable = e;
+        m_edit_mode = mode;
     }
     inline int     viewMode(void)const
     {
