@@ -60,23 +60,30 @@ clHardwareInfo::clHardwareInfo()
             it->getInfo((cl_platform_info)CL_PLATFORM_VENDOR, &platformVendor);
             GME_TRACE("found platform:",platformVendor);
 
-            m_platformNames.push_back(platformVendor);
-            std::vector<std::string>    devSet;
-            std::vector< cl::Device > devices;
-            if(CL_SUCCESS == it->getDevices(CL_DEVICE_TYPE_ALL,&devices))
-            {
-                std::vector< cl::Device >::iterator dit = devices.begin();
-                while(dit != devices.end())
+            try{
+                std::vector<std::string>    devSet;
+                std::vector< cl::Device > devices;
+                if(CL_SUCCESS == it->getDevices(CL_DEVICE_TYPE_GPU,&devices))
                 {
-                    std::string name,vendor;
-                    err = dit->getInfo((cl_platform_info)CL_DEVICE_NAME, &name);
-                    err = dit->getInfo((cl_platform_info)CL_DEVICE_VENDOR,&vendor);
-                    GME_TRACE("    name = ",name,";vendor=",vendor);
-                    devSet.push_back(vendor + ':' + name);
-                    ++dit;
+                    std::vector< cl::Device >::iterator dit = devices.begin();
+                    while(dit != devices.end())
+                    {
+                        std::string name,vendor;
+                        err = dit->getInfo((cl_platform_info)CL_DEVICE_NAME, &name);
+                        err = dit->getInfo((cl_platform_info)CL_DEVICE_VENDOR,&vendor);
+                        GME_TRACE("    name = ",name,";vendor=",vendor);
+                        devSet.push_back(vendor + ':' + name);
+                        ++dit;
+                    }
                 }
+                if(devSet.size() > 0)
+                {
+                    m_platformNames.push_back(platformVendor);
+                    m_deviceNames.push_back(devSet);
+                }
+            }catch(cl::Error err)
+            {//ignore no gpu platform error.
             }
-            m_deviceNames.push_back(devSet);
         }
     }catch(cl::Error err)
     {

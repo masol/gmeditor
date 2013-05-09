@@ -54,8 +54,8 @@ public:
     {
         DECLARE_WXCONVERT;
 	    pDialog = new wxFileDialog(parent, gmeWXT("选择打开文件"), _(""), _(""),
-						   gmeWXT("所有文件|*.*"),
-						   wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+						   gmeWXT("支持文件|*.bmp;*.cut;*.dds;*.exr;*.g3;*.gif;*.hdr;*.ico;*.iff;*.jbig;*.jng;*.jpg;*.jpeg;*.jpg2;*.j2k;*.koa;*.pcd;*.mng;*.pcx;*.pbm;*.pgm;*.ppm;*.pfm;*.png;*.pic;*.psd;*.raw;*.ras;*.sgi;*.tga;*.tif;*.wbmp;*.xbm;*.xpm|BMP文件(*.bmp)|*.bmp|Dr. Halo CUT文件(*.cut)|*.cut|DDS文件(*.dds)|*.dds|EXR文件(*.exr)|*.exr|Raw Fax G3文件(*.g3)|*.g3|GIF文件(*.gif)|*.gif|HDR文件(*.hdr)|*.hdr|ICO文件(*.ico)|*.ico|IFF文件(*.iff)|*.iff|JBIG文件(*.jbig)|*.jbig|JNG文件(*.jng)|*.jng|JPEG文件(*.jpeg;*.jpg;*.j2k)|*.j2k;*.jpg;*.jpeg|KOALA文件(*.koa)|*.koa|Kodak PhotoCD文件(*.pcd)|*.pcd|MNG文件(*.mng)|*.mng|pcx文件(*.pcx)|*.pcx|PBM文件(*.pbm)|*.pbm|PGM文件(*.pgm)|*.pgm|PPM文件(*.ppm)|*.ppm|PFM文件(*.pfm)|*.pfm|PNG文件(*.png)|*.png|Macintosh PICT文件(*.pict)|*.pict|Photoshop PSD文件(*.psd)|*.psd|RAW camera文件(*.raw)|*.raw|Sun RAS文件(*.ras)|*.ras|SGI文件(*.sgi)|*.sgi|TARGA文件(*.tga)|*.tga|TIFF文件(*.tif;*.tiff)|*.tif;*.tiff|WBMP文件(*.wbmp)|*.wbmp|XBM文件(*.xbm)|*.xbm|XPM文件(*.xpm)|*.xpm|所有文件(*.*)|*.*"),
+						   wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_PREVIEW);
     }
 };
 
@@ -66,7 +66,7 @@ public:
     {
         DECLARE_WXCONVERT;
 	    pDialog = new wxFileDialog(parent, gmeWXT("图片保存为"), _(""), _(""),
-						       gmeWXT("所有文件|*.*"),
+						       gmeWXT("支持文件|*.bmp;*.cut;*.dds;*.exr;*.g3;*.gif;*.hdr;*.ico;*.iff;*.jbig;*.jng;*.jpg;*.jpeg;*.jpg2;*.j2k;*.koa;*.pcd;*.mng;*.pcx;*.pbm;*.pgm;*.ppm;*.pfm;*.png;*.pic;*.psd;*.raw;*.ras;*.sgi;*.tga;*.tif;*.wbmp;*.xbm;*.xpm|BMP文件(*.bmp)|*.bmp|EXR文件(*.exr)|*.exr|GIF文件(*.gif)|*.gif|HDR文件(*.hdr)|*.hdr|ICO文件(*.ico)|*.ico|JBIG文件(*.jbig)|*.jbig|JNG文件(*.jng)|*.jng|JPEG文件(*.jpeg)|*.jpeg|JPEG-2000文件(*.jpg2)|*.jpg2|JPEG-2000 codestream文件(*.j2k)|*.j2k|PBM文件(*.pbm)|*.pbm|PGM文件(*.pgm)|*.pgm|PPM文件(*.ppm)|*.ppm|PFM文件(*.pfm)|*.pfm|PNG文件(*.png)|*.png|TARGA文件(*.targa)|*.targa|TIFF文件(*.tiff)|*.tiff|WBMP文件(*.wbmp)|*.wbmp|XPM文件(*.xpm)|*.xpm|所有文件(*.*)|*.*"),
 						       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     }
 };
@@ -79,7 +79,7 @@ public:
     {
         DECLARE_WXCONVERT;
 	    pDialog = new wxFileDialog(parent, gmeWXT("选择打开文件"), _(""), _(""),
-						   gmeWXT("所有文件|*.*|CFG文件(*.cfg)|*.cfg|SPS文件(*.sps)|*.sps|CTM文件(*.ctm)|*.ctm"),
+						   gmeWXT("支持文件|*.3ds;*.blend;*.dae;*.fbx;*.ifc;*.ase;*.dxf;*.hmp;*.md2;*.md3;*.md5;*.mdc;*.mdl;*.nff;*.ply;*.stl;*.x;*.obj;*.smd;*.lwo;*.lxo;*.lws;*.ter;*.ac3d;*.ms3d;*.cob;*.q3bsp;*.xgl;*.csm;*.bvh;*.b3d;*.ndo;*.xml;*.q3d;*.cfg;*.sps;*.slg;*.fbx|3D MAX模型文件(*.3ds)|*.3ds|Blender文件(*.blend)|*.blend|Collada文件(*.dae)|*.dae|Kaydara数据交换文件(*.fbx)|*.fbx|IFC-STEP文件(*.ifc)|*.ifc|ASII场景导出文件(*.ase)|*.ase|图形交换文件(*.dxf)|*.dxf|地形实体文件(*.hmp)|*.hmp|Quake 2模型文件(*.md2)|*.md2|Quake 3模型文件(*.md3)|*.md3|校验和文件(*.md5)|*.md5|MDC文件(*.mdc)|*.mdc|3DGS模型实体文件(*.mdl)|*.mdl|场景描述文件(*.nff)|*.nff|PLY文件(*.ply)|*.ply|STL文件(*.stl)|*.stl|Amapi模型文件(*.x)|*.x|OBJ文件(*.obj)|*.obj|源引擎SDK模型文件(*.smd)|*.smd|LightWave物体文件(*.lwo)|*.lwo|modo 302图形文件(*.lxo)|*.lxo|LightWave场景文件(*.lws)|*.lws|TER文件(*.ter)|*.ter|3D格式数据文件(*.ac3d)|*.ac3d|MilkShape模型文件(*.ms3d)|*.ms3d|Caligari trueSpace 3D物体文件(*.cob)|*.cob|Q3BSP文件(*.q3bsp)|*.q3bsp|XGL 3D CAD模型文件(*.xgl)|*.xgl|Character Studio标识文件(*.csm)|*.csm|Biovision层次动画文件(*.bvh)|*.bvh|Blitz3D/Max/Plus 贴图及网格文件(*.b3d)|*.b3d|Nendo文件(*.ndo)|*.ndo|Ogre XML文件(*.xml)|*.xml|Quickdraw 3D文件(*.q3d)|*.q3d|SLG文件(*.cfg)|*.cfg|SPS文件(*.slg;*.sps)|*.slg;*.sps|CTM文件(*.ctm)|*.ctm|所有文件(*.*)|*.*"),
 						   wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     }
 };
@@ -91,7 +91,7 @@ public:
     {
 	    DECLARE_WXCONVERT;
 	    pDialog = new wxFileDialog(parent, gmeWXT("选择导出文件"), _(""), _(""),
-						       gmeWXT("所有文件|*.*"),
+						       gmeWXT("SPS文件(*.slg;*.sps)|*.slg;*.sps|所有文件(*.*)|*.*"),
 						       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     }
 };
@@ -103,7 +103,7 @@ public:
     {
 	    DECLARE_WXCONVERT;
 	    pDialog = new wxFileDialog(parent, gmeWXT("选择打开文件"), _(""), _(""),
-						       gmeWXT("所有文件|*.*|模型文件(*.ply)|*.ply"),
+						       gmeWXT("支持文件|*.3ds;*.blend;*.dae;*.fbx;*.ifc;*.ase;*.dxf;*.hmp;*.md2;*.md3;*.md5;*.mdc;*.mdl;*.nff;*.ply;*.stl;*.x;*.obj;*.smd;*.lwo;*.lxo;*.lws;*.ter;*.ac3d;*.ms3d;*.cob;*.q3bsp;*.xgl;*.csm;*.bvh;*.b3d;*.ndo;*.xml;*.q3d|3D MAX模型文件(*.3ds)|*.3ds|Blender文件(*.blend)|*.blend|Collada文件(*.dae)|*.dae|Kaydara数据交换文件(*.fbx)|*.fbx|IFC-STEP文件(*.ifc)|*.ifc|ASII场景导出文件(*.ase)|*.ase|图形交换文件(*.dxf)|*.dxf|地形实体文件(*.hmp)|*.hmp|Quake 2模型文件(*.md2)|*.md2|Quake 3模型文件(*.md3)|*.md3|校验和文件(*.md5)|*.md5|MDC文件(*.mdc)|*.mdc|3DGS模型实体文件(*.mdl)|*.mdl|场景描述文件(*.nff)|*.nff|PLY文件(*.ply)|*.ply|STL文件(*.stl)|*.stl|Amapi模型文件(*.x)|*.x|OBJ文件(*.obj)|*.obj|源引擎SDK模型文件(*.smd)|*.smd|LightWave物体文件(*.lwo)|*.lwo|modo 302图形文件(*.lxo)|*.lxo|LightWave场景文件(*.lws)|*.lws|TER文件(*.ter)|*.ter|3D格式数据文件(*.ac3d)|*.ac3d|MilkShape模型文件(*.ms3d)|*.ms3d|Caligari trueSpace 3D物体文件(*.cob)|*.cob|Q3BSP文件(*.q3bsp)|*.q3bsp|XGL 3D CAD模型文件(*.xgl)|*.xgl|Character Studio标识文件(*.csm)|*.csm|Biovision层次动画文件(*.bvh)|*.bvh|Blitz3D/Max/Plus 贴图及网格文件(*.b3d)|*.b3d|Nendo文件(*.ndo)|*.ndo|Ogre XML文件(*.xml)|*.xml|Quickdraw 3D文件(*.q3d)|*.q3d|CTM文件(*.ctm)|*.ctm|所有文件(*.*)|*.*"),
 						       wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     }
 };

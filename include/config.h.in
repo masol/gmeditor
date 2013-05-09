@@ -65,7 +65,27 @@
         std::cerr << a << b << c << d << e << f << g << std::endl;
     }
 #else
-    #define GME_TRACE(s)    
+    template<class T>
+    inline  void    GME_TRACE(T){
+    }
+    template<class T1,class T2>
+    inline  void    GME_TRACE(T1,T2){
+    }
+    template<class T1,class T2,class T3>
+    inline  void    GME_TRACE(T1, T2,T3){
+    }
+    template<class T1,class T2,class T3,class T4>
+    inline  void    GME_TRACE(T1, T2,T3,T4){
+    }
+    template<class T1,class T2,class T3,class T4,class T5>
+    inline  void    GME_TRACE(T1, T2,T3,T4,T5){
+    }
+    template<class T1,class T2,class T3,class T4,class T5,class T6>
+    inline  void    GME_TRACE(T1, T2,T3,T4,T5,T6){
+    }
+    template<class T1,class T2,class T3,class T4,class T5,class T6,class T7>
+    inline  void    GME_TRACE(T1, T2,T3,T4,T5,T6,T7){
+    }
 #endif
 
 #endif	/* GME_CONFIG_H */

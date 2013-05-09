@@ -68,6 +68,9 @@ GlRenderFrame::GlRenderFrame(wxWindow* parent,int *args,int vm) : inherited(pare
 
     // To avoid flashing on MSW
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
+
+    // To avoid windows lose focus.
+    this->SetFocus();
 }
 
 GlRenderFrame::~GlRenderFrame()
@@ -303,6 +306,8 @@ GlRenderFrame::rotateCam(wxMouseEvent& event)
 void GlRenderFrame::mouseLeftDown(wxMouseEvent& event)
 {
     event.GetPosition(&m_lastx,&m_lasty);
+    // To avoid windows lose focus.
+    this->SetFocus();
 }
 
 void GlRenderFrame::doMouseEvent(wxMouseEvent& event)
@@ -332,6 +337,8 @@ void GlRenderFrame::mouseLeftReleased(wxMouseEvent& event)
 void GlRenderFrame::mouseMiddleDown(wxMouseEvent& event)
 {
     event.GetPosition(&m_lastx,&m_lasty);
+    // To avoid windows lose focus.
+    this->SetFocus();
 }
 
 void GlRenderFrame::mouseMiddleReleased(wxMouseEvent& event)

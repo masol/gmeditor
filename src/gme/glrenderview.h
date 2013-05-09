@@ -48,12 +48,8 @@ public:
     void    setEditmodeFromCmd(int mode);
     int     getEditmodeCmd(void);
 protected:
-    void mouseWheelMoved(wxMouseEvent& event)
-    {
-        int i = 0;
-    }
     int     getViewmodeFromCmd(int cmdid);
-    DECLARE_EVENT_TABLE()
+//    DECLARE_EVENT_TABLE()
 };
 
 } //end namespace gme

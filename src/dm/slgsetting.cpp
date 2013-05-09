@@ -266,12 +266,7 @@ ExtraSettingManager::hasTwoOrMoreLighter(slg::Scene *scene)
 const std::string&
 ExtraSettingManager::getImageMapPath(const slg::ImageMapCache &imcache,const slg::ImageMap *im)
 {
-    for (std::map<std::string, slg::ImageMap *>::const_iterator it = imcache.maps.begin(); it != imcache.maps.end(); ++it)
-    {
-        if (it->second == im)
-            return it->first;
-    }
-    throw std::runtime_error("im not defined");
+    return imcache.GetPath(im);
 }
 
 

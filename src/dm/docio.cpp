@@ -310,6 +310,11 @@ DocIO::initAndStartScene(slg::Scene *scene)
     confgSS << "opencl.platform.index = " << -1 << std::endl;
     confgSS << "opencl.cpu.use = " << 0 << std::endl;
     confgSS << "opencl.gpu.use = " << 1 << std::endl;
+    if(clHardwareInfo::instance().getPlatforms().size() == 0)
+    {//no opencl found. rollback to cpu mode.
+        Doc::SysLog(Doc::LOG_WARNING,__("找不到opencl环境，使用CPU渲染，这将会严重影响您的体验，请检查您的硬件环境以及驱动设置(可以使用GPU-Z来检查OPENCL环境是否就绪)。"));
+        confgSS << "renderengine.type = PATHCPU" << std::endl;
+    }
     //confgSS << "opencl.gpu.workgroup.size = " << 64 << std::endl;
     confgSS << "path.maxdepth = " << 8 << std::endl;
     confgSS << "path.russianroulette.depth = " << 5 << std::endl;
@@ -405,7 +410,7 @@ DocIO::loadScene(const std::string &path)
     {
         return loadSlgScene(path);
     }
-    else if(boost::iends_with(path,".sps"))
+    else if(boost::iends_with(path,".sps") || boost::iends_with(path,".slg"))
     {
         return loadSpsScene(path);
     }else if(boost::iends_with(path,".ctm"))
@@ -493,8 +498,10 @@ DocIO::exportSpoloScene(const std::string &pathstring,bool bExportRes)
 bool
 DocIO::exportScene(const std::string &pathstring,bool bExportResource)
 {
+    if(!isValid())
+        return false;
     bool    bExportOK = false;
-    if(boost::iends_with(pathstring,".sps"))
+    if(boost::iends_with(pathstring,".sps") || boost::iends_with(pathstring,".slg"))
     {
         //export sp scene file.
         bExportOK = exportSpoloScene(pathstring,bExportResource);

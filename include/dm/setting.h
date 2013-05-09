@@ -59,7 +59,6 @@ class   clHardwareInfo : public Singleton<clHardwareInfo>
 private:
     typedef Singleton<clHardwareInfo>   inherit;
     friend class Singleton<clHardwareInfo>;
-public:
     std::vector<std::string>                    m_platformNames;
     std::vector<std::vector<std::string> >      m_deviceNames;
 public:

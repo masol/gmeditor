@@ -26,32 +26,41 @@
 
 
 static
-void FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) {
-	printf("\n*** ");
-	if(fif != FIF_UNKNOWN)
-		printf("%s Format\n", FreeImage_GetFormatFromFIF(fif));
-
-	printf("%s", message);
-	printf(" ***\n");
+void FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message)
+{
+    gme::Doc::SysLog(gme::Doc::LOG_ERROR,message);
+//	printf("\n*** ");
+//	if(fif != FIF_UNKNOWN)
+//		printf("%s Format\n", FreeImage_GetFormatFromFIF(fif));
+//
+//	printf("%s", message);
+//	printf(" ***\n");
 }
 
 static
-void LuxRaysDebugHandler(const char *msg) {
-	std::cerr << "[LuxRays] " << msg << std::endl;
+void LuxRaysDebugHandler(const char *msg)
+{
+    gme::Doc::SysLog(gme::Doc::LOG_TRACE,msg,"LuxRays");
 }
 
 static
-void SDLDebugHandler(const char *msg) {
-	std::cerr << "[SDL] " << msg << std::endl;
+void SDLDebugHandler(const char *msg)
+{
+    gme::Doc::SysLog(gme::Doc::LOG_TRACE,msg,"SDL");
 }
 
 static
-void SLGDebugHandler(const char *msg) {
-	std::cerr << "[SLG] " << msg << std::endl;
+void SLGDebugHandler(const char *msg)
+{
+    gme::Doc::SysLog(gme::Doc::LOG_TRACE,msg,"SLG");
 }
 
 
 namespace gme{
+
+Doc::type_func_syslog        Doc::sv_syslog_func;
+int                          Doc::sv_syslog_level = Doc::LOG_STATUS;
+
 
 Doc::Doc(void)
 {

@@ -60,12 +60,12 @@ public:
     static void targetRotate(slg::PerspectiveCamera *camera,const float angle, const luxrays::Vector &axis);
     static inline void targetRotateUp(slg::PerspectiveCamera *camera,const float angle)
     {
-        targetRotate(camera,angle,camera->x);
+        targetRotate(camera,angle,camera->GetX());
     }
 
     static inline void targetRotateLeft(slg::PerspectiveCamera *camera,const float angle)
     {
-        targetRotate(camera,angle,camera->y);
+        targetRotate(camera,angle,camera->GetY());
     }
 
 

@@ -25,14 +25,6 @@
 #include <boost/assert.hpp>
 
 
-#define __CL_ENABLE_EXCEPTIONS 1
-#if defined(__APPLE__) || defined(__MACOSX)
-#include <OpenCL/cl.hpp>
-#else
-#include <CL/cl.hpp>
-#endif
-
-
 namespace gme{
 //texture
 const   int  DocMat::CONST_FLOAT = slg::CONST_FLOAT;

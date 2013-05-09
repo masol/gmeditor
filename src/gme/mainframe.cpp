@@ -37,6 +37,50 @@
 
 namespace gme{
 
+///@todo move the follow function to customize log window when it implement.
+static void Log_Adapter(int level,const char* msgstr,const char* mask)
+{
+    wxMBConvUTF8	gme_wx_utf8_conv;
+    wxString  msg(msgstr,gme_wx_utf8_conv);
+    switch(level)
+    {
+    case Doc::LOG_TRACE:
+        if(mask)
+        {
+            wxLogTrace(mask,msg);
+        }else
+        {
+            wxLogTrace("default",msg);
+        }
+        break;
+    case Doc::LOG_DEBUG:
+        wxLogDebug(msg);
+        break;
+    case Doc::LOG_VERBOSE:
+        wxLogVerbose(msg);
+        break;
+    case Doc::LOG_MESSAGE:
+        wxLogMessage(msg);
+        break;
+    case Doc::LOG_STATUS:
+        wxLogStatus(msg);
+        break;
+    case Doc::LOG_WARNING:
+        wxLogWarning(msg);
+        break;
+    case Doc::LOG_ERROR:
+        wxLogError(msg);
+        break;
+    case Doc::LOG_SYSERROR:
+        wxLogSysError(msg);
+        break;
+    case Doc::LOG_FATALERROR:
+        wxLogFatalError(msg);
+        break;
+    }
+}
+
+
 BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_MENU(wxID_OPEN, MainFrame::onMenuFileOpen)
 	EVT_MENU(wxID_SAVE, MainFrame::onMenuFileSave)
@@ -57,16 +101,13 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
     EVT_UPDATE_UI_RANGE(cmd::GID_VM_BEGIN,cmd::GID_VM_END,MainFrame::onUpdateViewmode)
     EVT_MENU_RANGE(cmd::GID_MD_START,cmd::GID_MD_END,MainFrame::onEditmodeChanged)
     EVT_UPDATE_UI_RANGE(cmd::GID_MD_START,cmd::GID_MD_END,MainFrame::onUpdateEditmode)
+    EVT_MENU_RANGE(cmd::GID_LOG_BEGIN,cmd::GID_LOG_END,MainFrame::onLogLevelChanged)
+    EVT_UPDATE_UI_RANGE(cmd::GID_LOG_BEGIN,cmd::GID_LOG_END,MainFrame::onUpdateLogLevel)
 
 	EVT_UPDATE_UI(wxID_DELETE,MainFrame::onUpdateMenuEditDelete)
 	EVT_UPDATE_UI(cmd::GID_RENDER_START,MainFrame::onUpdateRenderStart)
 	EVT_UPDATE_UI(cmd::GID_RENDER_STOP,MainFrame::onUpdateRenderStop)
-	EVT_SIZE(MainFrame::onSize)
 	EVT_CLOSE(MainFrame::onClose)
-
-
-    EVT_MOUSEWHEEL(MainFrame::mouseWheelMoved)
-
 
 END_EVENT_TABLE()
 
@@ -86,16 +127,16 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
     // create several text controls
     //wxTextCtrl *text1 = new wxTextCtrl(this, -1, _("Pane 1 - sample text"),wxDefaultPosition, wxSize(200,150),wxNO_BORDER | wxTE_MULTILINE);
 
-    wxTextCtrl *text2 = new wxTextCtrl(this, -1, gmeWXT("Pane 2 - sample text"),
-                  wxDefaultPosition, wxSize(200,150),
-                  wxNO_BORDER | wxTE_MULTILINE);
-	wxLog::SetActiveTarget(new wxLogTextCtrl(text2));
+    m_logWindow = new wxTextCtrl(this, -1, gmeWXT(""),
+                  wxDefaultPosition, wxSize(800,200),
+                  wxNO_BORDER | wxTE_MULTILINE | wxTE_READONLY);
+	wxLog::SetActiveTarget(new wxLogTextCtrl(m_logWindow));
     m_objectView = new ObjectView(this,wxID_ANY,wxDefaultPosition,wxSize(200,450));
 
     // add the panes to the manager
 	wxMBConvUTF8	conv;
     m_mgr.AddPane(m_objectView, wxLEFT, gmeWXT("模型一览"));
-    m_mgr.AddPane(text2, wxBOTTOM, gmeWXT("Pane Number Two"));
+    m_mgr.AddPane(m_logWindow, wxBOTTOM, gmeWXT("系统日志"));
 
 
     m_renderView = new GlRenderView(this);
@@ -111,6 +152,8 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
     // tell the manager to "commit" all the changes just made
     m_mgr.Update();
     sv_getImageFilepath = boost::bind(&MainFrame::getImageFilepath,this,_1);
+
+    Doc::SetSysLog(Log_Adapter);
 }
 
 MainFrame::~MainFrame()
@@ -166,6 +209,7 @@ MainFrame::createMenubar()
 		wxMenu *pViewMenu = new wxMenu();
 		pViewMenu->AppendCheckItem(cmd::GID_PANE_OBJECTVIEW, gmeWXT("对象一览(&O)"), gmeWXT("显示/隐藏对象一览面板"));
 		pViewMenu->AppendCheckItem(cmd::GID_PANE_PROPVIEW, gmeWXT("属性设置(&P)"), gmeWXT("显示/隐藏属性面板"));
+		pViewMenu->AppendCheckItem(cmd::GID_PANE_SYSLOG, gmeWXT("系统日志(&L)"), gmeWXT("显示/隐藏系统日志面板"));
 
 		pViewMenu->AppendSeparator();
         wxMenu *pViewModeMenu = new wxMenu();
@@ -174,6 +218,19 @@ MainFrame::createMenubar()
 		pViewModeMenu->AppendRadioItem(cmd::GID_VM_FULLWINDOW, gmeWXT("全屏缩放(&P)"), gmeWXT("自动缩放以充满全屏。"));
 		pViewModeMenu->AppendRadioItem(cmd::GID_VM_SCALEWITHASPECT, gmeWXT("等比缩放(&P)"), gmeWXT("自动缩放到全屏并保持文档的横纵必不变。"));
         pViewMenu->AppendSubMenu(pViewModeMenu,gmeWXT("显示方式(&M)"),gmeWXT("控制主窗口如何匹配渲染图的尺寸。"));
+
+		pViewMenu->AppendSeparator();
+        wxMenu *pLogLevel = new wxMenu();
+		pLogLevel->AppendRadioItem(cmd::GID_LOG_TRACE, gmeWXT("Trace(&A)"), gmeWXT("设置日志级别到Trace"));
+		pLogLevel->AppendRadioItem(cmd::GID_LOG_DEBUG, gmeWXT("Debug(&D)"), gmeWXT("设置日志级别到Debug"));
+		pLogLevel->AppendRadioItem(cmd::GID_LOG_VERBOSE, gmeWXT("Verbose(&V)"), gmeWXT("设置日志级别到Verbose"));
+		pLogLevel->AppendRadioItem(cmd::GID_LOG_MESSAGE, gmeWXT("Message(&M)"), gmeWXT("设置日志级别到Message"));
+		pLogLevel->AppendRadioItem(cmd::GID_LOG_STATUS, gmeWXT("Status(&S)"), gmeWXT("设置日志级别到Status"));
+		pLogLevel->AppendRadioItem(cmd::GID_LOG_WARNING, gmeWXT("Warning(&W)"), gmeWXT("设置日志级别到Warning"));
+		pLogLevel->AppendRadioItem(cmd::GID_LOG_ERROR, gmeWXT("Error(&E)"), gmeWXT("设置日志级别到Error"));
+		pLogLevel->AppendRadioItem(cmd::GID_LOG_SYSERROR, gmeWXT("SysError(&S)"), gmeWXT("设置日志级别到SysError"));
+		pLogLevel->AppendRadioItem(cmd::GID_LOG_FATALERROR, gmeWXT("FAtalError(&F)"), gmeWXT("设置日志级别到FAtalError"));
+		pViewMenu->AppendSubMenu(pLogLevel,gmeWXT("日志级别(&L)"),gmeWXT("设置系统显示的日志级别。"));
 
 		pMenuBar->Append(pViewMenu, gmeWXT("视图(&V)"));
 	}
@@ -273,12 +330,6 @@ MainFrame::onClose(wxCloseEvent& event)
 }
 
 void
-MainFrame::onSize(wxSizeEvent& event)
-{
-    //adjust status bar size.
-}
-
-void
 MainFrame::onEditmodeChanged(wxCommandEvent &event)
 {
     this->m_renderView->setEditmodeFromCmd(event.GetId());
@@ -304,6 +355,20 @@ MainFrame::onUpdateViewmode(wxUpdateUIEvent& event)
     event.Check(this->m_renderView->isCurrentViewmodeFromCmd(event.GetId()));
 }
 
+void
+MainFrame::onLogLevelChanged(wxCommandEvent &event)
+{
+    Doc::SyslogLevel(event.GetId() - cmd::GID_LOG_TRACE);
+}
+
+void
+MainFrame::onUpdateLogLevel(wxUpdateUIEvent &event)
+{
+    int level = event.GetId() - cmd::GID_LOG_TRACE;
+    event.Check(level == Doc::SyslogLevel());
+}
+
+
 wxAuiPaneInfo&
 MainFrame::getPaneFromCmdID(int cmdid)
 {
@@ -315,6 +380,9 @@ MainFrame::getPaneFromCmdID(int cmdid)
         break;
     case cmd::GID_PANE_PROPVIEW:
         pWindow = m_propFrame;
+        break;
+    case cmd::GID_PANE_SYSLOG:
+        pWindow = m_logWindow;
         break;
     default:
         BOOST_ASSERT_MSG(false,"unreachable code");

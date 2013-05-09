@@ -38,6 +38,8 @@
 
 namespace gme{
 
+#if 0
+//this member move to slg.
 int
 ExtraObjectManager::deleteFromExtMeshCache(luxrays::ExtMeshCache &ec,luxrays::ExtMesh *pObject)
 {
@@ -96,36 +98,34 @@ ExtraObjectManager::deleteFromExtMeshCache(luxrays::ExtMeshCache &ec,luxrays::Ex
             }
         }
     }
-
     return reference_count;
+    return 0;
 }
+#endif
 
 bool
-ExtraObjectManager::removeMesh(slg::Scene *scene,luxrays::ExtMesh *pMesh,SlgUtil::Editor &editor)
+ExtraObjectManager::removeMesh(slg::Scene *scene,const std::string &meshID,luxrays::ExtMesh *pMesh,SlgUtil::Editor &editor)
 {
     if(!pMesh)
         return false;
+    //获取mesh对应的本体信息。
+    luxrays::ExtTriangleMesh *pGeometry = luxrays::ExtMeshDefinitions::GetReferMesh(pMesh);
+
+    int ref_count = scene->meshDefs.GetReferenceCount(pGeometry);
+
     //清理extMeshCache.
-    int ref_count = deleteFromExtMeshCache(scene->extMeshCache,pMesh);
+    //int ref_count = deleteFromExtMeshCache(scene->extMeshCache,pMesh);
 
     //清理meshDefs.
     //mesh_idx 指示了本mesh在mesh array中的位置。灯光，材质等信息与位置关联。
-    u_int mesh_idx = 0;
+    u_int mesh_idx = scene->meshDefs.GetExtMeshIndex(pMesh);
     //指示这个material是否被共享。
     bool materialIsShared = false;
     slg::Material   *pRefMaterial = NULL;
-    {
-        std::vector< luxrays::ExtMesh * >::iterator  it = scene->meshDefs.meshs.begin();
-        while(it != scene->meshDefs.meshs.end())
-        {
-            if(pMesh == *it)
-            {
-                scene->meshDefs.meshs.erase(it);
-                break;
-            }
-            it++;
-            mesh_idx++;
-        }
+
+    scene->meshDefs.DeleteExtMesh(meshID);
+
+    {//清理objectMaterials.
         GME_TRACE("erase mesh at mesh_idx = ",mesh_idx);
         std::vector< slg::Material * >::iterator matit = scene->objectMaterials.begin() + mesh_idx;
         pRefMaterial = *matit;
@@ -139,19 +139,6 @@ ExtraObjectManager::removeMesh(slg::Scene *scene,luxrays::ExtMesh *pMesh,SlgUtil
             }
         }
         GME_TRACE("erase mesh material.");
-    }
-    {//删除mesh的name define.
-        std::map< std::string, luxrays::ExtMesh * >::iterator it = scene->meshDefs.meshsByName.begin();
-        while(it != scene->meshDefs.meshsByName.end())
-        {
-            if(it->second == pMesh)
-            {
-                scene->meshDefs.meshsByName.erase(it);
-                GME_TRACE("erase mesh name define.");
-                break;
-            }
-            it++;
-        }
     }
 
     //清理meshTriLightDefsOffset
@@ -177,30 +164,27 @@ ExtraObjectManager::removeMesh(slg::Scene *scene,luxrays::ExtMesh *pMesh,SlgUtil
         editor.addAction(slg::AREALIGHTS_EDIT);
     }
 
-    if(ref_count <= 1)
-    {//需要删除本体,如果有的话。
-        luxrays::ExtInstanceTriangleMesh    *pInstance = dynamic_cast<luxrays::ExtInstanceTriangleMesh*>(pMesh);
-        if(pInstance)
-        {
-            pInstance->GetExtTriangleMesh()->Delete();
-            delete pInstance->GetExtTriangleMesh();
-        }
-    }
-
     if(!materialIsShared)
     {
         //最后，清理extra信息。
         Doc::instance().pDocData->matManager.onMaterialRemoved(pRefMaterial);
     }
 
-    ///@todo: 我们是否需要对象缓冲？现在删了下次就必须重新加载。
-    //最后删除对象。
-    pMesh->Delete();
-    delete pMesh;
+    if(ref_count <= 1)
+    {//需要删除本体,如果有的话。
+        scene->extMeshCache.DeleteExtMesh(pGeometry);
+        delete pGeometry;
+    }
+    //last, delete pMesh. only when pMesh is a instance.
+    if(pGeometry != pMesh)
+    {
+        delete pMesh;
+    }
 
     editor.addAction(slg::GEOMETRY_EDIT);
     editor.addAction(slg::INSTANCE_TRANS_EDIT);
     editor.addAction(slg::MATERIALS_EDIT);
+    //editor.needRefresh(true);
     return true;
 }
 
@@ -219,7 +203,7 @@ ExtraObjectManager::removeMesh(ObjectNode &parent,ObjectNode &self,slg::Scene *s
         ///@fixme this is cause crash at new version slg.change the first solution to set material to null.but null material has problem.then the solution is dump and reload scene.
         luxrays::ExtMesh *pMesh = this->getExtMesh(self.id());
         if(pMesh)
-            removeMesh(scene,pMesh,editor);
+            removeMesh(scene,self.id(),pMesh,editor);
     }
     parent.removeChild(self.id());
 }
@@ -321,10 +305,10 @@ ExtraObjectManager::importCTMObj(const std::string& path,ObjectNode &obj,ImportC
         }
 
         //define object.
-        ctx.scene()->DefineObject("m" + obj.id(), (const long)vertCount, (const long)triCount,pPoint, pTri, NULL, uv, NULL,NULL, false);
+        std::string  meshIdentify = DefineObject(ctx.scene(),(const long)vertCount, (const long)triCount,pPoint, pTri, NULL, uv, NULL,NULL, false);
 
         // Add the object to the scene
-        ctx.scene()->AddObject(obj.id(), "m" + obj.id(),
+        ctx.scene()->AddObject(obj.id(), meshIdentify,
                 "scene.objects." + obj.id() + ".material = " + obj.matid() + "\n"
                 "scene.objects." + obj.id() + ".useplynormals = 0\n"
             );
@@ -456,18 +440,64 @@ ExtraObjectManager::importAiMesh(const aiScene *assimpScene,aiMesh* pMesh,Object
             memcpy(normal,pMesh->mNormals,sizeof(luxrays::Normal) * pMesh->mNumVertices);
         }
 
-        ///@fixme : 这里加入matrix导入.
-        //define object.
-        ctx.scene()->DefineObject("m" + obj.id(), pMesh->mNumVertices, realFace,pPoint, pTri, normal, uv, NULL,NULL,false);
 
+        std::string     meshIdentify = DefineObject(ctx.scene(),pMesh->mNumVertices, realFace,pPoint, pTri, normal, uv, NULL,NULL,false);
+
+        ///@fixme : 这里加入matrix导入.
         // Add the object to the scene
-        ctx.scene()->AddObject(obj.id(), "m" + obj.id(),
+        ctx.scene()->AddObject(obj.id(), meshIdentify,
                 "scene.objects." + obj.id() + ".material = " + obj.matid() + "\n"
                 "scene.objects." + obj.id() + ".useplynormals = 0\n"
             );
         bAdd = true;
     }
     return bAdd;
+}
+
+std::string
+ExtraObjectManager::DefineObject(slg::Scene *scene,long plyNbVerts, const long plyNbTris,luxrays::Point *pPoint,
+            luxrays::Triangle *pTri, luxrays::Normal *normal, luxrays::UV *uv,luxrays::Spectrum *cols, float *alphas,
+            const bool usePlyNormals)
+{
+    MD5 md5;
+    md5.update((const char*)(void*)pPoint,sizeof(luxrays::Point) * plyNbVerts);
+    md5.update((const char*)(void*)pTri,sizeof(luxrays::Triangle) * plyNbTris);
+    if(uv)
+    {
+        md5.update((const char*)(void*)uv,sizeof(luxrays::UV) * plyNbVerts);
+    }
+    char c = (usePlyNormals ?  1 : 0);
+    md5.update(&c,1);
+    std::string meshIdentify = md5.finalize().hexdigest();
+    ///@todo we not caculate normal,cols and alphas.
+    if(scene->extMeshCache.FindExtMesh(meshIdentify,usePlyNormals))
+    {//对象已经定义，删除分配的空间。
+        std::cerr << "found a mesh instance,use old " << meshIdentify << std::endl;
+        delete[] pPoint;
+        delete[] pTri;
+        pPoint = NULL;
+        pTri = NULL;
+        if(uv)
+        {
+            delete[] uv;
+            uv = NULL;
+        }
+        if(cols)
+        {
+            delete[] cols;
+            cols = NULL;
+        }
+        if(alphas)
+        {
+            delete[] alphas;
+            alphas = NULL;
+        }
+    }else{
+        //define object.
+        ///@fixme: 由于realFace可能小于pMesh->mNumFaces，这里有可能浪费一点内存，检测此情况并copy内存。
+        scene->DefineObject(meshIdentify, plyNbVerts, plyNbTris,pPoint, pTri, normal, uv, cols,alphas,usePlyNormals);
+    }
+    return meshIdentify;
 }
 
 

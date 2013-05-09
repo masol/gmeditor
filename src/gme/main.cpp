@@ -41,20 +41,6 @@ public:
         return inherit::OnExit();
     }
 
-    int FilterEvent(wxEvent& event)
-    {
-       if(event.GetEventType() == wxEVT_MOUSEWHEEL)
-       {
-          // 我们需要在windows环境下在这里过滤事件并添加到目标队列里。
-          if(m_mainFrame != NULL)
-          {
-              //m_mainFrame->GetEventHandler()->AddPendingEvent(event);
-              //return true; 
-          }
-       }
-       return wxApp::FilterEvent(event);
-    }
-
     bool OnInit() 
     {
         //initionlize config.

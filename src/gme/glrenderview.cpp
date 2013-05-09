@@ -30,10 +30,9 @@ namespace gme{
 
 const char* GlRenderView::vm_opt_path = "window.editor.viewmode";
 
-BEGIN_EVENT_TABLE(GlRenderView, GlRenderView::inherited)
-    EVT_MOUSEWHEEL(GlRenderView::mouseWheelMoved)
-END_EVENT_TABLE()
-
+//BEGIN_EVENT_TABLE(GlRenderView, inherited)
+//END_EVENT_TABLE()
+//
 
 GlRenderView::GlRenderView(wxFrame* parent) : inherited(parent,wxID_ANY)
 {

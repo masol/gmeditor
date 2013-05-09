@@ -35,9 +35,13 @@ class MainFrame : public wxFrame {
 public:
     MainFrame(wxWindow* parent);
     virtual ~MainFrame();
+
+    inline static  boost::function<bool (std::string &)>&  getImageFilepathFunc(void)
+    {
+        return sv_getImageFilepath;
+    }
 protected:
 	void onClose(wxCloseEvent& event);
-    void onSize(wxSizeEvent& event);
 
 	/** Processes menu File|Open */
 	void onMenuFileOpen(wxCommandEvent &event);
@@ -84,17 +88,12 @@ protected:
 
 	void onViewmodeChanged(wxCommandEvent &event);
     void onUpdateViewmode(wxUpdateUIEvent &event);
+
+    void onLogLevelChanged(wxCommandEvent &event);
+    void onUpdateLogLevel(wxUpdateUIEvent &event);
+
 	/** Update Save\Export\Import UI**/
 	void onUpdateSaveAndEdit(wxUpdateUIEvent &event);
-    void mouseWheelMoved(wxMouseEvent& event)
-    {
-        int i = 0;
-    }
-public:
-    inline static  boost::function<bool (std::string &)>&  getImageFilepathFunc(void)
-    {
-        return sv_getImageFilepath;
-    }
 private:
     static  boost::function<bool (std::string &)>   sv_getImageFilepath;
 	bool getImageFilepath(std::string &result);
@@ -103,6 +102,8 @@ private:
     ObjectView      *m_objectView;
     GlRenderView    *m_renderView;
 	PropFrame       *m_propFrame;
+	///@todo customize log window.
+	wxTextCtrl      *m_logWindow;
 	std::string      m_filepath;
     void    createMenubar();
 	void    createToolbar();

@@ -95,7 +95,7 @@ public:
     bool    removeMesh(const std::string &id);
 private:
     void    removeMesh(ObjectNode &parent,ObjectNode &self,slg::Scene *scene,SlgUtil::Editor &editor);
-    bool    removeMesh(slg::Scene *scene,luxrays::ExtMesh *pMesh,SlgUtil::Editor &editor);
+    bool    removeMesh(slg::Scene *scene,const std::string &meshID,luxrays::ExtMesh *pMesh,SlgUtil::Editor &editor);
     /** @brief 将指定xml node加载到objNode(node必须为object节点)。
     **/
     static  int   importObjects(type_xml_node &node,ObjectNode &objNode,ImportContext &ctx);
@@ -109,12 +109,19 @@ private:
     /** @brief only load self.no child.
     **/
     static  bool   importAiMesh(const aiScene *assimpScene,aiMesh* pMesh,ObjectNode &objNode,ImportContext &ctx);
+    /** @brief 根据内容来确保不加入重复对象。hacker to slg::Scene::DefineObject
+     * @details any way, the callee obtain the owner of p,vi,n,uv,cols,alphas.(free use delete[]).
+    **/
+    static  std::string  DefineObject(slg::Scene *scene,long plyNbVerts, const long plyNbTris,luxrays::Point *p,
+            luxrays::Triangle *vi, luxrays::Normal *n, luxrays::UV *uv,luxrays::Spectrum *cols, float *alphas,
+            const bool usePlyNormals);
     /** @brief loading openctm data. assume ctm is internal data. generate from gmeditor,so no postprocessing with it!.
     **/
     static  bool   importCTMObj(const std::string& path,ObjectNode &objNode,ImportContext &ctx);
 
     ///@brief 从props中加载原始文件信息。
     void    loadExtraFromProps(ObjectNode& node,luxrays::Properties &props);
+#if 0 //下面两个函数被dave加入到slg主线中。
     /**@brief 清理extMeshCache信息。
       *@details 本函数并不删除pMesh.
       *@return 返回pMesh的引用计数。(0通常说明pMesh自身就是一个mesh而不是object)
@@ -122,6 +129,7 @@ private:
     static  int    deleteFromExtMeshCache(luxrays::ExtMeshCache &extMeshCache,luxrays::ExtMesh *pObject);
     ///@brief 检查有多少个对象引用了指定的造型对象。
     static  int     getReferenceCount(luxrays::ExtMeshCache &extMeshCache,luxrays::ExtTriangleMesh *pGeometry);
+#endif
 };
 
 }
