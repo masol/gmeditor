@@ -1,0 +1,419 @@
+###########################################################################
+#   Copyright (C) 2013 by sanpolo CO.LTD                                  #
+#                                                                         #
+#   This file is part of GMEditor.                                        #
+#                                                                         #
+#   GMEditor is free software; you can redistribute it and/or modify it   #
+#   under the terms of the LGPL License.                                  #
+#                                                                         #
+#   GMEditor is distributed in the hope that it will be useful,but WITHOUT#
+#   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY    #
+#   or FITNESS FOR A PARTICULAR PURPOSE.                                  #
+#                                                                         #
+#   You should have received a copy of the LGPL License along with this   #
+#   program.  If not, see <http://www.render001.com/gmeditor/licenses>.   #
+#                                                                         #
+#   GMEditor website: http://www.render001.com/gmeditor                   #
+###########################################################################
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeditor\n"
+"Report-Msgid-Bugs-To: masol.li@gmail.com\n"
+"POT-Creation-Date: 2013-05-10 00:30+0800\n"
+"PO-Revision-Date: 2013-05-10 20:15+0800\n"
+"Last-Translator: Masol Lee<masol.li@gamil.com>\n"
+"Language-Team: Masol Lee <masol.li@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:139
+msgid "模型一览"
+msgstr "Object Viewer"
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:140
+msgid "系统日志"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:151
+msgid "属性设置"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:176
+msgid "Open"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:176
+msgid "打开已有场景"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:178
+msgid "保存(&S)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:178
+msgid "保存现有场景"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:179
+msgid "保存图片(&S)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:179
+msgid "保存当前渲染结果"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:180
+msgid "导出(&E)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:180
+msgid "导出现有场景"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:182
+msgid "退出(&X)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:182
+msgid "退出gmeditor"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:184
+msgid "文件(&F)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:189
+msgid "导入(&I)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:189
+msgid "从文件中导入模型到当前场景"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:190
+msgid "删除(&D)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:190
+msgid "删除选中模型"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:193
+#: ..\github\gmeditor\src\gme\mainframe.cpp:286
+msgid "开始渲染"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:193
+msgid "开始渲染当前场景"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:194
+#: ..\github\gmeditor\src\gme\mainframe.cpp:287
+msgid "结束渲染"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:194
+msgid "结束当前场景的渲染"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:195
+#: ..\github\gmeditor\src\gme\mainframe.cpp:288
+msgid "暂停渲染"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:195
+msgid "暂停渲染当前场景"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:199
+msgid "锁定(&L)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:199
+msgid "锁定窗口。"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:200
+msgid "平移(&P)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:200
+msgid "平移控制。"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:201
+msgid "旋转(&R)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:201
+msgid "自身旋转。"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:202
+msgid "中心点旋转(&C)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:202
+msgid "绕摄像机焦点旋转。"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:203
+msgid "缩放(&Z)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:203
+msgid "缩放控制。"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:204
+msgid "编辑模式(&M)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:204
+msgid "控制主窗口的编辑模式。"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:206
+msgid "编辑(&E)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:211
+msgid "对象一览(&O)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:211
+msgid "显示/隐藏对象一览面板"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:212
+msgid "属性设置(&P)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:212
+msgid "显示/隐藏属性面板"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:213
+msgid "系统日志(&L)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:213
+msgid "显示/隐藏系统日志面板"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:217
+msgid "校正文档(&A)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:217
+msgid "根据显示区域的大小自动设置渲染文档的尺寸。"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:218
+msgid "实际尺寸(&P)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:218
+msgid "按照文档的实际尺寸显示。"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:219
+msgid "全屏缩放(&P)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:219
+msgid "自动缩放以充满全屏。"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:220
+msgid "等比缩放(&P)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:220
+msgid "自动缩放到全屏并保持文档的横纵必不变。"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:221
+msgid "显示方式(&M)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:221
+msgid "控制主窗口如何匹配渲染图的尺寸。"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:225
+msgid "Trace(&A)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:225
+msgid "设置日志级别到Trace"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:226
+msgid "Debug(&D)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:226
+msgid "设置日志级别到Debug"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:227
+msgid "Verbose(&V)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:227
+msgid "设置日志级别到Verbose"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:228
+msgid "Message(&M)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:228
+msgid "设置日志级别到Message"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:229
+msgid "Status(&S)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:229
+msgid "设置日志级别到Status"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:230
+msgid "Warning(&W)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:230
+msgid "设置日志级别到Warning"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:231
+msgid "Error(&E)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:231
+msgid "设置日志级别到Error"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:232
+msgid "SysError(&S)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:232
+msgid "设置日志级别到SysError"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:233
+msgid "FAtalError(&F)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:233
+msgid "设置日志级别到FAtalError"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:234
+msgid "日志级别(&L)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:234
+msgid "设置系统显示的日志级别。"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:236
+msgid "视图(&V)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:241
+#: ..\github\gmeditor\src\gme\mainframe.cpp:301
+msgid "关于(&A)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:241
+msgid "关于我们的信息"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:243
+msgid "帮助(&H)"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:262
+#: ..\github\gmeditor\src\gme\mainframe.cpp:264
+#: ..\github\gmeditor\src\gme\mainframe.cpp:265
+msgid "File"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:262
+msgid "打开"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:264
+msgid "保存"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:265
+msgid "导出"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:269
+msgid "filetoolbar"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:269
+msgid "文件操作工具栏"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:283
+#: ..\github\gmeditor\src\gme\mainframe.cpp:284
+msgid "Edit"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:283
+msgid "导入"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:284
+msgid "删除"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:286
+#: ..\github\gmeditor\src\gme\mainframe.cpp:287
+#: ..\github\gmeditor\src\gme\mainframe.cpp:288
+msgid "RenderCtrl"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:291
+msgid "edittoolbar"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:291
+msgid "编辑场景工具栏"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:301
+msgid "Help"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:305
+msgid "helptoolbar"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:305
+msgid "帮助工具栏"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:318
+msgid "就绪"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:498
+msgid "这是一个ABOUT消息框"
+msgstr ""
+
+#: ..\github\gmeditor\src\gme\mainframe.cpp:499
+msgid "About us"
+msgstr ""

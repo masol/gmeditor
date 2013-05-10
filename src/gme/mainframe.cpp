@@ -20,6 +20,7 @@
 #include "mainframe.h"
 //#include "renderview.h"
 #include "objectview.h"
+#include "utils/i18n.h"
 #include "stringutil.h"
 #include "cmdids.h"
 #include "dm/docio.h"
@@ -127,7 +128,7 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
     // create several text controls
     //wxTextCtrl *text1 = new wxTextCtrl(this, -1, _("Pane 1 - sample text"),wxDefaultPosition, wxSize(200,150),wxNO_BORDER | wxTE_MULTILINE);
 
-    m_logWindow = new wxTextCtrl(this, -1, gmeWXT(""),
+    m_logWindow = new wxTextCtrl(this, -1, gmeWXT("11"),
                   wxDefaultPosition, wxSize(800,200),
                   wxNO_BORDER | wxTE_MULTILINE | wxTE_READONLY);
 	wxLog::SetActiveTarget(new wxLogTextCtrl(m_logWindow));
@@ -172,7 +173,7 @@ MainFrame::createMenubar()
 
     {//File
         wxMenu *pFileMenu = new wxMenu();
-        pFileMenu->Append(wxID_OPEN, gmeWXT("打开(&O)"), gmeWXT("打开已有场景"));
+        pFileMenu->Append(wxID_OPEN, gmeWXT("Open"), gmeWXT("打开已有场景"));
         pFileMenu->AppendSeparator();
         pFileMenu->Append(wxID_SAVE, gmeWXT("保存(&S)"), gmeWXT("保存现有场景"));
         pFileMenu->Append(cmd::GID_SAVE_IMAGE, gmeWXT("保存图片(&S)"), gmeWXT("保存当前渲染结果"));

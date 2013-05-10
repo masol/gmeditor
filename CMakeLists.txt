@@ -108,6 +108,10 @@ if (NOT ASSIMP_FOUND)
 	MESSAGE(FATAL_ERROR "--> Could not locate required Assimp files, Please check ${ASSIMP_SEARCH_PATH} ")
 endif()
 
+#if (NOT GETTEXT_FOUND)
+#	MESSAGE(FATAL_ERROR "--> Could not locate required gettext files, Please check path")
+#endif()
+
 #if (NOT GLEW_FOUND)
 #	MESSAGE(FATAL_ERROR "--> Could not locate required GLEW files, Please check ${GLEW_SEARCH_PATH}")
 #endif()
@@ -115,6 +119,12 @@ endif()
 #if (NOT GLUT_FOUND)
 #	MESSAGE(FATAL_ERROR "--> Could not locate required GLUT files, Please check ${GLUT_SEARCH_PATH}")
 #endif()
+
+#TODO disable i18n support when icu not found.
+# if (NOT ICU_FOUND)
+	# MESSAGE(FATAL_ERROR "--> Could not locate required ICU files, Please check ${ICU_ROOT}")
+# endif()
+
 
 
 set(GME_VERSION_MAJOR 0)

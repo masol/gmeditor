@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "config.h"
+#include "utils/i18n.h"
 #include "hdrpage.h"
 #include "../stringutil.h"
 

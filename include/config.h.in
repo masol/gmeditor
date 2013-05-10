@@ -24,12 +24,6 @@
 #define GME_VERSION_MAJOR "@GME_VERSION_MAJOR@"
 #define GME_VERSION_MINOR "@GME_VERSION_MINOR@"
 
-// for i18n. use ibm icu to support it. do it later.
-// follow function(GME_GETTEXT) return UTF-8 string in the futher.
-//#include "utils/i18n"
-#define GME_GETTEXT(str)       str
-#define __(str)	GME_GETTEXT(str)
-
 #ifdef  _DEBUG
 
     #include <iostream>

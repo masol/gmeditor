@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "config.h"
+#include "utils/i18n.h"
 #include "envlightpage.h"
 #include "dm/docio.h"
 #include "dm/docsetting.h"

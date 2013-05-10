@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "config.h"
+#include "utils/i18n.h"
 #include "gmestatus.h"
 #include "dm/docimg.h"
 #include "dm/docctl.h"

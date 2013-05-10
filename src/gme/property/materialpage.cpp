@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "config.h"
+#include "utils/i18n.h"
 #include "materialpage.h"
 #include "dm/docio.h"
 #include "dm/docobj.h"

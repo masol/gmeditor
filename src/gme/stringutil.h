@@ -19,16 +19,16 @@
 #ifndef  GME_STRINGUTIL_H
 #define  GME_STRINGUTIL_H
 
-#ifdef  WIN32
+//#ifdef  WIN32
 
 #define DECLARE_WXCONVERT           wxMBConvUTF8	gme_wx_utf8_conv
 #define gmeWXT(s)                   wxString(__(s),gme_wx_utf8_conv)
 
-#else
-
-#define DECLARE_WXCONVERT
-#define gmeWXT(s)                   __(s)
-
-#endif
+//#else
+//
+//#define DECLARE_WXCONVERT
+//#define gmeWXT(s)                   __(s)
+//
+//#endif
 
 #endif  //GME_STRINGUTIL_H

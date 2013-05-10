@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "config.h"
+#include "utils/i18n.h"
 #include "wx/wxprec.h"
 #include "wx/wx.h"
 #include <wx/numdlg.h>

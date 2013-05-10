@@ -20,6 +20,7 @@
 #include "config.h"
 #include "utils/option.h"
 #include "utils/modulepath.h"
+#include "utils/i18n.h"
 #include <boost/program_options.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/filesystem.hpp>
@@ -206,6 +207,8 @@ static inline bool loadConfigFile(const std::string &cfgFile,parser_context &ctx
 bool
 Option::initFromArgs(int argc,char** argv)
 {
+    gme::ModulePath::instance().initialize(argv[0]);
+
 	boost::program_options::options_description		cmdline;
 	boost::program_options::options_description		generic;
 
@@ -231,7 +234,6 @@ Option::initFromArgs(int argc,char** argv)
         {
             this->put("document.output",ctx.outfile);
         }
-		gme::ModulePath::instance().initialize(argv[0]);
 	}
 
 	return !bNeedQuit;

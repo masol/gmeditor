@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "config.h"
+#include "utils/i18n.h"
 #include "objectview.h"
 #include "stringutil.h"
 #include "dm/docobj.h"

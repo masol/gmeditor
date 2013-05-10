@@ -16,15 +16,46 @@
 #   GMEditor website: http://www.render001.com/gmeditor                   #
 ###########################################################################
 
+
+#############################################################################
+#
+# ICU Resource Bundle used by gme.
+#
+#############################################################################
+set(GME_RESBUNDLE_INPUT_DIR ${GME_SOURCE_DIR}/i18n)
+
+IF (WIN32)
+        SET(GME_RESBUNDLE_OUTPUT_BASEDIR ${GME_BUILD_DIR}/bin/$(ConfigurationName)/i18n)
+        SET(GME_RESBUNDLE_OUTPUT_DIR ${GME_RESBUNDLE_OUTPUT_BASEDIR}/zh_CN/LC_MESSAGES)
+		STRING(REGEX REPLACE "/" "\\\\" GME_RESBUNDLE_OUTPUT_DIR ${GME_RESBUNDLE_OUTPUT_DIR})
+        #STRING(REGEX REPLACE "/" "\\\\" GME_RESBUNDLE_OUTPUT ${GME_RESBUNDLE_OUTPUT})
+		STRING(REGEX REPLACE "/" "\\\\" GME_RESBUNDLE_INPUT_DIR ${GME_RESBUNDLE_INPUT_DIR})
+		#SET(RESBUNDLE_CREATE_OUTPUT_DIR if exist "${GME_RESBUNDLE_OUTPUT_DIR}" echo "dir exist" else mkdir -p "${GME_RESBUNDLE_OUTPUT_DIR}")
+ELSE()
+        SET(GME_RESBUNDLE_OUTPUT_BASEDIR ${GME_BUILD_DIR}/bin/i18n)
+        SET(GME_RESBUNDLE_OUTPUT_DIR ${GME_RESBUNDLE_OUTPUT_BASEDIR}/zh_CN/LC_MESSAGES)
+ENDIF(WIN32)
+
+        SET(GME_RESBUNDLE_OUTPUT ${GME_RESBUNDLE_OUTPUT_DIR}/gme.mo)
+
+add_custom_command(
+		OUTPUT ${GME_RESBUNDLE_OUTPUT}
+		# Creating target directory
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${GME_RESBUNDLE_OUTPUT_DIR}
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${GME_RESBUNDLE_OUTPUT_BASEDIR}/en_US/LC_MESSAGES
+		#COMMAND "${RESBUNDLE_CREATE_OUTPUT_DIR}"
+		COMMAND msgfmt -c -o ${GME_RESBUNDLE_OUTPUT_BASEDIR}/zh_CN/LC_MESSAGES/gme.mo ${GME_RESBUNDLE_INPUT_DIR}/zh_CN.po
+		COMMAND msgfmt -c -o ${GME_RESBUNDLE_OUTPUT_BASEDIR}/en_US/LC_MESSAGES/gme.mo ${GME_RESBUNDLE_INPUT_DIR}/en_US.po
+		WORKING_DIRECTORY ${GME_BUILD_DIR}
+	)
+
+add_custom_target(gme_res DEPENDS ${GME_RESBUNDLE_OUTPUT})
+
 #############################################################################
 #
 # GME binary
 #
 #############################################################################
-
-#Message(STATUS "wxWidgets_LIBRARY : ${wxWidgets_LIBRARIES}")
-
-#@FIXME: wxWidgets_LIBRARIES will been overwrite by some instruction.
 set(wxWidgets_LIBRARIES_Cache ${wxWidgets_LIBRARIES})
 set(GME_SRCS
 	propgrid.cpp
@@ -35,7 +66,7 @@ set(GME_SRCS
 	main.cpp
 	data/xpmres.cpp
    )
-   
+
 set(GME_GL_SRC
     glrenderview.cpp
   	glrender/glrenderframe.cpp
@@ -62,6 +93,7 @@ TARGET_LINK_LIBRARIES(gmeditor
  openctm
 # ${GLEW_LIBRARY}
 # ${GLUT_LIBRARY}
+ # ${ICU_LIBRARIES}
  ${ASSIMP_LIBRARIES}
  ${FreeImage_LIBRARIES}
  ${SLG_LIBRARY}
@@ -78,6 +110,7 @@ TARGET_LINK_LIBRARIES(gmeditor
   openctm
 #  ${GLEW_LIBRARY}
 #  ${GLUT_LIBRARY}
+  # ${ICU_LIBRARIES}
   ${ASSIMP_LIBRARIES}
   ${wxWidgets_LIBRARIES_Cache}
   ${FreeImage_LIBRARIES}

@@ -22,6 +22,7 @@
 #include "utils/pathext.h"
 #include "utils/option.h"
 #include "utils/rapidxml_print.hpp"
+#include "utils/i18n.h"
 #include <slg/slg.h>
 #include <luxrays/utils/properties.h>
 #include <boost/algorithm/string/predicate.hpp>
