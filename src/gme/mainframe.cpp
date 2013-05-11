@@ -128,7 +128,7 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
     // create several text controls
     //wxTextCtrl *text1 = new wxTextCtrl(this, -1, _("Pane 1 - sample text"),wxDefaultPosition, wxSize(200,150),wxNO_BORDER | wxTE_MULTILINE);
 
-    m_logWindow = new wxTextCtrl(this, -1, gmeWXT("11"),
+    m_logWindow = new wxTextCtrl(this, -1, "",
                   wxDefaultPosition, wxSize(800,200),
                   wxNO_BORDER | wxTE_MULTILINE | wxTE_READONLY);
 	wxLog::SetActiveTarget(new wxLogTextCtrl(m_logWindow));

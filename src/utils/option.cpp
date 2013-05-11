@@ -27,6 +27,69 @@
 #include <boost/scope_exit.hpp>
 #include <fstream>
 
+#if WIN32
+#include <windows.h>
+#include <stdio.h>
+#include <fstream>
+#include <fcntl.h>
+#include <io.h>
+#include <conio.h>
+#endif
+
+
+static void ensureConsole(void)
+{
+#if WIN32
+    static  bool inited = false;
+    static const WORD MAX_CONSOLE_LINES = 500;
+    if(!inited)
+    {
+        int hConHandle;
+        long lStdHandle;
+        CONSOLE_SCREEN_BUFFER_INFO coninfo;
+        FILE *fp;
+        // allocate a console for this app
+        AllocConsole();
+        // set the screen buffer to be big enough to let us scroll text
+        GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),
+               &coninfo);
+        coninfo.dwSize.Y = MAX_CONSOLE_LINES;
+        SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE),
+               coninfo.dwSize);
+        // redirect unbuffered STDOUT to the console
+        lStdHandle = (long)GetStdHandle(STD_OUTPUT_HANDLE);
+        hConHandle = _open_osfhandle(lStdHandle, _O_TEXT);
+        fp = _fdopen( hConHandle, "w" );
+        *stdout = *fp;
+        setvbuf( stdout, NULL, _IONBF, 0 );
+        // redirect unbuffered STDIN to the console
+        lStdHandle = (long)GetStdHandle(STD_INPUT_HANDLE);
+        hConHandle = _open_osfhandle(lStdHandle, _O_TEXT);
+        fp = _fdopen( hConHandle, "r" );
+        *stdin = *fp;
+        setvbuf( stdin, NULL, _IONBF, 0 );
+        // redirect unbuffered STDERR to the console
+        lStdHandle = (long)GetStdHandle(STD_ERROR_HANDLE);
+        hConHandle = _open_osfhandle(lStdHandle, _O_TEXT);
+        fp = _fdopen( hConHandle, "w" );
+        *stderr = *fp;
+        setvbuf( stderr, NULL, _IONBF, 0 );
+        // make cout, wcout, cin, wcin, wcerr, cerr, wclog and clog
+        // point to console as well
+        std::ios::sync_with_stdio();
+        inited = true;
+   }
+#endif
+}
+
+static void waitPress(void)
+{
+#if WIN32
+    std::cout << __("press any key to quit...") << std::endl;
+    ::getch();
+#endif
+}
+
 
 namespace gme{
 
@@ -45,11 +108,12 @@ static inline void		outUsage(void){
 static inline void		initOption_descritpion(boost::program_options::options_description &cmdline,boost::program_options::options_description &generic)
 {
 	cmdline.add_options()
-		("help,h", __("Display this information."))
-		("version,v", __("Display  version informationl."))
-		("config,c", boost::program_options::value<std::string>(),__("Specify config file."))
-		("source,s", boost::program_options::value<std::string>(),__("Specify source scene file."))
-		("output,o", boost::program_options::value<std::string>(),__("Place the result image into <file>."))
+		("help,h", ("Display this information."))
+		("version,v", ("Display  version informationl."))
+		("config,c", boost::program_options::value<std::string>(),("Specify config file."))
+		("source,s", boost::program_options::value<std::string>(),("Specify source scene file."))
+		("output,o", boost::program_options::value<std::string>(),("Place the result image into <file>."))
+		("lang,l", boost::program_options::value<std::string>(),("Set the language."))
 		;
 }
 
@@ -58,6 +122,7 @@ struct  parser_context{
     std::vector<std::string>                        sources;
     Option                                          &option;
     std::string                                     outfile;
+    std::string                                     lang;
     parser_context(boost::program_options::options_description &clo,Option &o) : cmdline_options(clo),option(o)
     {
     }
@@ -93,20 +158,24 @@ static	bool	parser_Option(boost::program_options::parsed_options &option,parser_
 					value_it++;
 				}
             }else{
+                ensureConsole();
 				outCopyRights();
 				std::cout << __("invalid parameter ") << it->string_key << std::endl;
 				outUsage();
 				std::cout << ctx.cmdline_options << std::endl;
 				bNeedQuit = true;
+                waitPress();
 				break;
 			}
 		}else if(it->string_key == "config")
 		{
 			if(it->value.size() == 0)
 			{
+                ensureConsole();
 				outCopyRights();
 				std::cout << __("config need a config file as parameter") << std::endl;
 				outUsage();
+                waitPress();
 				bNeedQuit = true;
 				break;
 			}
@@ -117,10 +186,12 @@ static	bool	parser_Option(boost::program_options::parsed_options &option,parser_
 			{
 				if(!boost::filesystem::exists(*cfgit))
 				{
+                    ensureConsole();
 					outCopyRights();
 					std::cout << __("specified config file ") << *cfgit << __(" doesn't exist") << std::endl;
 					bcfgFileOK = false;
 					bNeedQuit = true;
+                    waitPress();
 					break;
 				}
 				cfgit++;
@@ -131,16 +202,20 @@ static	bool	parser_Option(boost::program_options::parsed_options &option,parser_
 			}
 		}else if(it->string_key == "help")
 		{
+            ensureConsole();
 			outCopyRights();
 			outUsage();
 			std::cout << ctx.cmdline_options << std::endl;
 			bNeedQuit = true;
+            waitPress();
 			break;
 		}else if(it->string_key == "version")
 		{
+            ensureConsole();
 			outCopyRights();
 			std::cout << __("gmeditor Version ")<< GME_VERSION_MAJOR << '.' << GME_VERSION_MINOR << std::endl;
 			bNeedQuit = true;
+            waitPress();
 			break;
 		}else if(it->string_key == "source")
 		{
@@ -157,6 +232,12 @@ static	bool	parser_Option(boost::program_options::parsed_options &option,parser_
 		{
 		    if(it->value.size() > 0)
                 ctx.outfile = *(it->value.begin());
+		}else if(it->string_key == "lang")
+		{
+            if(it->value.size() > 0)
+            {
+                ctx.lang = *(it->value.begin());
+            }
 		}
 		it++;
 	}
@@ -195,9 +276,11 @@ static inline bool loadConfigFile(const std::string &cfgFile,parser_context &ctx
 		bNeedQuit = parser_Option(po,ctx);
 		std::cout << __("done!") << std::endl;
 	}else{
+        ensureConsole();
 		outCopyRights();
 		std::cout << __("can not open config file ") << cfgFile << std::endl;
 		outUsage();
+        waitPress();
 		bNeedQuit = true;
 	}
 	return bNeedQuit;
@@ -233,6 +316,11 @@ Option::initFromArgs(int argc,char** argv)
         if(ctx.outfile.length())
         {
             this->put("document.output",ctx.outfile);
+        }
+        //这里检查是否配置了语言选项。
+        if(!ctx.lang.empty())
+        {
+            I18n::instance().setLocale(ctx.lang);
         }
 	}
 

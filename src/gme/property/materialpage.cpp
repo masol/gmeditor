@@ -539,7 +539,7 @@ MaterialPage::buildPage(const std::string &objid)
         type_xml_node   *pXmlMat = mat.getMaterial(pNode->matid(),doc);
         if(pXmlMat)
         {
-            std::string content("对象'"+pNode->name() + "'的材质定义:");
+            std::string content = boost::str(boost::format(__("对象‘%s'的材质定义:") )% pNode->name());
             wxPGProperty* pCate = this->Append(new wxPropertyCategory(gmeWXT(content.c_str()),"material.catogory"));
             addMaterial(*pCate,pXmlMat,"");
         }

@@ -109,8 +109,8 @@ if (OPENCL_FOUND)
 	include_directories(SYSTEM ${OPENCL_INCLUDE_DIR} ${OPENCL_C_INCLUDE_DIR})
 endif ()
 
-##Find Gettext.
-find_package(Gettext)
+##Find Gettext. this check cause a crash dialog in x64 windows. for automation build, disable this.
+#find_package(Gettext)
 
 ## GLEW
 #set(GLEW_ROOT                  "${GLEW_SEARCH_PATH}")

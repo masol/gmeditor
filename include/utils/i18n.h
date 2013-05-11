@@ -20,6 +20,8 @@
 #define GME_UTILS_I18N_H
 
 #include "utils/singleton.h"
+#include "utils/eventlisten.h"
+#include <boost/function.hpp>
 
 /** @brief 国际化支持
  *  gmeditor的国际化支持有如下假设:
@@ -42,6 +44,8 @@ private:
     friend class Singleton<I18n>;
     typedef Singleton<I18n> inherited;
 public:
+    typedef boost::function<void (void)>        type_switch_handler;
+
     /**
      * @brief           根据locale获取本地的一个翻译字符串
      * @param msg       [IN], 待翻译的字符串
@@ -58,7 +62,7 @@ public:
      * @return          成功返回true, 失败返回false
      * @exception
      **/
-    bool setLocale(const std::string &locale, const char* encoding = "UTF-8");
+    bool setLocale(const std::string &locale, const char* encoding = "UTF-8",bool fireEvent = false);
     /**
      * @brief           返回系统当前设置的local字符串。
      * @return          成功返回字符串, 失败返回NULL。返回的字符串不能删除。
@@ -66,9 +70,9 @@ public:
      **/
     inline const std::string& getSystemLocal(void)
     {
-        if(m_system_local.empty())
+        if(m_current_local.empty())
             initSystemInfo();
-        return m_system_local;
+        return m_current_local;
     }
 
 	/**
@@ -78,18 +82,27 @@ public:
      **/
     const std::string& getSystemEncoding(void)
     {
-        if(m_system_encoding.empty())
+        if(m_current_encoding.empty())
             initSystemInfo();
-        return m_system_encoding;
+        return m_current_encoding;
     }
+
+    /** @brief 在系统语言设置被切换时回调。
+    **/
+    inline void    onSwitch(type_switch_handler handler)
+    {
+        switch_Evt.addEventListen(handler);
+    }
+
 
     ~I18n();
 private:
     I18n();
 
-    std::string         m_system_local;
-    std::string         m_system_encoding;
+    std::string         m_current_local;
+    std::string         m_current_encoding;
     std::locale         m_translate_locale;
+    SingleEventListen<type_switch_handler>   switch_Evt;
 
 	void	assignSystemInfo(const char* lang);
 	void	initSystemInfo(void);

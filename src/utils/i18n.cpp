@@ -27,7 +27,7 @@
 #if WIN32
 #ifndef NOMINMAX
 	#define NOMINMAX
-#endif 
+#endif
 #include <windows.h>
 #endif
 
@@ -88,7 +88,7 @@ public:
 const char*
 I18n::gettext(const char * msg)
 {
-    std::string ctx = boost::locale::gettext(msg);
+    std::string ctx = boost::locale::gettext(msg,m_translate_locale);
     if(ctx.empty())
         return msg;
     char *line = getBufferInfo().getBuffer();
@@ -98,53 +98,29 @@ I18n::gettext(const char * msg)
     }
     strcpy(line,ctx.c_str());
     return line;
-
-#if 0
-    if(!m_pResBundle || !m_converter)
-        return msg;
-
-    int len;
-    const UChar * uc = NULL;
-
-    char *line = getBufferInfo().getBuffer();
-
-    UErrorCode status = U_ZERO_ERROR;
-
-    uc = ures_getStringByKey(m_pResBundle,msg, &len, &status);
-    if(U_FAILURE(status))
-    {
-        return msg;
-    }
-
-    size_t outputLen = ucnv_fromUChars(m_converter, line,getBufferInfo().getBufferLen(), uc, len, &status);
-    if(outputLen >= getBufferInfo().getBufferLen() )
-    {
-        line = getBufferInfo().getBuffer(outputLen + 1);
-        outputLen = ucnv_fromUChars(m_converter, line,getBufferInfo().getBufferLen(),uc,len, &status);
-    }
-    if(U_FAILURE(status))
-    {
-        return msg;
-    }
-
-    return line;
-#endif
 }
 
 bool
-I18n::setLocale(const std::string &locale, const char* encoding)
+I18n::setLocale(const std::string &locale, const char* encoding,bool fireEvent)
 {
     bool rt = false;
     //我们输出的目标一定是utf-8.然后由wx转义为系统接受的格式。
 	boost::filesystem::path i18npath = ModulePath::instance().modulePath();
 	i18npath /= "i18n";
-	if(boost::filesystem::is_directory(i18npath))
-    {
+	boost::filesystem::path targetI18n = i18npath / locale;
+	if(boost::filesystem::is_directory(i18npath) && boost::filesystem::is_directory(targetI18n))
+    {//只有在目标路径存在时，我们才允许切换翻译用locale.
         boost::locale::generator gen;
         gen.add_messages_path(i18npath.string());
         gen.add_messages_domain("gme");
         //我们输出的目标一定是utf-8.然后由wx转义为系统接受的格式。
         m_translate_locale = gen(locale + '.' + encoding);
+        if(fireEvent)
+        {
+            switch_Evt.fire();
+        }
+        m_current_local = locale;
+        m_current_encoding = encoding;
         rt = true;
     }
     return rt;
@@ -164,12 +140,12 @@ I18n::assignSystemInfo(const char* lang)
     boost::split(localArray,lang,boost::is_any_of("."),boost::token_compress_on);
     if(localArray.size() == 2)
     {
-        m_system_local = localArray[0];
-        m_system_encoding = localArray[1];
+        m_current_local = localArray[0];
+        m_current_encoding = localArray[1];
     }else{
         //default value.
-        m_system_local = "en_US";
-        m_system_encoding = "UTF-8";
+        m_current_local = "en_US";
+        m_current_encoding = "UTF-8";
     }
 }
 

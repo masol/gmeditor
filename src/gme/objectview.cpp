@@ -26,6 +26,7 @@
 #include "propgrid.h"
 #include "mainframe.h"
 #include <boost/bind.hpp>
+#include "cmdids.h"
 
 
 namespace gme{
@@ -290,7 +291,25 @@ ObjectView::OnItemActivated(wxTreeListEvent& event)
 void
 ObjectView::OnItemContextMenu(wxTreeListEvent& event)
 {
+    DECLARE_WXCONVERT;
 
+    wxTreeListItem item = event.GetItem();
+    if(!item.IsOk())
+        return;
+    const ObjectViewClientData* clientData = dynamic_cast<const ObjectViewClientData*>(m_treelist->GetItemData(item));
+
+    if(clientData)
+    {//pop on a item.
+    }
+
+    wxMenu  menu;
+    menu.Append(cmd::GID_IMPORT, gmeWXT("导入"));
+    menu.Append(cmd::GID_VIEWALL, gmeWXT("居中显示"));
+    menu.Append(cmd::GID_SETTARGET, gmeWXT("设置焦点"));
+    //本功能会响应摄像机以及物体的位置变化，并自动矫正摄像机焦点到指定物体的中心点。
+    menu.Append(cmd::GID_SETTARGET, gmeWXT("焦点跟随"));
+
+    PopupMenu(&menu);
 }
 
 

@@ -1,4 +1,4 @@
-###########################################################################
+# ##########################################################################
 #   Copyright (C) 2013 by sanpolo CO.LTD                                  #
 #                                                                         #
 #   This file is part of GMEditor.                                        #
@@ -14,406 +14,734 @@
 #   program.  If not, see <http://www.render001.com/gmeditor/licenses>.   #
 #                                                                         #
 #   GMEditor website: http://www.render001.com/gmeditor                   #
-###########################################################################
+# ##########################################################################
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: gmeditor\n"
 "Report-Msgid-Bugs-To: masol.li@gmail.com\n"
 "POT-Creation-Date: 2013-05-10 00:30+0800\n"
-"PO-Revision-Date: 2013-05-10 20:15+0800\n"
-"Last-Translator: Masol Lee<masol.li@gamil.com>\n"
+"PO-Revision-Date: 2013-05-10 16:00+0800\n"
+"Last-Translator: Masol Lee <masol.li@gamil.com>\n"
 "Language-Team: Masol Lee <masol.li@gmail.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.5\n"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:139
+#: src\gme\mainframe.cpp:139
 msgid "模型一览"
 msgstr "Object Viewer"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:140
+#: src\gme\mainframe.cpp:140
 msgid "系统日志"
-msgstr ""
+msgstr "System Log"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:151
+#: src\gme\mainframe.cpp:151
 msgid "属性设置"
-msgstr ""
+msgstr "Properties"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:176
+#: src\gme\mainframe.cpp:176
 msgid "Open"
-msgstr ""
+msgstr "Open(&O)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:176
+#: src\gme\mainframe.cpp:176
 msgid "打开已有场景"
-msgstr ""
+msgstr "Open An Existing Scene"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:178
+#: src\gme\mainframe.cpp:178
 msgid "保存(&S)"
-msgstr ""
+msgstr "Save(&S)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:178
+#: src\gme\mainframe.cpp:178
 msgid "保存现有场景"
-msgstr ""
+msgstr "Save Current Scene"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:179
+#: src\gme\mainframe.cpp:179
 msgid "保存图片(&S)"
-msgstr ""
+msgstr "Save Image(&S)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:179
+#: src\gme\mainframe.cpp:179
 msgid "保存当前渲染结果"
-msgstr ""
+msgstr "Save Current Rendering Result"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:180
+#: src\gme\mainframe.cpp:180
 msgid "导出(&E)"
-msgstr ""
+msgstr "Export(&E)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:180
+#: src\gme\mainframe.cpp:180
 msgid "导出现有场景"
-msgstr ""
+msgstr "Export Existing Scene"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:182
+#: src\gme\mainframe.cpp:182
 msgid "退出(&X)"
-msgstr ""
+msgstr "Exit(&X)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:182
+#: src\gme\mainframe.cpp:182
 msgid "退出gmeditor"
-msgstr ""
+msgstr "Exit gmeditor"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:184
+#: src\gme\mainframe.cpp:184
 msgid "文件(&F)"
-msgstr ""
+msgstr "File(&F)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:189
+#: src\gme\mainframe.cpp:189
 msgid "导入(&I)"
-msgstr ""
+msgstr "Import(&I)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:189
+#: src\gme\mainframe.cpp:189
 msgid "从文件中导入模型到当前场景"
-msgstr ""
+msgstr "Import Models To Current Scene From Files"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:190
+#: src\gme\mainframe.cpp:190
 msgid "删除(&D)"
-msgstr ""
+msgstr "Delete(&D)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:190
+#: src\gme\mainframe.cpp:190
 msgid "删除选中模型"
-msgstr ""
+msgstr "Delete Selected Model"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:193
-#: ..\github\gmeditor\src\gme\mainframe.cpp:286
+#: src\gme\mainframe.cpp:193
+#: src\gme\mainframe.cpp:286
 msgid "开始渲染"
-msgstr ""
+msgstr "Start Rendering"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:193
+#: src\gme\mainframe.cpp:193
 msgid "开始渲染当前场景"
-msgstr ""
+msgstr "Start Rendering Current Scene"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:194
-#: ..\github\gmeditor\src\gme\mainframe.cpp:287
+#: src\gme\mainframe.cpp:194
+#: src\gme\mainframe.cpp:287
 msgid "结束渲染"
-msgstr ""
+msgstr "Stop Rendering"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:194
+#: src\gme\mainframe.cpp:194
 msgid "结束当前场景的渲染"
-msgstr ""
+msgstr "Stop Rendering Current Scene"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:195
-#: ..\github\gmeditor\src\gme\mainframe.cpp:288
+#: src\gme\mainframe.cpp:195
+#: src\gme\mainframe.cpp:288
 msgid "暂停渲染"
-msgstr ""
+msgstr "Pause Rendering"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:195
+#: src\gme\mainframe.cpp:195
 msgid "暂停渲染当前场景"
-msgstr ""
+msgstr "Pause Rendering Current Scene"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:199
+#: src\gme\mainframe.cpp:199
 msgid "锁定(&L)"
-msgstr ""
+msgstr "Lock(&L)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:199
+#: src\gme\mainframe.cpp:199
 msgid "锁定窗口。"
-msgstr ""
+msgstr "Lock Window"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:200
+#: src\gme\mainframe.cpp:200
 msgid "平移(&P)"
-msgstr ""
+msgstr "Translation(&P)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:200
+#: src\gme\mainframe.cpp:200
 msgid "平移控制。"
-msgstr ""
+msgstr "Translation Control"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:201
+#: src\gme\mainframe.cpp:201
 msgid "旋转(&R)"
-msgstr ""
+msgstr "Rotation(&R)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:201
+#: src\gme\mainframe.cpp:201
 msgid "自身旋转。"
-msgstr ""
+msgstr "Self-rotation"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:202
+#: src\gme\mainframe.cpp:202
 msgid "中心点旋转(&C)"
-msgstr ""
+msgstr "Rotate Round Center Point(&C)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:202
+#: src\gme\mainframe.cpp:202
 msgid "绕摄像机焦点旋转。"
-msgstr ""
+msgstr "Rotate Round Camera Focus"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:203
+#: src\gme\mainframe.cpp:203
 msgid "缩放(&Z)"
-msgstr ""
+msgstr "Zoom(&Z)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:203
+#: src\gme\mainframe.cpp:203
 msgid "缩放控制。"
-msgstr ""
+msgstr "Zoom Control"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:204
+#: src\gme\mainframe.cpp:204
 msgid "编辑模式(&M)"
-msgstr ""
+msgstr "Modify Mode(&M)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:204
+#: src\gme\mainframe.cpp:204
 msgid "控制主窗口的编辑模式。"
-msgstr ""
+msgstr "Main Window Edit Mode Control"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:206
+#: src\gme\mainframe.cpp:206
 msgid "编辑(&E)"
-msgstr ""
+msgstr "Edit(&E)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:211
+#: src\gme\mainframe.cpp:211
 msgid "对象一览(&O)"
-msgstr ""
+msgstr "Object View(&O)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:211
+#: src\gme\mainframe.cpp:211
 msgid "显示/隐藏对象一览面板"
-msgstr ""
+msgstr "Display / Hide Object View"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:212
+#: src\gme\mainframe.cpp:212
 msgid "属性设置(&P)"
-msgstr ""
+msgstr "Properties Setting"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:212
+#: src\gme\mainframe.cpp:212
 msgid "显示/隐藏属性面板"
-msgstr ""
+msgstr "Display / Hide Properties Panel"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:213
+#: src\gme\mainframe.cpp:213
 msgid "系统日志(&L)"
-msgstr ""
+msgstr "System Log(&L)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:213
+#: src\gme\mainframe.cpp:213
 msgid "显示/隐藏系统日志面板"
-msgstr ""
+msgstr "Display / Hide System Log"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:217
+#: src\gme\mainframe.cpp:217
 msgid "校正文档(&A)"
-msgstr ""
+msgstr "Adjustment Document(&A)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:217
+#: src\gme\mainframe.cpp:217
 msgid "根据显示区域的大小自动设置渲染文档的尺寸。"
-msgstr ""
+msgstr "Adjustment document size with Display Area"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:218
+#: src\gme\mainframe.cpp:218
 msgid "实际尺寸(&P)"
-msgstr ""
+msgstr "Actual Size(&P)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:218
+#: src\gme\mainframe.cpp:218
 msgid "按照文档的实际尺寸显示。"
-msgstr ""
+msgstr "Display with document size, if document large than view area,scrollbar is show."
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:219
+#: src\gme\mainframe.cpp:219
 msgid "全屏缩放(&P)"
-msgstr ""
+msgstr "Zoom(&P)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:219
+#: src\gme\mainframe.cpp:219
 msgid "自动缩放以充满全屏。"
-msgstr ""
+msgstr "Scaled to fill the full view area."
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:220
+#: src\gme\mainframe.cpp:220
 msgid "等比缩放(&P)"
-msgstr ""
+msgstr "Geometric Scaling(&P)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:220
+#: src\gme\mainframe.cpp:220
 msgid "自动缩放到全屏并保持文档的横纵必不变。"
-msgstr ""
+msgstr "Auto-Scaled To Fill The Full Screen and Keep Aspect Unchanged"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:221
+#: src\gme\mainframe.cpp:221
 msgid "显示方式(&M)"
-msgstr ""
+msgstr "Display Mode(&M)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:221
+#: src\gme\mainframe.cpp:221
 msgid "控制主窗口如何匹配渲染图的尺寸。"
-msgstr ""
+msgstr "Tell The Main Window How To Match The Size Of Rendering Pics."
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:225
+#: src\gme\mainframe.cpp:225
 msgid "Trace(&A)"
-msgstr ""
+msgstr "Trace(&A)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:225
+#: src\gme\mainframe.cpp:225
 msgid "设置日志级别到Trace"
-msgstr ""
+msgstr "Set Log Level to Trace"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:226
+#: src\gme\mainframe.cpp:226
 msgid "Debug(&D)"
-msgstr ""
+msgstr "Debug(&D)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:226
+#: src\gme\mainframe.cpp:226
 msgid "设置日志级别到Debug"
-msgstr ""
+msgstr "Set Log Level to Debug"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:227
+#: src\gme\mainframe.cpp:227
 msgid "Verbose(&V)"
-msgstr ""
+msgstr "Verbose(&V)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:227
+#: src\gme\mainframe.cpp:227
 msgid "设置日志级别到Verbose"
-msgstr ""
+msgstr "Set Log Level to Verbose"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:228
+#: src\gme\mainframe.cpp:228
 msgid "Message(&M)"
-msgstr ""
+msgstr "Message(&M)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:228
+#: src\gme\mainframe.cpp:228
 msgid "设置日志级别到Message"
-msgstr ""
+msgstr "Set Log Level to Message"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:229
+#: src\gme\mainframe.cpp:229
 msgid "Status(&S)"
-msgstr ""
+msgstr "Status(&S)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:229
+#: src\gme\mainframe.cpp:229
 msgid "设置日志级别到Status"
-msgstr ""
+msgstr "Set Log Level to Status"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:230
+#: src\gme\mainframe.cpp:230
 msgid "Warning(&W)"
-msgstr ""
+msgstr "Warning(&W)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:230
+#: src\gme\mainframe.cpp:230
 msgid "设置日志级别到Warning"
-msgstr ""
+msgstr "Set Log Level to Warning"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:231
+#: src\gme\mainframe.cpp:231
 msgid "Error(&E)"
-msgstr ""
+msgstr "Error(&E)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:231
+#: src\gme\mainframe.cpp:231
 msgid "设置日志级别到Error"
-msgstr ""
+msgstr "Set Log Level to Error"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:232
+#: src\gme\mainframe.cpp:232
 msgid "SysError(&S)"
-msgstr ""
+msgstr "System Error(&S)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:232
+#: src\gme\mainframe.cpp:232
 msgid "设置日志级别到SysError"
-msgstr ""
+msgstr "Set Log Level to SysError"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:233
+#: src\gme\mainframe.cpp:233
 msgid "FAtalError(&F)"
-msgstr ""
+msgstr "Fatal Error(&F)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:233
+#: src\gme\mainframe.cpp:233
 msgid "设置日志级别到FAtalError"
-msgstr ""
+msgstr "Set Log Level to FatalError"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:234
+#: src\gme\mainframe.cpp:234
 msgid "日志级别(&L)"
-msgstr ""
+msgstr "Log Level(&L)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:234
+#: src\gme\mainframe.cpp:234
 msgid "设置系统显示的日志级别。"
-msgstr ""
+msgstr "Set Log Level Displayed by System"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:236
+#: src\gme\mainframe.cpp:236
 msgid "视图(&V)"
-msgstr ""
+msgstr "View(&V)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:241
-#: ..\github\gmeditor\src\gme\mainframe.cpp:301
+#: src\gme\mainframe.cpp:241
+#: src\gme\mainframe.cpp:301
 msgid "关于(&A)"
-msgstr ""
+msgstr "About(&A)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:241
+#: src\gme\mainframe.cpp:241
 msgid "关于我们的信息"
-msgstr ""
+msgstr "About Us"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:243
+#: src\gme\mainframe.cpp:243
 msgid "帮助(&H)"
-msgstr ""
+msgstr "Help(&H)"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:262
-#: ..\github\gmeditor\src\gme\mainframe.cpp:264
-#: ..\github\gmeditor\src\gme\mainframe.cpp:265
+#: src\gme\mainframe.cpp:262
+#: src\gme\mainframe.cpp:264
+#: src\gme\mainframe.cpp:265
 msgid "File"
-msgstr ""
+msgstr "File"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:262
+#: src\gme\mainframe.cpp:262
 msgid "打开"
-msgstr ""
+msgstr "Open"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:264
+#: src\gme\mainframe.cpp:264
 msgid "保存"
-msgstr ""
+msgstr "Save"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:265
+#: src\gme\mainframe.cpp:265
 msgid "导出"
-msgstr ""
+msgstr "Export"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:269
+#: src\gme\mainframe.cpp:269
 msgid "filetoolbar"
-msgstr ""
+msgstr "File Toolbar"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:269
+#: src\gme\mainframe.cpp:269
 msgid "文件操作工具栏"
-msgstr ""
+msgstr "File Operations Toolbar"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:283
-#: ..\github\gmeditor\src\gme\mainframe.cpp:284
+#: src\gme\mainframe.cpp:283
+#: src\gme\mainframe.cpp:284
 msgid "Edit"
-msgstr ""
+msgstr "Edit"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:283
+#: src\gme\mainframe.cpp:283
 msgid "导入"
-msgstr ""
+msgstr "Import"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:284
+#: src\gme\mainframe.cpp:284
 msgid "删除"
-msgstr ""
+msgstr "Delete"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:286
-#: ..\github\gmeditor\src\gme\mainframe.cpp:287
-#: ..\github\gmeditor\src\gme\mainframe.cpp:288
+#: src\gme\mainframe.cpp:286
+#: src\gme\mainframe.cpp:287
+#: src\gme\mainframe.cpp:288
 msgid "RenderCtrl"
-msgstr ""
+msgstr "Render Control"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:291
+#: src\gme\mainframe.cpp:291
 msgid "edittoolbar"
-msgstr ""
+msgstr "Edit Toolbar"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:291
+#: src\gme\mainframe.cpp:291
 msgid "编辑场景工具栏"
-msgstr ""
+msgstr "Scene Editing Toolbar"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:301
+#: src\gme\mainframe.cpp:301
 msgid "Help"
-msgstr ""
+msgstr "Help"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:305
+#: src\gme\mainframe.cpp:305
 msgid "helptoolbar"
-msgstr ""
+msgstr "Help Toolbar"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:305
+#: src\gme\mainframe.cpp:305
 msgid "帮助工具栏"
-msgstr ""
+msgstr "Help Toolbar"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:318
+#: src\gme\mainframe.cpp:318
 msgid "就绪"
-msgstr ""
+msgstr "Ready"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:498
+#: src\gme\mainframe.cpp:498
 msgid "这是一个ABOUT消息框"
-msgstr ""
+msgstr "It's an ABOUT Message Box"
 
-#: ..\github\gmeditor\src\gme\mainframe.cpp:499
+#: src\gme\mainframe.cpp:499
 msgid "About us"
+msgstr "About Us"
+
+#: src/gme/propgrid.cpp:78
+msgid "高动态图映射"
+msgstr "High Dynamic Graph Mapping"
+
+#: src/gme/propgrid.cpp:80
+msgid "材质属性"
+msgstr "Material Properties"
+
+#: src/gme/objectview.cpp:202
+msgid "名称"
+msgstr "Name"
+
+#: src/gme/gmestatus.cpp:114
+msgid "设置次数终止"
+msgstr "Set The Number Of Times To Stop"
+
+#: src/gme/gmestatus.cpp:115
+msgid "设置时间终止"
+msgstr "Set The Time To Stop"
+
+#: src/gme/gmestatus.cpp:116
+msgid "设置覆盖率终止"
+msgstr "Set The Coverage To Stop"
+
+#: src/gme/gmestatus.cpp:117
+msgid "永久渲染"
+msgstr "Permanent Rendering"
+
+#: src/gme/property/envlightpage.cpp:277 src/gme/property/envlightpage.cpp:320
+msgid "方向"
+msgstr "Direction"
+
+#: src/gme/property/envlightpage.cpp:279 src/gme/property/envlightpage.cpp:326
+msgid "turbidity"
+msgstr "Turbidity"
+
+#: src/gme/property/envlightpage.cpp:281
+msgid "relsize"
+msgstr "Relsize"
+
+#: src/gme/property/envlightpage.cpp:285 src/gme/property/envlightpage.cpp:305
+#: src/gme/property/envlightpage.cpp:324 src/gme/property/materialpage.cpp:197
+msgid "增益"
+msgstr "Gain"
+
+#: src/gme/property/envlightpage.cpp:301 src/gme/property/materialpage.cpp:189
+msgid "文件"
+msgstr "File"
+
+#: src/gme/property/envlightpage.cpp:307 src/gme/property/materialpage.cpp:152
+msgid "uDelta"
+msgstr "uDelta"
+
+#: src/gme/property/envlightpage.cpp:308 src/gme/property/materialpage.cpp:153
+msgid "vDelta"
+msgstr "vDelta"
+
+#: src/gme/property/envlightpage.cpp:345
+msgid "HDR环境"
+msgstr "HDR Environment"
+
+#: src/gme/property/envlightpage.cpp:346 src/gme/property/envlightpage.cpp:362
+msgid "阳光"
+msgstr "Sunlight"
+
+#: src/gme/property/envlightpage.cpp:347 src/gme/property/materialpage.cpp:328
+msgid "disable"
+msgstr "Disable"
+
+#: src/gme/property/envlightpage.cpp:349
+msgid "环境光"
+msgstr "Ambient Light"
+
+#: src/gme/property/envlightpage.cpp:356
+msgid "类型"
+msgstr "Type"
+
+#: src/gme/property/envlightpage.cpp:364
+msgid "开启"
+msgstr "Turn On"
+
+#: src/gme/property/hdrpage.cpp:40
+msgid "linear"
+msgstr "Linear"
+
+#: src/gme/property/hdrpage.cpp:41
+msgid "reinhard02"
+msgstr "Reinhard02"
+
+#: src/gme/property/hdrpage.cpp:42
+msgid "图像映射"
+msgstr "ToneMapping"
+
+#: src/gme/property/hdrpage.cpp:42
+msgid "film.tonemap"
+msgstr "Film.tonemap"
+
+#: src/gme/property/materialpage.cpp:77
+msgid "constfloat1"
+msgstr "constfloat1"
+
+#: src/gme/property/materialpage.cpp:78
+msgid "constfloat3"
+msgstr "constfloat3"
+
+#: src/gme/property/materialpage.cpp:79
+msgid "imagemap"
+msgstr "Imagemap"
+
+#: src/gme/property/materialpage.cpp:80 src/gme/property/materialpage.cpp:254
+msgid "scale"
+msgstr "Scale"
+
+#: src/gme/property/materialpage.cpp:81
+msgid "fresnelapproxn"
+msgstr "Fresnelapproxn"
+
+#: src/gme/property/materialpage.cpp:82
+msgid "fresnelapproxk"
+msgstr "Fresnelapproxk"
+
+#: src/gme/property/materialpage.cpp:83 src/gme/property/materialpage.cpp:372
+msgid "mix"
+msgstr "Mix"
+
+#: src/gme/property/materialpage.cpp:84
+msgid "add"
+msgstr "Add"
+
+#: src/gme/property/materialpage.cpp:85
+msgid "checkerboard2d"
+msgstr "Checkerboard2d"
+
+#: src/gme/property/materialpage.cpp:86
+msgid "checkerboard3d"
+msgstr "Checkerboard3d"
+
+#: src/gme/property/materialpage.cpp:87
+msgid "fbm"
+msgstr "fbm"
+
+#: src/gme/property/materialpage.cpp:88
+msgid "marble"
+msgstr "marble"
+
+#: src/gme/property/materialpage.cpp:89
+msgid "dots"
+msgstr "dots"
+
+#: src/gme/property/materialpage.cpp:90
+msgid "brick"
+msgstr "brick"
+
+#: src/gme/property/materialpage.cpp:91
+msgid "windy"
+msgstr "windy"
+
+#: src/gme/property/materialpage.cpp:92
+msgid "wrinkled"
+msgstr "wrinkled"
+
+#: src/gme/property/materialpage.cpp:93
+msgid "uv"
+msgstr "uv"
+
+#: src/gme/property/materialpage.cpp:150
+msgid "uScale"
+msgstr "uScale"
+
+#: src/gme/property/materialpage.cpp:151
+msgid "vScale"
+msgstr "vScale"
+
+#: src/gme/property/materialpage.cpp:173
+msgid "颜色"
+msgstr "Colour"
+
+#: src/gme/property/materialpage.cpp:178
+msgid "值"
+msgstr "Value"
+
+#: src/gme/property/materialpage.cpp:206
+msgid "伽马"
+msgstr "Gamma"
+
+#: src/gme/property/materialpage.cpp:243 src/gme/property/materialpage.cpp:252
+#: src/gme/property/materialpage.cpp:306
+msgid "octaves"
+msgstr "octaves"
+
+#: src/gme/property/materialpage.cpp:244 src/gme/property/materialpage.cpp:253
+#: src/gme/property/materialpage.cpp:307
+msgid "roughness"
+msgstr "roughness"
+
+#: src/gme/property/materialpage.cpp:255
+msgid "variation"
+msgstr "variation"
+
+#: src/gme/property/materialpage.cpp:269
+msgid "flemish"
+msgstr "flemish"
+
+#: src/gme/property/materialpage.cpp:270
+msgid "running"
+msgstr "running"
+
+#: src/gme/property/materialpage.cpp:271
+msgid "english"
+msgstr "english"
+
+#: src/gme/property/materialpage.cpp:272
+msgid "herringbone"
+msgstr "herringbone"
+
+#: src/gme/property/materialpage.cpp:273
+msgid "basket"
+msgstr "basket"
+
+#: src/gme/property/materialpage.cpp:274
+msgid "chain link"
+msgstr "chain link"
+
+#: src/gme/property/materialpage.cpp:279
+msgid "brickbond"
+msgstr "brickbond"
+
+#: src/gme/property/materialpage.cpp:282
+msgid "brickwidth"
+msgstr "brickwidth"
+
+#: src/gme/property/materialpage.cpp:285
+msgid "brickheight"
+msgstr "brickheight"
+
+#: src/gme/property/materialpage.cpp:288
+msgid "brickdepth"
+msgstr "brickdepth"
+
+#: src/gme/property/materialpage.cpp:291
+msgid "mortarsize"
+msgstr "mortarsize"
+
+#: src/gme/property/materialpage.cpp:294
+msgid "brickrun"
+msgstr "brickrun"
+
+#: src/gme/property/materialpage.cpp:297
+msgid "brickbevel"
+msgstr "brickbevel"
+
+#: src/gme/property/materialpage.cpp:330
+msgid "ies"
+msgstr "ies"
+
+#: src/gme/property/materialpage.cpp:367
+msgid "matte"
+msgstr "matte"
+
+#: src/gme/property/materialpage.cpp:368
+msgid "mirror"
+msgstr "mirror"
+
+#: src/gme/property/materialpage.cpp:369
+msgid "glass"
+msgstr "glass"
+
+#: src/gme/property/materialpage.cpp:370
+msgid "metal"
+msgstr "metal"
+
+#: src/gme/property/materialpage.cpp:371
+msgid "archglass"
+msgstr "archglass"
+
+#: src/gme/property/materialpage.cpp:373
+msgid "null"
+msgstr "null"
+
+#: src/gme/property/materialpage.cpp:374
+msgid "mattetranslucent"
+msgstr "mattetranslucent"
+
+#: src/gme/property/materialpage.cpp:375
+msgid "glossy2"
+msgstr "glossy2"
+
+#: src/gme/property/materialpage.cpp:376
+msgid "metal2"
+msgstr "metal2"
+
+#: src/gme/property/materialpage.cpp:471
+msgid "多重反射"
+msgstr "Multiple Reflections"
+
+#: src/gme/property/materialpage.cpp:103
+msgid "法线贴图"
+msgstr "Normal"
+
+#: src/gme/property/materialpage.cpp:106
+msgid "凹凸贴图"
+msgstr "Bump"
+
+#: src/gme/property/materialpage.cpp:109
+msgid "光照贴图"
+msgstr "Emission"
+
+#: src/gme/property/materialpage.cpp:112
+msgid "固有色"
+msgstr "Diffuse"
+
+#: src/gme/property/materialpage.cpp:115
+msgid "反射系数"
+msgstr "Reflection"
+
+msgid "对象‘%s'的材质定义:"
+msgstr "material of ‘%s':"
+
+#: src/dm/docio.cpp:316
+msgid ""
+"找不到opencl环境，使用CPU渲染，这将会严重影响您的体验，请检查您的硬件环境以及"
+"驱动设置(可以使用GPU-Z来检查OPENCL环境是否就绪)。"
 msgstr ""
+"Cannot find OpenCL environment. Start to use the CPU rendering, which will "
+"seriously affect your experience. Please check your hardware environment and "
+"driver settings (you can use GPU-Z to check whether OPENCL environment is "
+"ready)."
