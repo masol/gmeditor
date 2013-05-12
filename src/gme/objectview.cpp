@@ -22,12 +22,13 @@
 #include "stringutil.h"
 #include "dm/docobj.h"
 #include "dm/docio.h"
+#include "dm/doccamera.h"
 #include <wx/sizer.h>
 #include "propgrid.h"
 #include "mainframe.h"
 #include <boost/bind.hpp>
 #include "cmdids.h"
-
+#include "filedialog.h"
 
 namespace gme{
 
@@ -49,6 +50,9 @@ BEGIN_EVENT_TABLE(ObjectView, inherited)
     EVT_TREELIST_ITEM_CHECKED(wxID_ANY, ObjectView::OnItemChecked)
     EVT_TREELIST_ITEM_ACTIVATED(wxID_ANY, ObjectView::OnItemActivated)
     EVT_TREELIST_ITEM_CONTEXT_MENU(wxID_ANY, ObjectView::OnItemContextMenu)
+	EVT_MENU(cmd::GID_IMPORT,ObjectView::onMenuImport)
+	EVT_MENU(cmd::GID_VIEWALL,ObjectView::onMenuViewAll)
+	EVT_MENU(cmd::GID_SETTARGET,ObjectView::onMenuSetCenter)
 END_EVENT_TABLE()
 
 ObjectView::ObjectView(wxWindow* parent, wxWindowID id,const wxPoint& pos, const wxSize& size)
@@ -285,8 +289,36 @@ ObjectView::OnItemChecked(wxTreeListEvent& event)
 void
 ObjectView::OnItemActivated(wxTreeListEvent& event)
 {
-
 }
+
+void
+ObjectView::onMenuImport(wxCommandEvent &event)
+{
+    ImportDialog    dialog(this);
+    if(dialog.ShowModal() == wxID_OK)
+	{
+		gme::DocObj	obj;
+		gme::ObjectNode *pParent = NULL;
+		if(!this->m_menuCmdTarget.empty())
+		{
+            pParent = obj.getRootObject().findObject(this->m_menuCmdTarget,NULL);
+		}
+        obj.importObject(dialog.GetPath(),pParent);
+	}
+}
+
+void
+ObjectView::onMenuViewAll(wxCommandEvent &event)
+{
+    DocCamera   cam;
+    cam.viewAll(this->m_menuCmdTarget);
+}
+
+void
+ObjectView::onMenuSetCenter(wxCommandEvent &event)
+{
+}
+
 
 void
 ObjectView::OnItemContextMenu(wxTreeListEvent& event)
@@ -300,6 +332,9 @@ ObjectView::OnItemContextMenu(wxTreeListEvent& event)
 
     if(clientData)
     {//pop on a item.
+        this->m_menuCmdTarget = clientData->m_objid;
+    }else{//pop on root
+        this->m_menuCmdTarget.clear();
     }
 
     wxMenu  menu;
@@ -307,7 +342,7 @@ ObjectView::OnItemContextMenu(wxTreeListEvent& event)
     menu.Append(cmd::GID_VIEWALL, gmeWXT("居中显示"));
     menu.Append(cmd::GID_SETTARGET, gmeWXT("设置焦点"));
     //本功能会响应摄像机以及物体的位置变化，并自动矫正摄像机焦点到指定物体的中心点。
-    menu.Append(cmd::GID_SETTARGET, gmeWXT("焦点跟随"));
+    //menu.Append(cmd::GID_SETTARGET, gmeWXT("焦点跟随"));
 
     PopupMenu(&menu);
 }

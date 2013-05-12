@@ -38,6 +38,9 @@ private:
     DocPrivate(void);
     ~DocPrivate(void);
     std::vector<std::string>                    m_selectionVector;
+    /** @brief  auto-focus.
+    **/
+    bool                                    m_bAutofocus;
 public:
     typedef boost::function<void (int,int)>     type_imagesize_handler;
     typedef boost::function<void (void)>        type_state_handler;
@@ -46,6 +49,7 @@ public:
     enum{
         STATE_OPEN,
         STATE_CLOSE,
+        STATE_AUTOFOCUS_CHANGED,
         STATE_MAX
     };
 
@@ -79,6 +83,18 @@ private:
         selection_Evt.clear();
     }
 public:
+    inline  bool    autoFocus(void)const
+    {
+        return m_bAutofocus;
+    }
+    inline  void    autoFocus(bool af)
+    {
+        if(af != m_bAutofocus)
+        {
+            m_bAutofocus = af;
+            state_Evt.fire(STATE_AUTOFOCUS_CHANGED);
+        }
+    }
     ///@brief selection members.
     inline  void    clearSelection(void)
     {

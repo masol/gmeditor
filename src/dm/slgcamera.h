@@ -20,6 +20,7 @@
 #define  GME_DM_SLGCAMERA_H
 
 #include "dm/doccamera.h"
+#include "dm/objectnode.h"
 #include "slg/slg.h"
 #include "slg/camera/camera.h"
 
@@ -56,6 +57,8 @@ public:
     int findAndImportCamera(type_xml_node &node);
     int dumpAll(type_xml_node &parent);
 public:
+    ///@brief viewall object.
+    static void viewAll(const std::string &objid);
     static void saveTo(slg::RenderSession *session,Camera &cam);
     static void targetRotate(slg::PerspectiveCamera *camera,const float angle, const luxrays::Vector &axis);
     static inline void targetRotateUp(slg::PerspectiveCamera *camera,const float angle)
@@ -67,8 +70,8 @@ public:
     {
         targetRotate(camera,angle,camera->GetY());
     }
-
-
+private:
+    static  void    GetObjectBBox(luxrays::BBox &box,ObjectNode *pNode);
 };
 
 }

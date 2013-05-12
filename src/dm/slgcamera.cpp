@@ -19,6 +19,8 @@
 
 #include "config.h"
 #include "slgcamera.h"
+#include "slgobject.h"
+#include "docprivate.h"
 #include "dm/doccamera.h"
 #include "slg/camera/camera.h"
 #include "slg/rendersession.h"
@@ -26,6 +28,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
+#include <boost/math/constants/constants.hpp>
 
 namespace gme{
 
@@ -103,6 +106,81 @@ ExtraCameraManager::targetRotate(slg::PerspectiveCamera *camera,const float angl
     luxrays::Transform t = luxrays::Rotate(angle, axis);
     camera->orig = camera->target + t * p;
 }
+
+void
+ExtraCameraManager::GetObjectBBox(luxrays::BBox &box,ObjectNode *pNode)
+{
+    if(!pNode->matid().empty())
+    {
+        luxrays::ExtMesh *pMesh = ExtraObjectManager::getExtMesh(pNode->id());
+        if(pMesh)
+        {
+            box = luxrays::Union(box,pMesh->GetBBox());
+        }
+    }
+    ObjectNode::type_child_container::iterator it = pNode->begin();
+    while(it != pNode->end())
+    {
+        GetObjectBBox(box,&(*it));
+        it++;
+    }
+}
+
+void
+ExtraCameraManager::viewAll(const std::string &objid)
+{
+    luxrays::BBox   box;
+    if(objid.empty())
+    {//view all
+        slg::Scene  *scene = Doc::instance().pDocData->m_session->renderConfig->scene;
+
+        BOOST_FOREACH(luxrays::ExtMesh *mesh,scene->extMeshCache.meshes)
+        {
+            box = luxrays::Union(box,mesh->GetBBox());
+        }
+    }else
+    {//view all with object.
+        ExtraObjectManager &objManager = Doc::instance().pDocData->objManager;
+        ///@todo use path to caculate transform.
+        ObjectNode *pNode = objManager.getRoot().findObject(objid,NULL);
+        if(pNode)
+        {
+            GetObjectBBox(box,pNode);
+        }
+    }
+    if(box.IsValid())
+    {
+        luxrays::BSphere    bs = box.BoundingSphere();
+
+        SlgUtil::Editor editor(Doc::instance().pDocData->m_session.get());
+
+        slg::PerspectiveCamera *camera = editor.session()->renderConfig->scene->camera;
+
+        u_int width = editor.session()->film->GetWidth();
+        u_int height = editor.session()->film->GetHeight();
+
+        float aspect = (float)width / (float)height;
+        float aspectradius = bs.rad / (aspect < 1.0f ? 1.0f : aspect);
+        float  radius = aspectradius / std::tan(((camera->fieldOfView / 180.0f ) * boost::math::constants::pi<float>() ) / 2.0f);
+
+        camera->orig[0] = (bs.center.x  + radius);
+        camera->orig[1] = (bs.center.y  + radius);
+        camera->orig[2] = (bs.center.z  + radius);
+
+        camera->target[0] = bs.center.x;
+        camera->target[1] = bs.center.y;
+        camera->target[2] = bs.center.z;
+
+        if(Doc::instance().pDocData->autoFocus())
+        {
+            camera->focalDistance = luxrays::Distance(camera->target,camera->orig) / 2;
+        }
+
+	    camera->Update(width, height);
+	    editor.addAction(slg::CAMERA_EDIT);
+    }
+}
+
 
 }
 

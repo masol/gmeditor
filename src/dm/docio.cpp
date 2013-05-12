@@ -93,7 +93,6 @@ void    initViewAllCamera(slg::Scene *scene,float width,float height)
         it++;
     }
     luxrays::BSphere    bs = box.BoundingSphere();
-    std::stringstream   ss;
 
     gme::Camera defCam = gme::Camera::getDefault();
     float aspect = width / height;

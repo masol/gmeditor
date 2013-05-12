@@ -21,7 +21,7 @@ msgstr ""
 "Project-Id-Version: gmeditor\n"
 "Report-Msgid-Bugs-To: masol.li@gmail.com\n"
 "POT-Creation-Date: 2013-05-10 00:30+0800\n"
-"PO-Revision-Date: 2013-05-10 16:00+0800\n"
+"PO-Revision-Date: 2013-05-11 16:55+0800\n"
 "Last-Translator: Masol Lee <masol.li@gamil.com>\n"
 "Language-Team: Masol Lee <masol.li@gmail.com>\n"
 "MIME-Version: 1.0\n"
@@ -101,8 +101,7 @@ msgstr "Delete(&D)"
 msgid "删除选中模型"
 msgstr "Delete Selected Model"
 
-#: src\gme\mainframe.cpp:193
-#: src\gme\mainframe.cpp:286
+#: src\gme\mainframe.cpp:193 src\gme\mainframe.cpp:286
 msgid "开始渲染"
 msgstr "Start Rendering"
 
@@ -110,8 +109,7 @@ msgstr "Start Rendering"
 msgid "开始渲染当前场景"
 msgstr "Start Rendering Current Scene"
 
-#: src\gme\mainframe.cpp:194
-#: src\gme\mainframe.cpp:287
+#: src\gme\mainframe.cpp:194 src\gme\mainframe.cpp:287
 msgid "结束渲染"
 msgstr "Stop Rendering"
 
@@ -119,8 +117,7 @@ msgstr "Stop Rendering"
 msgid "结束当前场景的渲染"
 msgstr "Stop Rendering Current Scene"
 
-#: src\gme\mainframe.cpp:195
-#: src\gme\mainframe.cpp:288
+#: src\gme\mainframe.cpp:195 src\gme\mainframe.cpp:288
 msgid "暂停渲染"
 msgstr "Pause Rendering"
 
@@ -218,7 +215,9 @@ msgstr "Actual Size(&P)"
 
 #: src\gme\mainframe.cpp:218
 msgid "按照文档的实际尺寸显示。"
-msgstr "Display with document size, if document large than view area,scrollbar is show."
+msgstr ""
+"Display with document size, if document large than view area,scrollbar is "
+"show."
 
 #: src\gme\mainframe.cpp:219
 msgid "全屏缩放(&P)"
@@ -328,8 +327,7 @@ msgstr "Set Log Level Displayed by System"
 msgid "视图(&V)"
 msgstr "View(&V)"
 
-#: src\gme\mainframe.cpp:241
-#: src\gme\mainframe.cpp:301
+#: src\gme\mainframe.cpp:241 src\gme\mainframe.cpp:301
 msgid "关于(&A)"
 msgstr "About(&A)"
 
@@ -341,8 +339,7 @@ msgstr "About Us"
 msgid "帮助(&H)"
 msgstr "Help(&H)"
 
-#: src\gme\mainframe.cpp:262
-#: src\gme\mainframe.cpp:264
+#: src\gme\mainframe.cpp:262 src\gme\mainframe.cpp:264
 #: src\gme\mainframe.cpp:265
 msgid "File"
 msgstr "File"
@@ -367,8 +364,7 @@ msgstr "File Toolbar"
 msgid "文件操作工具栏"
 msgstr "File Operations Toolbar"
 
-#: src\gme\mainframe.cpp:283
-#: src\gme\mainframe.cpp:284
+#: src\gme\mainframe.cpp:283 src\gme\mainframe.cpp:284
 msgid "Edit"
 msgstr "Edit"
 
@@ -380,8 +376,7 @@ msgstr "Import"
 msgid "删除"
 msgstr "Delete"
 
-#: src\gme\mainframe.cpp:286
-#: src\gme\mainframe.cpp:287
+#: src\gme\mainframe.cpp:286 src\gme\mainframe.cpp:287
 #: src\gme\mainframe.cpp:288
 msgid "RenderCtrl"
 msgstr "Render Control"
@@ -412,7 +407,10 @@ msgstr "Ready"
 
 #: src\gme\mainframe.cpp:498
 msgid "这是一个ABOUT消息框"
-msgstr "It's an ABOUT Message Box"
+msgstr ""
+"Glue Material Editor (GMEditor) is a faked realtime 3D renderer based SLG, "
+"using GPU to accelerate the ray intersection process. You can change "
+"materials easily, and get you result fast…really fast."
 
 #: src\gme\mainframe.cpp:499
 msgid "About us"

@@ -19,6 +19,7 @@
 #include "config.h"
 #include "utils/option.h"
 #include "dm/docimg.h"
+#include "dm/docio.h"
 #include "dm/doccamera.h"
 #include "glrenderframe.h"
 #include "../cmdids.h"
@@ -38,14 +39,15 @@ BEGIN_EVENT_TABLE(GlRenderFrame, inherited)
     EVT_KEY_DOWN(GlRenderFrame::keyPressed)
     EVT_KEY_UP(GlRenderFrame::keyReleased)
     EVT_MOUSEWHEEL(GlRenderFrame::mouseWheelMoved)
-    EVT_IDLE(GlRenderFrame::onIdle)
+
+    EVT_TIMER(wxID_ANY, GlRenderFrame::onRefreshTimer)
 
     // catch paint events
     EVT_PAINT(GlRenderFrame::paintEvent)
 END_EVENT_TABLE()
 
 
-GlRenderFrame::GlRenderFrame(wxWindow* parent,int *args,int vm) : inherited(parent,wxID_ANY,args,wxDefaultPosition, wxDefaultSize)
+GlRenderFrame::GlRenderFrame(wxWindow* parent,int *args,int vm) : inherited(parent,wxID_ANY,args,wxDefaultPosition, wxDefaultSize) , m_refreshTimer(this)
 {
     m_context.reset(new wxGLContext(this));
 
@@ -63,8 +65,18 @@ GlRenderFrame::GlRenderFrame(wxWindow* parent,int *args,int vm) : inherited(pare
     SetMinSize( wxSize(20, 20) );
     opt_RotateStep = 4.f;
     m_micro_tick = boost::posix_time::microsec_clock::local_time();
-    //0.2 second.
+
+    //0.1 second.
     opt_MinEditInterval = 200;
+    opt_MinUpdateInterval = 200;
+    m_refreshTimer.Stop();
+
+    {
+        DocIO   dio;
+        dio.onSceneLoaded(boost::bind(&GlRenderFrame::onSceneLoaded,this));
+        dio.onSceneClosed(boost::bind(&GlRenderFrame::onSceneClosed,this));
+    }
+
 
     // To avoid flashing on MSW
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
@@ -78,7 +90,34 @@ GlRenderFrame::~GlRenderFrame()
 }
 
 void
-GlRenderFrame::onIdle(wxIdleEvent &event)
+GlRenderFrame::onSceneLoaded(void)
+{
+    if(!this->m_refreshTimer.IsRunning())
+        this->m_refreshTimer.Start(opt_MinUpdateInterval);
+}
+
+void
+GlRenderFrame::refreshImmediate(void)
+{
+    //this->Update();
+    //this->render();
+    //if(this->m_refreshTimer.IsRunning())
+    //{
+    //    this->m_refreshTimer.Stop();
+    //    this->m_refreshTimer.Start(opt_MinUpdateInterval);
+    //}
+}
+
+
+void
+GlRenderFrame::onSceneClosed(void)
+{
+    if(this->m_refreshTimer.IsRunning())
+        this->m_refreshTimer.Stop();
+}
+
+void
+GlRenderFrame::onRefreshTimer(wxTimerEvent& WXUNUSED(event))
 {
     this->Refresh(false);
 }
@@ -229,6 +268,7 @@ GlRenderFrame::translateCam(wxMouseEvent& event)
 			m_lastx = x;
 			m_lasty = y;
 			m_micro_tick = now;
+            this->refreshImmediate();
 		}
     }
 }
@@ -253,6 +293,7 @@ GlRenderFrame::zoomCam(wxMouseEvent& event)
 			m_lastx = x;
 			m_lasty = y;
 			m_micro_tick = now;
+            this->refreshImmediate();
 		}
     }
 }
@@ -276,6 +317,7 @@ GlRenderFrame::rotateCamAroundCenter(wxMouseEvent& event)
 			m_lastx = x;
 			m_lasty = y;
 			m_micro_tick = now;
+            this->refreshImmediate();
 		}
     }
 }
@@ -299,6 +341,7 @@ GlRenderFrame::rotateCam(wxMouseEvent& event)
 			m_lastx = x;
 			m_lasty = y;
 			m_micro_tick = now;
+            this->refreshImmediate();
 		}
     }
 }
@@ -382,6 +425,7 @@ void GlRenderFrame::mouseWheelMoved(wxMouseEvent& event)
 		gme::DocCamera doccam;
         doccam.straightTranslate( step * getFactor(event));
 		m_micro_tick = now;
+        this->refreshImmediate();
     }
 }
 

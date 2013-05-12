@@ -41,6 +41,8 @@ private:
 protected:
     wxTreeListCtrl      *m_treelist;
     wxSizer             *m_sizer;
+    ///@brief indicator of menu command target.
+    std::string         m_menuCmdTarget;
     wxTreeListCtrl*     CreateTreeListCtrl(long style);
 
     void OnSelectionChanged(wxTreeListEvent& event);
@@ -55,6 +57,12 @@ protected:
 
     void    refreshAll(void);
 	void	refresh(const std::string &parent);
+
+	///@brief 右钮菜单命令:
+	void onMenuImport(wxCommandEvent &event);
+	void onMenuViewAll(wxCommandEvent &event);
+	void onMenuSetCenter(wxCommandEvent &event);
+
 private:
 	void  onDocumentItemSelected(const std::string &id);
 	void  onDocumentItemDeselected(const std::string &id);

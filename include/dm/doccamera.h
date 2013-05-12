@@ -129,6 +129,10 @@ public:
     /** @brief restore active camera from camera object.
     **/
     bool    restoreFrom(Camera &cam);
+    /** @brief set camera to viewall object.
+     * @param objID : indicate object.if it's empty, viewall the scene.
+    **/
+    bool    viewAll(const std::string &objID);
 public: //camera storage.
     int     getSelected(void);
     bool    setSelected(int select);

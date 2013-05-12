@@ -37,6 +37,7 @@ protected:
     friend class ExtraMaterialManager;
     friend class ExtraTextureManager;
     friend class ExtraSettingManager;
+    friend class ExtraCameraManager;
     friend class SlgMaterial2Name;
     friend class SlgTexture2Name;
 	friend class ObjectNode;

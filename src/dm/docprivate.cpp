@@ -30,6 +30,7 @@ namespace gme{
 DocPrivate::DocPrivate(void)
 {
     m_started = false;
+    m_bAutofocus = true;
 }
 
 void
@@ -45,6 +46,8 @@ DocPrivate::closeScene(void)
         m_session.reset();
     }
     m_started = false;
+    //m_bAutofocus不变，这个选项跨场景。
+    //m_bAutofocus = false;
     objManager.clear();
     matManager.clear();
     texManager.clear();

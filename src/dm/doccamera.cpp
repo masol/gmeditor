@@ -128,14 +128,19 @@ DocCamera::translate(int distx,int disty,float optTranslateFactor)
 
         float basic_step = ( session->renderConfig->scene->dataSet->GetBSphere().rad ) * optTranslateFactor ;
 
-        float distxInWorld = ((float)distx / (float)session->renderConfig->scene->camera->GetFilmWeight()) * basic_step;
-        float distyInWorld = ((float)disty / (float)session->renderConfig->scene->camera->GetFilmHeight()) * basic_step;
+        slg::PerspectiveCamera *camera = session->renderConfig->scene->camera;
 
-        session->renderConfig->scene->camera->TranslateLeft(distxInWorld);
-        session->renderConfig->scene->camera->Translate(luxrays::Normalize(session->renderConfig->scene->camera->up) * distyInWorld);
+        float distxInWorld = ((float)distx / (float)camera->GetFilmWeight()) * basic_step;
+        float distyInWorld = ((float)disty / (float)camera->GetFilmHeight()) * basic_step;
 
+        camera->TranslateLeft(distxInWorld);
+        camera->Translate(luxrays::Normalize(camera->up) * distyInWorld);
+//        if(pDocData->autoFocus())
+//        {
+//            camera->focalDistance = luxrays::Distance(camera->target,camera->orig) / 2;
+//        }
 
-	    session->renderConfig->scene->camera->Update(session->film->GetWidth(), session->film->GetHeight());
+	    camera->Update(session->film->GetWidth(), session->film->GetHeight());
 	    session->editActions.AddAction(slg::CAMERA_EDIT);
 	    session->EndEdit();
 	    return true;
@@ -156,9 +161,15 @@ DocCamera::straightTranslate(float factor)
 
         float basic_step = ( session->renderConfig->scene->dataSet->GetBSphere().rad / 10.0f ) * factor ;
 
-        session->renderConfig->scene->camera->TranslateForward(basic_step);
+        slg::PerspectiveCamera *camera = session->renderConfig->scene->camera;
 
-	    session->renderConfig->scene->camera->Update(session->film->GetWidth(), session->film->GetHeight());
+        camera->TranslateForward(basic_step);
+//        if(pDocData->autoFocus())
+//        {
+//            camera->focalDistance = luxrays::Distance(camera->target,camera->orig) / 2;
+//        }
+
+	    camera->Update(session->film->GetWidth(), session->film->GetHeight());
 	    session->editActions.AddAction(slg::CAMERA_EDIT);
 	    session->EndEdit();
 	    return true;
@@ -184,8 +195,12 @@ DocCamera::targetRotate(int distx,int disty,float optRotateFactor)
 
 	    ExtraCameraManager::targetRotateUp(camera,yangle);
 	    ExtraCameraManager::targetRotateLeft(camera,xangle);
+//        if(pDocData->autoFocus())
+//        {
+//            camera->focalDistance = luxrays::Distance(camera->target,camera->orig) / 2;
+//        }
 
-	    session->renderConfig->scene->camera->Update(session->film->GetWidth(), session->film->GetHeight());
+	    camera->Update(session->film->GetWidth(), session->film->GetHeight());
 	    session->editActions.AddAction(slg::CAMERA_EDIT);
 	    session->EndEdit();
 	    return true;
@@ -205,20 +220,38 @@ DocCamera::rotate(int distX,int distY,float optRotateFactor)
     {
 	    session->BeginEdit();
 
-        float xangle = ((float)distX / (float)session->renderConfig->scene->camera->GetFilmWeight()) * ( 180.0f * optRotateFactor);
-        float yangle = ((float)distY / (float)session->renderConfig->scene->camera->GetFilmHeight()) * ( 180.0f * optRotateFactor);
+	    slg::PerspectiveCamera *camera = session->renderConfig->scene->camera;
 
-	    session->renderConfig->scene->camera->RotateUp(yangle);
-	    session->renderConfig->scene->camera->RotateLeft(xangle);
+        float xangle = ((float)distX / (float)camera->GetFilmWeight()) * ( 180.0f * optRotateFactor);
+        float yangle = ((float)distY / (float)camera->GetFilmHeight()) * ( 180.0f * optRotateFactor);
 
+	    camera->RotateUp(yangle);
+	    camera->RotateLeft(xangle);
+//        if(pDocData->autoFocus())
+//        {
+//            camera->focalDistance = luxrays::Distance(camera->target,camera->orig) / 2;
+//        }
 
-	    session->renderConfig->scene->camera->Update(session->film->GetWidth(), session->film->GetHeight());
+	    camera->Update(session->film->GetWidth(), session->film->GetHeight());
 	    session->editActions.AddAction(slg::CAMERA_EDIT);
 	    session->EndEdit();
 	    return true;
 	}
 	return false;
 }
+
+bool
+DocCamera::viewAll(const std::string &objID)
+{
+    slg::RenderSession* session = pDocData->getSession();
+    if(session && session->film)
+    {
+        ExtraCameraManager::viewAll(objID);
+        return true;
+    }
+    return false;
+}
+
 
 bool
 DocCamera::restoreFrom(Camera &cam)

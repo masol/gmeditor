@@ -57,6 +57,9 @@ public:
 protected:
     boost::shared_ptr<wxGLContext>  m_context;
     boost::posix_time::ptime    m_micro_tick;
+
+    wxTimer  m_refreshTimer;
+    long     opt_MinUpdateInterval;
     float    opt_RotateStep;
     long     opt_MinEditInterval;
     long     m_lastx;
@@ -71,6 +74,9 @@ protected:
             factor = 0.1f;
         return factor;
     }
+    void    refreshImmediate(void);
+    void    onSceneLoaded(void);
+    void    onSceneClosed(void);
     void    rotateCam(wxMouseEvent& event);
     void    translateCam(wxMouseEvent& event);
     void    rotateCamAroundCenter(wxMouseEvent& event);
@@ -162,7 +168,7 @@ protected:
     void mouseLeftWindow(wxMouseEvent& event);
     void keyPressed(wxKeyEvent& event);
     void keyReleased(wxKeyEvent& event);
-    void onIdle(wxIdleEvent &event);
+    void onRefreshTimer(wxTimerEvent& WXUNUSED(event));
 
     DECLARE_EVENT_TABLE()
 };

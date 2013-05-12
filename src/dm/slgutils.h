@@ -69,6 +69,10 @@ public:
         {
             return m_session->renderConfig->scene;
         }
+        inline slg::RenderSession*  session()
+        {
+            return m_session;
+        }
     };
 
     struct   UpdateContext{
