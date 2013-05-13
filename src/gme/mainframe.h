@@ -62,6 +62,9 @@ protected:
 	/** Processes menu About|Info */
 	void onMenuHelpAbout(wxCommandEvent &event);
 
+	void onViewSelection(wxCommandEvent &event);
+    void onUpdateViewSelection(wxUpdateUIEvent &event);
+
 	void onViewPane(wxCommandEvent &event);
     void onUpdateViewPane(wxUpdateUIEvent &event);
 

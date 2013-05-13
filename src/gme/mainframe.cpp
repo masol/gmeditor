@@ -105,6 +105,10 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
     EVT_MENU_RANGE(cmd::GID_LOG_BEGIN,cmd::GID_LOG_END,MainFrame::onLogLevelChanged)
     EVT_UPDATE_UI_RANGE(cmd::GID_LOG_BEGIN,cmd::GID_LOG_END,MainFrame::onUpdateLogLevel)
 
+	EVT_MENU(cmd::GID_VIEWSELECTION,MainFrame::onViewSelection)
+	EVT_UPDATE_UI(cmd::GID_VIEWSELECTION,MainFrame::onUpdateViewSelection)
+
+
 	EVT_UPDATE_UI(wxID_DELETE,MainFrame::onUpdateMenuEditDelete)
 	EVT_UPDATE_UI(cmd::GID_RENDER_START,MainFrame::onUpdateRenderStart)
 	EVT_UPDATE_UI(cmd::GID_RENDER_STOP,MainFrame::onUpdateRenderStop)
@@ -219,6 +223,7 @@ MainFrame::createMenubar()
 		pViewModeMenu->AppendRadioItem(cmd::GID_VM_FULLWINDOW, gmeWXT("全屏缩放(&P)"), gmeWXT("自动缩放以充满全屏。"));
 		pViewModeMenu->AppendRadioItem(cmd::GID_VM_SCALEWITHASPECT, gmeWXT("等比缩放(&P)"), gmeWXT("自动缩放到全屏并保持文档的横纵必不变。"));
         pViewMenu->AppendSubMenu(pViewModeMenu,gmeWXT("显示方式(&M)"),gmeWXT("控制主窗口如何匹配渲染图的尺寸。"));
+		pViewMenu->AppendCheckItem(cmd::GID_VIEWSELECTION, gmeWXT("标识选中对象(&Z)"), gmeWXT("在编辑视图中标识选中对象。"));
 
 		pViewMenu->AppendSeparator();
         wxMenu *pLogLevel = new wxMenu();
@@ -498,6 +503,19 @@ MainFrame::onMenuHelpAbout(wxCommandEvent &event)
 	(void)wxMessageBox(gmeWXT("这是一个ABOUT消息框"),
                        gmeWXT("About us"),
                        wxOK | wxICON_INFORMATION);
+}
+
+void
+MainFrame::onViewSelection(wxCommandEvent &event)
+{
+    (void)event;
+    m_renderView->setViewSelection(!m_renderView->isViewSelection());
+}
+
+void
+MainFrame::onUpdateViewSelection(wxUpdateUIEvent &event)
+{
+    event.Check(m_renderView->isViewSelection());
 }
 
 void

@@ -23,6 +23,14 @@
 #include "slg/slg.h"
 #include "openctm/openctm.h"
 
+//include OpenGL
+#ifdef __WXMAC__
+#include "OpenGL/glu.h"
+#include "OpenGL/gl.h"
+#else
+#include <GL/glu.h>
+#include <GL/gl.h>
+#endif
 
 template<class T>
 bool    SaveCtmFile(bool useplynormals,T *pMesh,const std::string &filename,gme::conditional_md5 &md5)
@@ -168,6 +176,58 @@ ObjectNode::findObject(const std::string &id,ObjectNodePath *pPath)
         pPath->pop();
     return result;
 }
+
+
+void
+ObjectNode::applyMatrix(Eigen::Matrix4f &matrix)
+{
+}
+
+
+void
+ObjectNode::drawSelf(void)
+{
+    if(!this->matid().empty())
+    {
+        luxrays::ExtMesh *pMesh = ExtraObjectManager::getExtMesh(this->id());
+        if(pMesh)
+        {
+            ///TODO: use vbo & displaylist to improve the effective.
+//            unsigned int vertCount = pMesh->GetTotalVertexCount();
+            unsigned int triCount = pMesh->GetTotalTriangleCount();
+
+            luxrays::Point *ppt = pMesh->GetVertices();
+            luxrays::Triangle *ptri = pMesh->GetTriangles();
+
+            glBegin(GL_TRIANGLES);
+
+            for(unsigned int idx = 0; idx < triCount; idx++)
+            {
+                luxrays::Normal n = pMesh->GetGeometryNormal(idx);
+//                glNormal3f(n.x,n.y,n.z);
+                for(unsigned int i = 0; i < 3; i++)
+                {
+                    unsigned vidx = ptri[idx].v[i];
+                    luxrays::Point  &pt = ppt[vidx];
+                    glColor3f(1,1,1);
+                    glVertex3f(pt.x,pt.y,pt.z);
+                }
+            }
+
+            glEnd();
+// we can not use glVertexPointer, slg is left-handed,but opengl use right-handed coordinate....
+//            glVertexPointer(3,GL_FLOAT,0,ppt);
+//            glDrawElements(GL_TRIANGLES,triCount * 3,GL_UNSIGNED_INT,ptri);
+        }
+    }
+}
+
+void
+ObjectNode::draw(const Eigen::Matrix4f &matrix)
+{
+    drawSelf();
+}
+
 
 type_xml_node*
 ObjectNode::dump(type_xml_node &parent,dumpContext &ctx)

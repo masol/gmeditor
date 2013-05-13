@@ -86,6 +86,8 @@ public:
 protected:
     bool    getData(ImageDataScale *pdata,int w, int h,const float* pixels);
 public:
+    ///@brief 绘制选中的对象。
+    void    drawSelectedObject(void);
     bool    getRenderInfo(RenderInfo &ri);
     bool    getSize(int &w,int &h);
     bool    setSize(int w,int h);

@@ -174,6 +174,17 @@ GlRenderView::getEditmodeCmd(void)
     return  this->m_glframe->editMode();
 }
 
+bool
+GlRenderView::isViewSelection(void)
+{
+    return this->m_glframe->viewSelection();
+}
+
+void
+GlRenderView::setViewSelection(bool bv)
+{
+    this->m_glframe->viewSelection(bv);
+}
 
 
 

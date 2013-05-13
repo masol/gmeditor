@@ -22,6 +22,15 @@
 #include "luxrays/utils/properties.h"
 #include "docprivate.h"
 
+//include OpenGL
+#ifdef __WXMAC__
+#include "OpenGL/glu.h"
+#include "OpenGL/gl.h"
+#else
+#include <GL/glu.h>
+#include <GL/gl.h>
+#endif
+
 namespace gme{
 
 bool
@@ -191,6 +200,74 @@ DocImg::saveImage(const std::string &fullpath)
     }
     return false;
 }
+
+void
+DocImg::drawSelectedObject(void)
+{
+    if(!pDocData->m_session.get() || !pDocData->m_session->renderConfig->scene)
+        return;
+    slg::Scene *scene = pDocData->m_session->renderConfig->scene;
+    std::vector<std::string>&   selection = pDocData->getSelection();
+    if(selection.size() == 0)
+        return;
+//    glEnableClientState(GL_VERTEX_ARRAY);
+    glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+
+    // switch to projection matrix
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    // reset projection matrix
+    glLoadIdentity();
+
+    u_int width = pDocData->m_session->film->GetWidth();
+    u_int height = pDocData->m_session->film->GetHeight();
+
+    double aspect = (double)width/ (double)height ;
+
+    //adjustment fovy.
+    double fovy = scene->camera->fieldOfView;
+    if(aspect > 1.0f)
+        fovy = fovy / aspect;
+    //float aspectradius = (aspect < 1.0f ? 1.0f : aspect);
+    ///@todo coordinate covert.need to know detail about slg coordinate.
+    gluPerspective( fovy, aspect , scene->camera->clipHither, scene->camera->clipYon);
+    // switch to modelview matrix
+    glMatrixMode(GL_MODELVIEW);
+    // save current modelview matrix
+    glPushMatrix();
+    // reset modelview matrix
+    glLoadIdentity();
+    //setup camera.
+    gluLookAt(scene->camera->orig.x,scene->camera->orig.y,scene->camera->orig.z,\
+        scene->camera->target.x,scene->camera->target.y,scene->camera->target.z,\
+        scene->camera->up.x,scene->camera->up.y,scene->camera->up.z);
+
+    //glRotatef(-90,scene->camera->up.x,scene->camera->up.y,scene->camera->up.z);
+
+    BOOST_FOREACH(const std::string &oid,selection)
+    {
+        ObjectNodePath  path;
+        ObjectNode *pSelf = pDocData->objManager.getRoot().findObject(oid,&path);
+        if(pSelf)
+        {
+            Eigen::Matrix4f matrix;
+            //从根路径下开始设置矩阵。
+            size_t size = path.size() - 1;
+            for(size_t idx = 0; idx < size; idx++)
+            {
+                path.getNode(idx)->applyMatrix(matrix);
+            }
+            pSelf->draw(matrix);
+        }
+    }
+    // restore modelview matrix
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    // restore projection matrix
+    glPopMatrix();
+
+}
+
 
 
 bool

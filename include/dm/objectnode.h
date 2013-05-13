@@ -180,6 +180,15 @@ protected:
     ///@brief notify some child removed.
     void    onChildRemoved(const std::string &childid);
 public:
+    /** @brief 将自身的矩阵应用到matrix上以获取世界坐标系到对象坐标系的变幻矩阵。
+    **/
+    void    applyMatrix(Eigen::Matrix4f &matrix);
+    /** @brief 在调用之前，对象矩阵已经设置完毕，只需要绘制自身即可。
+    **/
+    void    drawSelf(void);
+    /** @brief 在父矩阵matrix环境下，绘制自己及孩子。需要设置自身的矩阵。
+    **/
+    void    draw(const Eigen::Matrix4f &matrix);
     /** @brief 将当前对象的内容dump到给定的xml node.
       * @details 如果使用相对路径或者拷贝资源或者导出ctm,都是相对于当前路径展开的计算，因此调用之前需要设置当前路径为资源目标路径。
       * @return self node.

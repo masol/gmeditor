@@ -65,6 +65,7 @@ protected:
     long     m_lastx;
     long     m_lasty;
     int      m_edit_mode; //左钮编辑模式。
+    bool     m_view_selection; //是否绘制选中对象。
     inline float  getFactor(wxMouseEvent& event)
     {
         float factor = 1.0f;
@@ -115,9 +116,18 @@ protected:
     bool        m_rorateAroundTarget;
 protected:
     void    drawBackground(const wxSize &winsize,const float *pixels);
+    void    initGL(void);
 public:
     GlRenderFrame(wxWindow* parent,int* args,int vm);
     virtual ~GlRenderFrame();
+    inline bool    viewSelection(void)const
+    {
+        return m_view_selection;
+    }
+    inline void    viewSelection(bool bv)
+    {
+        m_view_selection = bv;
+    }
     inline int     editMode(void)const
     {
         return m_edit_mode;

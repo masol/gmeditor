@@ -55,6 +55,7 @@ GlRenderFrame::GlRenderFrame(wxWindow* parent,int *args,int vm) : inherited(pare
 
     m_needClearColor = true;
     m_rorateAroundTarget = false;
+    m_view_selection = true;
 
     m_v2dTranslate << 0.0f,0.0f;
     m_v2dScale << 1.0f,1.0f;
@@ -84,6 +85,47 @@ GlRenderFrame::GlRenderFrame(wxWindow* parent,int *args,int vm) : inherited(pare
     // To avoid windows lose focus.
     this->SetFocus();
 }
+
+void
+GlRenderFrame::initGL(void)
+{
+    if(!wxGLCanvas::SetCurrent(*m_context))
+    {
+        BOOST_ASSERT(false);
+        return;
+    }
+    glShadeModel(GL_FLAT);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
+    glEnable(GL_CULL_FACE);
+
+    glDisable(GL_COLOR_MATERIAL);
+    glClearColor(0, 0, 0, 0);
+    glClearStencil(0);
+    glClearDepth(1.0f);
+    glDepthFunc(GL_LEQUAL);
+
+    GLfloat lightKa[] = {1.0f, 1.0f, 1.0f, 1.0f};  // ambient light
+    GLfloat lightKd[] = {1.0f, 1.0f, 1.0f, 1.0f};  // diffuse light
+    GLfloat lightKs[] = {1, 1, 1, 1};           // specular light
+    glLightfv(GL_LIGHT0, GL_AMBIENT, lightKa);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightKd);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, lightKs);
+
+    // position the light
+//    float lightPos[4] = {0, 0, 20, 1}; // positional light
+//    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+
+    // enable light source after configuration.
+    glEnable(GL_LIGHT0);
+
+}
+
 
 GlRenderFrame::~GlRenderFrame()
 {
@@ -247,6 +289,11 @@ void GlRenderFrame::render(void)
         m_needClearColor = false;
     }
     drawBackground(winsize,pixels);
+
+    if(m_view_selection)
+    {//draw selection.
+        img.drawSelectedObject();
+    }
 
     //glFlush();
     SwapBuffers();

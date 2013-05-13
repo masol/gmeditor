@@ -45,6 +45,10 @@ public:
     ///@brief 指示给定的cmdid是否是当前的viewmode.
     bool    isCurrentViewmodeFromCmd(int cmds);
 
+    ///@brief 指示是否绘制选中对象。
+    bool    isViewSelection(void);
+    void    setViewSelection(bool bv);
+
     void    setEditmodeFromCmd(int mode);
     int     getEditmodeCmd(void);
 protected:

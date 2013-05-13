@@ -173,7 +173,11 @@ ExtraCameraManager::viewAll(const std::string &objid)
 
         if(Doc::instance().pDocData->autoFocus())
         {
-            camera->focalDistance = luxrays::Distance(camera->target,camera->orig) / 2;
+            ///@fixme this follow caculate is wrong,Focus distance is the distance between the imaginary plane in the scene that will be in focus and the camera imaging plane.
+            ///please refer to slg blender export.
+//            float   dist = luxrays::Distance(camera->target,camera->orig);
+//            if(dist < 0) dist = -dist;
+//            camera->focalDistance =  dist / 2;
         }
 
 	    camera->Update(width, height);
