@@ -51,7 +51,30 @@ public:
             for(int i = 0; i < argc;i++)
             {
                 wxString string(argv[i]);
+#if WIN32
+                if(i == 0)
+                {//检查是否是全路径。如果不是，需要获取全路径。
+                    const char* path = string.mb_str();
+                    if(path[1] == ':' && (path[2] == '/' || path[2] == '\\') )
+                    {
+                        mb_args[i] = strdup(string.mb_str());
+                    }else{
+                        //不是一个全路径。获取之。
+                        TCHAR   fullpath[1024];
+                        if(GetModuleFileName(NULL,fullpath,1024) > 0)
+                        {
+                            wxString    temp(fullpath);
+                            mb_args[i] = strdup(temp.mb_str());
+                        }else{
+                            mb_args[i] = strdup(string.mb_str());
+                        }
+                    }
+                }else{
+                    mb_args[i] = strdup(string.mb_str());
+                }
+#else
                 mb_args[i] = strdup(string.mb_str());
+#endif
             }
 	        BOOST_SCOPE_EXIT( (&mb_args) (&argc))
 	        {

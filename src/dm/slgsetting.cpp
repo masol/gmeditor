@@ -48,7 +48,7 @@ ExtraSettingManager::dump(type_xml_node &parent,dumpContext &ctx)
             const std::string  &imagePath = getImageMapPath(scene->imgMapCache,pRealLight->GetImageMap());
 
             ///@fixme we need a document path,here imagePath may base document path.
-            boost::filesystem::path src_fullpath = boost::filesystem::absolute(imagePath,boost::filesystem::current_path());
+            boost::filesystem::path src_fullpath = boost::filesystem::absolute(imagePath,ctx.target);
             std::string write_file;
             if(ctx.isCopyResource())
             {//保存资源。
@@ -56,9 +56,9 @@ ExtraSettingManager::dump(type_xml_node &parent,dumpContext &ctx)
                 target = boost::filesystem::gme_ext::ensureNonExistFile(target);
 
                 boost::filesystem::copy(src_fullpath,target);
-                write_file = target.filename().string();
+                write_file = target.string();
             }else{//不保存资源，直接保存src_filepath.
-                write_file = src_fullpath.filename().string();
+                write_file = src_fullpath.string();
             }
 
             pSelf->append_attribute(allocate_attribute(pDoc,constDef::file,write_file));

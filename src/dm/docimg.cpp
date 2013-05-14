@@ -202,7 +202,7 @@ DocImg::saveImage(const std::string &fullpath)
 }
 
 void
-DocImg::drawSelectedObject(void)
+DocImg::drawSelectedObject(ViewPort &vp)
 {
     if(!pDocData->m_session.get() || !pDocData->m_session->renderConfig->scene)
         return;
@@ -218,6 +218,9 @@ DocImg::drawSelectedObject(void)
     glPushMatrix();
     // reset projection matrix
     glLoadIdentity();
+
+//    std::cerr << "vp.x = " << vp.x << ",vp.y=" << vp.y << ",vp.width=" << vp.width << ",vp.height = " << vp.height << std::endl;
+    glViewport(vp.x,vp.y,vp.width,vp.height);
 
     u_int width = pDocData->m_session->film->GetWidth();
     u_int height = pDocData->m_session->film->GetHeight();

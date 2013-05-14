@@ -31,16 +31,16 @@ public:
     struct   Editor{
     protected:
         slg::RenderSession      *m_session;
-        bool                    m_bNeedRefresh;
+        //bool                    m_bNeedRefresh;
     public:
         inline Editor(slg::RenderSession *session)
         {
             m_session = session;
             m_session->BeginEdit();
-            m_bNeedRefresh = false;
+            //m_bNeedRefresh = false;
         }
         inline void  needRefresh(bool v){
-            m_bNeedRefresh = v;
+            //m_bNeedRefresh = v;
         }
         inline void  resetAction(void){
             m_session->editActions.Reset();
@@ -51,7 +51,7 @@ public:
                 m_session->renderConfig->scene->RemoveUnusedMaterials();
                 m_session->renderConfig->scene->RemoveUnusedTextures();
             }
-            if(m_bNeedRefresh || m_session->editActions.Has(slg::MATERIAL_TYPES_EDIT))
+            if(false)//m_bNeedRefresh || m_session->editActions.Has(slg::MATERIAL_TYPES_EDIT))
             {///@fixme: we must restart render when we have MATERIAL_TYPES_EDIT.
                 m_session->editActions.Reset();
                 m_session->EndEdit();

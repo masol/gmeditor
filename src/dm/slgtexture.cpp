@@ -1132,6 +1132,7 @@ ExtraTextureManager::createTexture(ImportContext &ctx,type_xml_node &self)
                         result = defineAndUpdate(id,ctx.scene(),ss.str());
 
                         ctx.addAction(slg::IMAGEMAPS_EDIT);
+                        ctx.addAction(slg::MATERIAL_TYPES_EDIT);
                     }
                 }
             }
@@ -1473,9 +1474,9 @@ ExtraTextureManager::buildDefaultTexture(SlgUtil::UpdateContext &ctx,const slg::
 
                 ctx.editor.scene()->DefineTextures(ss.str());
 
-//                ctx.editor.addAction(slg::IMAGEMAPS_EDIT);
-                ctx.editor.needRefresh(true);
-//                ctx.editor.needRefresh(ctx.editor.scene()->imgMapCache.GetSize() == 0);
+                ctx.editor.addAction(slg::IMAGEMAPS_EDIT);
+                ctx.editor.addAction(slg::MATERIAL_TYPES_EDIT);
+//                ctx.editor.needRefresh(true);
 
                 m_slgname2filepath_map[id] = fullpath;
                 m_tex2id[ctx.editor.scene()->texDefs.GetTexture(id)] = id;
@@ -1726,8 +1727,8 @@ struct  updateCompTexture
         {//如果用户没有终止。定义并更新贴图。
             context.editor.scene()->DefineTextures(newProps);
             texManager.m_tex2id[context.editor.scene()->texDefs.GetTexture(newId)] = newId;
-            ///@fixme: slg的递归处理有bug,需要强制刷新，这在多GPU显卡环境下是噩梦....
-            context.editor.needRefresh(true);
+            // this is fixed by david. slg的递归处理有bug,需要强制刷新，这在多GPU显卡环境下是噩梦....
+//            context.editor.needRefresh(true);
             return newId;
         }
         return "";
@@ -1745,7 +1746,7 @@ ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Textur
 
         ctx.updatedId = buildDefaultTexture(ctx,pTex,type);
         ///@fixme: 修改slg代码以禁止强制刷新。
-        ctx.editor.needRefresh(true);
+//        ctx.editor.needRefresh(true);
         ctx.idIsMat = false;
         ctx.bGenNode = true;
         return ctx.updatedId;
@@ -1773,6 +1774,8 @@ ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Textur
                 {
                     newProps.SetString(prefix + newId + ".file",ctx.value);
                     m_slgname2filepath_map[newId] = ctx.value;
+                    ctx.editor.addAction(slg::IMAGEMAPS_EDIT);
+                    ctx.editor.addAction(slg::MATERIAL_TYPES_EDIT);
                     bNeedRefresh = true;
                 }else if(curKey == "gamma")
                 {
@@ -1791,9 +1794,7 @@ ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Textur
                 //std::cerr << newProps.ToString() << std::endl;
                 ctx.editor.scene()->DefineTextures(newProps);
 
-//                ctx.editor.addAction(slg::IMAGEMAPS_EDIT);
-//                ctx.editor.needRefresh(ctx.editor.scene()->imgMapCache.GetSize() == 0);
-                ctx.editor.needRefresh(bNeedRefresh);
+                //ctx.editor.needRefresh(bNeedRefresh);
 
                 m_tex2id[ctx.editor.scene()->texDefs.GetTexture(newId)] = newId;
                 this->addPath(newId,m_slgname2filepath_map[oldId]);
@@ -2062,6 +2063,7 @@ ExtraTextureManager::defineImageMapTexture(ImportContext &ctx,const std::string 
         m_tex2id[ctx.scene()->texDefs.GetTexture(id)] = id;
 
         ctx.addAction(slg::IMAGEMAPS_EDIT);
+        ctx.addAction(slg::MATERIAL_TYPES_EDIT);
         return true;
     }
     return false;

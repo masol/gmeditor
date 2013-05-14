@@ -86,8 +86,15 @@ public:
 protected:
     bool    getData(ImageDataScale *pdata,int w, int h,const float* pixels);
 public:
+    struct  ViewPort{
+        int   x;
+        int   y;
+        int   width;
+        int   height;
+    };
+
     ///@brief 绘制选中的对象。
-    void    drawSelectedObject(void);
+    void    drawSelectedObject(ViewPort &vp);
     bool    getRenderInfo(RenderInfo &ri);
     bool    getSize(int &w,int &h);
     bool    setSize(int w,int h);

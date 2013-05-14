@@ -46,6 +46,7 @@ static void Log_Adapter(int level,const char* msgstr,const char* mask)
     switch(level)
     {
     case Doc::LOG_TRACE:
+        wxLogStatus(msg);
         if(mask)
         {
             wxLogTrace(mask,msg);

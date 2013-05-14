@@ -23,6 +23,7 @@
 #include "wx/glcanvas.h"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <Eigen/Core>
+#include "dm/docimg.h"
 
 //include OpenGL
 #ifdef __WXMAC__
@@ -115,7 +116,7 @@ protected:
     ///@brief 指示旋转模式是否绕中心点旋转。如果是false则绕位置点旋转。缺省是false.
     bool        m_rorateAroundTarget;
 protected:
-    void    drawBackground(const wxSize &winsize,const float *pixels);
+    void    drawBackground(const wxSize &winsize,const float *pixels,gme::DocImg::ViewPort &vp);
     void    initGL(void);
 public:
     GlRenderFrame(wxWindow* parent,int* args,int vm);

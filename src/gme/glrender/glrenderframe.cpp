@@ -170,7 +170,7 @@ void GlRenderFrame::paintEvent(wxPaintEvent & evt)
 }
 
 void
-GlRenderFrame::drawBackground(const wxSize &winsize,const float *pixels)
+GlRenderFrame::drawBackground(const wxSize &winsize,const float *pixels,gme::DocImg::ViewPort &vp)
 {
     switch(m_viewMode)
     {
@@ -187,7 +187,12 @@ GlRenderFrame::drawBackground(const wxSize &winsize,const float *pixels)
             m_v2dScale << 1.0f,1.0f;
             m_v2dTranslate << -startx, -starty;
 
-            glViewport(startx, starty, winsize.x, winsize.y);
+            vp.x = startx;
+            vp.y = starty;
+            vp.width = m_docWidth;
+            vp.height = m_docHeight;
+
+            glViewport(startx, starty, m_docWidth, m_docHeight);
             glOrtho(0.f, winsize.x - 1.f,
                     0.f, winsize.y - 1.f, -1.f, 1.f);
 
@@ -208,6 +213,12 @@ GlRenderFrame::drawBackground(const wxSize &winsize,const float *pixels)
             glOrtho(0.f, winsize.x - 1.f,
                     0.f, winsize.y - 1.f, -1.f, 1.f);
             glRasterPos2i(0, 0);
+
+            vp.x = 0;
+            vp.y = 0;
+            vp.width = winsize.x;
+            vp.height = winsize.y;
+
             glDrawPixels(m_docWidth, m_docHeight, GL_RGB, GL_FLOAT, pixels);
         }
         break;
@@ -233,6 +244,12 @@ GlRenderFrame::drawBackground(const wxSize &winsize,const float *pixels)
             m_v2dTranslate << -startx, -starty;
 
             glMatrixMode(GL_PROJECTION);
+
+            vp.x = startx;
+            vp.y = starty;
+            vp.width = realWidth;
+            vp.height = realHeight;
+
             //glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black Background
             glViewport(startx, starty, realWidth,realHeight);
             glPixelZoom( m_v2dScale[0] , m_v2dScale[1] );
@@ -288,11 +305,14 @@ void GlRenderFrame::render(void)
         glClear( GL_COLOR_BUFFER_BIT );
         m_needClearColor = false;
     }
-    drawBackground(winsize,pixels);
+
+    gme::DocImg::ViewPort vp;
+
+    drawBackground(winsize,pixels,vp);
 
     if(m_view_selection)
     {//draw selection.
-        img.drawSelectedObject();
+        img.drawSelectedObject(vp);
     }
 
     //glFlush();
