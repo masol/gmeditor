@@ -24,8 +24,10 @@
 #include <boost/program_options.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <boost/scope_exit.hpp>
-#include <fstream>
+#include <boost/locale.hpp>
 
 #if WIN32
 #include <windows.h>
@@ -262,7 +264,7 @@ static	bool	parser_Option(boost::program_options::parsed_options &option,parser_
 
 static inline bool loadConfigFile(const std::string &cfgFile,parser_context &ctx)
 {
-	std::ifstream	input(cfgFile.c_str(),std::ios_base::in);
+	boost::filesystem::ifstream	input(cfgFile.c_str(),std::ios_base::in);
 	BOOST_SCOPE_EXIT( (&input))
 	{
 		input.close();
@@ -290,6 +292,15 @@ static inline bool loadConfigFile(const std::string &cfgFile,parser_context &ctx
 bool
 Option::initFromArgs(int argc,char** argv)
 {
+    // fix path in non-utf8 platform.
+    {
+        std::locale global_loc = std::locale();
+        std::locale loc(global_loc, new boost::filesystem::detail::utf8_codecvt_facet); 
+        //std::locale::global(loc);
+        //std::locale::global(boost::locale::generator().generate(""));
+        boost::filesystem::path::imbue(loc);
+    }
+
     gme::ModulePath::instance().initialize(argv[0]);
 
 	boost::program_options::options_description		cmdline;

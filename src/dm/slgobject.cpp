@@ -29,6 +29,7 @@
 #include "utils/MD5.h"
 #include "utils/strext.h"
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <boost/scope_exit.hpp>
 #include <assimp/Importer.hpp>      // C++ importer interface
 #include <assimp/scene.h>           // Output data structure
@@ -666,8 +667,8 @@ int
 ExtraObjectManager::importSpScene(const std::string &path,ObjectNode &parentNode,ImportContext &ctx)
 {
     int    count = 0;
-    std::ifstream file(path.c_str(),std::ifstream::binary);
-    if (file) {
+    boost::filesystem::ifstream file(path,std::ifstream::binary);
+    if(file) {
         BOOST_SCOPE_EXIT( (&file))
         {
             file.close();
@@ -684,40 +685,37 @@ ExtraObjectManager::importSpScene(const std::string &path,ObjectNode &parentNode
         }BOOST_SCOPE_EXIT_END
         // read data as a block:
         file.read (buffer,length);
-        if(file)
-        {
-            // ...buffer contains the entire file...
-            buffer[length] = 0;
-            type_xml_doc    doc;
-            const int flag = NS_RAPIDXML::parse_no_element_values | NS_RAPIDXML::parse_trim_whitespace;
-            try{
-                doc.parse<flag>(buffer);
-                //doc.append_attribute(allocate_attribute(&doc,constDef::file,ctx.docBasepath()));
+        // ...buffer contains the entire file...
+        buffer[length] = 0;
+        type_xml_doc    doc;
+        const int flag = NS_RAPIDXML::parse_no_element_values | NS_RAPIDXML::parse_trim_whitespace;
+        try{
+            doc.parse<flag>(buffer);
+            //doc.append_attribute(allocate_attribute(&doc,constDef::file,ctx.docBasepath()));
 
-                type_xml_node   *pScene = doc.first_node("scene");
-                type_xml_node   *pObjects = NULL;
-                if(pScene)
-                {
-                    pObjects = pScene->first_node("objects");
-                    type_xml_node *pCamera = pScene->first_node("cameras");
-                    if(pCamera)
-                    {//load camera database.
-                        Doc::instance().pDocData->camManager.findAndImportCamera(*pCamera);
-                    }
-                    type_xml_node *pLights = pScene->first_node(constDef::lights);
-                    if(pLights)
-                    {//load lights define.
-                        ExtraSettingManager::createLights(ctx,*pLights);
-                    }
-                }
-                ///@brief load object library here.
-                if(!pObjects)
-                    pObjects = &doc;
-                count = findAndImportObject(*pObjects,parentNode,ctx);
-            }catch(std::exception &e)
+            type_xml_node   *pScene = doc.first_node("scene");
+            type_xml_node   *pObjects = NULL;
+            if(pScene)
             {
-                (void)e;
+                pObjects = pScene->first_node("objects");
+                type_xml_node *pCamera = pScene->first_node("cameras");
+                if(pCamera)
+                {//load camera database.
+                    Doc::instance().pDocData->camManager.findAndImportCamera(*pCamera);
+                }
+                type_xml_node *pLights = pScene->first_node(constDef::lights);
+                if(pLights)
+                {//load lights define.
+                    ExtraSettingManager::createLights(ctx,*pLights);
+                }
             }
+            ///@brief load object library here.
+            if(!pObjects)
+                pObjects = &doc;
+            count = findAndImportObject(*pObjects,parentNode,ctx);
+        }catch(std::exception &e)
+        {
+            (void)e;
         }
     }
     return count;

@@ -30,7 +30,7 @@
 #include <boost/scope_exit.hpp>
 #include <boost/format.hpp>
 #include <boost/foreach.hpp>
-#include <fstream>
+#include <boost/filesystem/fstream.hpp>
 #include "eigenutil.h"
 #include "slgutils.h"
 #include "docprivate.h"
@@ -119,7 +119,7 @@ void
 DocIO::loadExtraFromSlgSceneFile(const std::string pathstring)
 {
     //从场景文件中加载全部的材质定义并保存。
-    std::ifstream file(pathstring.c_str(),std::ifstream::binary);
+    boost::filesystem::ifstream file(pathstring.c_str(),std::ifstream::binary);
     if (file)
     {
         BOOST_SCOPE_EXIT( (&file) )

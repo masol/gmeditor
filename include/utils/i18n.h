@@ -94,6 +94,7 @@ public:
         switch_Evt.addEventListen(handler);
     }
 
+    static  void    GetSystemLocaleInfo(std::string &locale,std::string &encoding);
 
     ~I18n();
 private:
@@ -104,7 +105,7 @@ private:
     std::locale         m_translate_locale;
     SingleEventListen<type_switch_handler>   switch_Evt;
 
-	void	assignSystemInfo(const char* lang);
+	static  void	assignSystemInfo(const char* lang,std::string &locale,std::string &encoding);
 	void	initSystemInfo(void);
 	void    destroy(void);
 };

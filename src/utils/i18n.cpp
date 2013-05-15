@@ -134,23 +134,23 @@ I18n::destroy(void)
 }
 
 void
-I18n::assignSystemInfo(const char* lang)
+I18n::assignSystemInfo(const char* lang,std::string &locale,std::string &encoding)
 {
     std::vector< std::string >    localArray;
     boost::split(localArray,lang,boost::is_any_of("."),boost::token_compress_on);
     if(localArray.size() == 2)
     {
-        m_current_local = localArray[0];
-        m_current_encoding = localArray[1];
+        locale = localArray[0];
+        encoding = localArray[1];
     }else{
         //default value.
-        m_current_local = "en_US";
-        m_current_encoding = "UTF-8";
+        locale = "en_US";
+        encoding = "UTF-8";
     }
 }
 
 void
-I18n::initSystemInfo(void)
+I18n::GetSystemLocaleInfo(std::string &locale,std::string &encoding)
 {
     const char* lang = NULL;
     if(!lang)
@@ -162,17 +162,17 @@ I18n::initSystemInfo(void)
 #ifndef WIN32
     if(!lang)
         lang = "C";
-    assignSystemInfo(lang);
+    assignSystemInfo(lang,locale,encoding);
     return;
 #else
     if(lang) {
-        assignSystemInfo(lang);
+        assignSystemInfo(lang,locale,encoding);
         return;
     }
     char buf[10];
     if(GetLocaleInfoA(LOCALE_USER_DEFAULT,LOCALE_SISO639LANGNAME,buf,sizeof(buf))==0)
     {
-        assignSystemInfo("C");
+        assignSystemInfo("C",locale,encoding);
         return;
     }
     std::string lc_name = buf;
@@ -191,8 +191,15 @@ I18n::initSystemInfo(void)
     else {
         lc_name += "UTF-8";
     }
-    assignSystemInfo(lc_name.c_str());
+    assignSystemInfo(lc_name.c_str(),locale,encoding);
 #endif
+}
+
+
+void
+I18n::initSystemInfo(void)
+{
+    GetSystemLocaleInfo(this->m_current_local,this->m_current_encoding);
 }
 
 I18n::I18n()
