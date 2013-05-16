@@ -123,6 +123,7 @@ const char* constDef::ctxmd5 = "ctxmd5";
 const char* constDef::transformation = "transformation";
 const char* constDef::position = "position";
 const char* constDef::file = "file";
+const char* constDef::groupfile = "groupfile";
 const char* constDef::emission = "emission";
 const char* constDef::bumptex = "bumptex";
 const char* constDef::normaltex = "normaltex";
@@ -265,12 +266,16 @@ ObjectNode::dump(type_xml_node &parent,dumpContext &ctx)
                 }else{//不保存资源，直接保存m_filepath.
                     write_file = this->filepath();
                 }
-            }else{//没有定义文件名。此时直接保存资源。
-	            boost::filesystem::path target_model = ctx.target / "mesh%%%%%%.ctm";
-                boost::filesystem::path target = boost::filesystem::unique_path(target_model);
-                //extMesh->WritePly(target.string());
-                SaveCtmFile(this->useplynormals(),extMesh,target.string(),md5);
-                write_file = target.filename().string();
+            }else{
+                if(ctx.isCopyResource())
+                {
+                    //没有定义文件名。此时直接保存资源。
+	                boost::filesystem::path target_model = ctx.target / "mesh%%%%%%.ctm";
+                    boost::filesystem::path target = boost::filesystem::unique_path(target_model);
+                    //extMesh->WritePly(target.string());
+                    SaveCtmFile(this->useplynormals(),extMesh,target.string(),md5);
+                    write_file = target.filename().string();
+                }
             }
             if(md5.isGenerateMD5())
             {
@@ -288,14 +293,19 @@ ObjectNode::dump(type_xml_node &parent,dumpContext &ctx)
                     ctx.addObjMapper(ctxHashValue,write_file);
                 }
             }
-            BOOST_ASSERT_MSG(write_file.length() > 0, "fail to write object data?");
 
-            pSelf->append_attribute(pDoc->allocate_attribute(constDef::file,allocate_string(pDoc,write_file)));
-
+            if(!write_file.empty())
+            {//我们可能使用一个group model file.
+                //BOOST_ASSERT_MSG(!ctx.isCopyResource(),"can not copy resource");
+                pSelf->append_attribute(pDoc->allocate_attribute(constDef::file,allocate_string(pDoc,write_file)));
+            }
             const slg::Material* pMat = ExtraMaterialManager::getSlgMaterial(this->matid());
             BOOST_ASSERT_MSG(pMat,"invalid ref material?");
             Doc::instance().pDocData->matManager.dump(*pSelf,pMat,ctx);
         }
+    }else if(!this->filepath().empty() && !ctx.isCopyResource() )
+    {
+        pSelf->append_attribute(pDoc->allocate_attribute(constDef::file,allocate_string(pDoc,this->filepath())));
     }
 
     //不需要输出materialid.这个id在子节点中自己创建。

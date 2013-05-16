@@ -54,6 +54,8 @@ protected:
     void addChild(wxTreeListItem& parent,const ObjectNode &pNode,DocMat &pobjop);
     void refresh(void);
 	wxTreeListItem FindItem(const std::string &id,const wxTreeListItem &parent);
+    void deleteChild(wxTreeListItem &parent);
+
 
     void    refreshAll(void);
 	void	refresh(const std::string &parent);

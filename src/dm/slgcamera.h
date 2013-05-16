@@ -24,6 +24,8 @@
 #include "slg/slg.h"
 #include "slg/camera/camera.h"
 
+struct aiCamera;
+
 namespace gme{
 
 class ExtraCameraManager{
@@ -56,6 +58,7 @@ public:
     }
     int findAndImportCamera(type_xml_node &node);
     int dumpAll(type_xml_node &parent);
+    void importAiCamera(aiCamera *pCam);
 public:
     ///@brief viewall object.
     static void viewAll(const std::string &objid);

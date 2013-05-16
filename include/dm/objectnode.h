@@ -164,6 +164,9 @@ protected:
     std::string             m_matid;
     std::vector<ObjectNode> m_children;
     bool                    m_useplynormals;
+    /** @brief 指示m_filepath中所包含的模型是否是一个
+    **/
+    bool                    m_bGroupfile;
     /** @brief m_transformation is difference from slg. this is a hierarchy.
     **/
     Eigen::Matrix4f         m_transformation;

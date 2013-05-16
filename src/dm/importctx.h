@@ -25,6 +25,7 @@
 #include "slg/editaction.h"
 #include <boost/filesystem.hpp>
 #include "utils/pathext.h"
+#include <assimp/scene.h>           // Output data structure
 
 namespace gme{
 
@@ -33,10 +34,12 @@ namespace gme{
 **/
 class ImportContext
 {
+    friend class SwitchAssimpData;
 private:
     slg::Scene      *m_scene;
     int             m_editAction;
     std::string     m_docBasePath;
+    const aiScene*  m_assimpScene;
     bool fileFiles(const boost::filesystem::path &filename,const boost::filesystem::path &dir,boost::filesystem::path &result)
     {
         boost::filesystem::path pathfile = dir / filename;
@@ -59,6 +62,10 @@ private:
         return false;
     }
 public:
+    inline const aiScene*  aiScene(void)const
+    {
+        return m_assimpScene;
+    }
     inline std::string  findFile(const std::string &srcpath,bool bSearch)
     {
         if(srcpath.length() == 0)
@@ -92,6 +99,7 @@ public:
         m_scene = s;
         m_editAction = 0;
         m_docBasePath = srcFile;
+        m_assimpScene = NULL;
         m_docBasePath = boost::filesystem::canonical(m_docBasePath).parent_path().string();
     }
     inline void addAction(const slg::EditAction a)
@@ -104,6 +112,25 @@ public:
     }
     inline slg::Scene*  scene()const{
         return m_scene;
+    }
+};
+
+class SwitchAssimpData{
+private:
+    ImportContext   &m_ctx;
+    const aiScene   *m_oldScene;
+public:
+    SwitchAssimpData(ImportContext &ctx) : m_ctx(ctx)
+    {
+        m_oldScene = m_ctx.m_assimpScene;
+    }
+    ~SwitchAssimpData(void)
+    {
+        m_ctx.m_assimpScene = m_oldScene;
+    }
+    inline void setAiScene(const aiScene* scene)
+    {
+        m_ctx.m_assimpScene = scene;
     }
 };
 

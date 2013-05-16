@@ -99,6 +99,7 @@ private:
     /** @brief 将指定xml node加载到objNode(node必须为object节点)。
     **/
     static  int   importObjects(type_xml_node &node,ObjectNode &objNode,ImportContext &ctx);
+    static  aiMesh* findMeshFromMaterialName(const aiScene *assimpScene,aiNode* pNode,const std::string &matid);
     /** @brief 搜索pNode下的所有子节点，并加入到parentNode中。
      * @return the object count of successfully imported.
     **/

@@ -49,6 +49,7 @@ namespace gme
         static  const char* transformation;
 		static	const char* position;
 		static	const char* file;
+		static	const char* groupfile;
 		static  const char* emission;
 		static  const char* bumptex;
 		static  const char* normaltex;

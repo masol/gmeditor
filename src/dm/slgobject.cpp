@@ -28,9 +28,11 @@
 #include "openctm/openctm.h"
 #include "utils/MD5.h"
 #include "utils/strext.h"
+#include "utils/i18n.h"
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/scope_exit.hpp>
+#include <boost/format.hpp>
 #include <assimp/Importer.hpp>      // C++ importer interface
 #include <assimp/scene.h>           // Output data structure
 #include <assimp/postprocess.h>     // Post processing flags
@@ -39,70 +41,31 @@
 
 namespace gme{
 
-#if 0
-//this member move to slg.
-int
-ExtraObjectManager::deleteFromExtMeshCache(luxrays::ExtMeshCache &ec,luxrays::ExtMesh *pObject)
+static inline unsigned int
+GetDefaultAssimpFlags(const char* flag = NULL)
 {
-    //获取对应的geometry对象。
-    luxrays::ExtTriangleMesh *pGeometry = NULL;
+    if(!flag)
     {
-        luxrays::ExtInstanceTriangleMesh    *pInstance = dynamic_cast<luxrays::ExtInstanceTriangleMesh*>(pObject);
-        if(pInstance)
-        {
-            pGeometry = pInstance->GetExtTriangleMesh();
-        }else{
-            pGeometry = dynamic_cast<luxrays::ExtTriangleMesh*>(pObject);
-        }
+        return  aiProcess_ValidateDataStructure  |
+                aiProcess_GenSmoothNormals       |
+                aiProcess_Triangulate            |
+                aiProcess_JoinIdenticalVertices  |
+                aiProcess_ImproveCacheLocality   |
+                aiProcess_FixInfacingNormals     |
+                aiProcess_FindDegenerates        |
+                aiProcess_FindInvalidData        |
+                aiProcess_OptimizeMeshes         |
+                aiProcess_Debone                 |
+                aiProcess_PreTransformVertices   |
+                aiProcess_SortByPType;
     }
-
-    int reference_count = 0;
-    {//如果pObject是一个mesh，则引用技术应该是0.
-        std::vector< luxrays::ExtMesh * >::iterator  it = ec.meshes.begin();
-        while(it != ec.meshes.end())
-        {
-            if(pGeometry == *it)
-            {
-                reference_count++;
-            }else{
-                luxrays::ExtInstanceTriangleMesh    *pInstance = dynamic_cast<luxrays::ExtInstanceTriangleMesh*>(*it);
-                if(pInstance && pInstance->GetExtTriangleMesh() == pGeometry)
-                {
-                    reference_count++;
-                }
-            }
-            //如果mesh是指定mesh,删除之。
-            if(pObject == *it)
-            {
-                it = ec.meshes.erase(it);
-                GME_TRACE("remove object...done");
-            }else{
-                it++;
-            }
-        }
-    }
-    //引用计数为0的情况说明没有使用instance信息，直接使用mesh作为object.可以安全删除。
-    if(reference_count <= 1)
+    if(boost::iequals(flag,"false"))
     {
-        if(pGeometry)
-        {
-            std::map<std::string, luxrays::ExtTriangleMesh *>::iterator it = ec.maps.begin();
-            while(it != ec.maps.end())
-            {
-                if(it->second == pGeometry)
-                {
-                    ec.maps.erase(it);
-                    GME_TRACE("remove mesh...done");
-                    break;
-                }
-                it++;
-            }
-        }
+        return aiProcess_Triangulate | aiProcess_PreTransformVertices;
     }
-    return reference_count;
-    return 0;
+    unsigned int retvar = boost::lexical_cast<int>(flag);
+    return retvar | (aiProcess_Triangulate | aiProcess_PreTransformVertices);
 }
-#endif
 
 bool
 ExtraObjectManager::removeMesh(slg::Scene *scene,const std::string &meshID,luxrays::ExtMesh *pMesh,SlgUtil::Editor &editor)
@@ -594,33 +557,87 @@ ExtraObjectManager::importObjects(type_xml_node &node,ObjectNode &objNode,Import
             }
 			pAttr = pAttr->next_attribute();
 		}
+
+        //必须放在这里，子节点需要引用importer加载出来的assimp data.
+        Assimp::Importer importer;
+        SwitchAssimpData    assimpData(ctx);
+        if( !objNode.m_filepath.empty() && !boost::iends_with(objNode.m_filepath,".ctm") )
+        {//拥有非ctm的文件节点。尝试将其做为groupfile加入ctx.
+//          std::cerr << "importer.GetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE) = " << importer.GetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE) <<std::endl;
+//          importer.SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE,80.f);
+            type_xml_attr *pOptimize = node.first_attribute("optimize");
+            const char* flag = NULL;
+            if(pOptimize)
+                flag = pOptimize->value();
+            assimpData.setAiScene(importer.ReadFile( objNode.m_filepath, GetDefaultAssimpFlags(flag) ));
+            if(ctx.aiScene() && ctx.aiScene()->HasCameras())
+            {//load camera.
+                for(unsigned int idx = 0; idx < ctx.aiScene()->mNumCameras; idx++)
+                {
+                    Doc::instance().pDocData->camManager.importAiCamera(ctx.aiScene()->mCameras[idx]);
+                }
+            }
+        }
+
 		//开始读入material.
 		type_xml_node *pMatNode = node.first_node(constDef::material);
 
 		bool  loadOk = false;
 		if(pMatNode)
 		{
+            type_xml_attr*  pIdAttr = pMatNode->first_attribute(constDef::id);
+            if(pIdAttr)
+            {//设置matid.
+                objNode.m_matid = pIdAttr->value();
+            }
             Doc::instance().pDocData->matManager.createMaterial(ctx,objNode.m_matid,*pMatNode);
 
-            //开始加载内容。
-            if(objNode.m_filepath.length())
+            //如果从ctx中加载模型成功，则try_loadFromFile被设置为false.
+            bool    try_loadFromFile = true;;
+            if(ctx.aiScene())
             {
-                //开始设置transform
-                if(transform)
-                {
+                if(pIdAttr)
+                {//拥有ID.从aiScene中加载。
+                    aiMesh *pMesh = findMeshFromMaterialName(ctx.aiScene(),ctx.aiScene()->mRootNode,pIdAttr->value());
+                    if(pMesh)
+                    {
+                        if(!importAiMesh(ctx.aiScene(),pMesh,objNode,ctx))
+                        {
+                            Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("加载材质id为'%s'的模型失败!"))%pIdAttr->value()) );
+                        }else{
+                            loadOk = true;
+                        }
+                        try_loadFromFile = false;
+                    }
                 }
-
-                ///@fixme : how to set transform?
-                loadOk = importObjects(objNode.filepath(),objNode,ctx);
             }
+
+            if(try_loadFromFile)
+            {
+                //开始加载内容。
+                if(objNode.m_filepath.length())
+                {
+                    //开始设置transform
+                    if(transform)
+                    {
+                    }
+
+                    ///@fixme : how to set transform?
+                    loadOk = importObjects(objNode.filepath(),objNode,ctx);
+                }else{
+                    Doc::SysLog(Doc::LOG_ERROR,__("无法加载造型信息！"));
+                }
+            }
+
 		}
 
 		if(loadOk)
 		{
             ret++;
-        }else{
-            objNode.m_filepath.clear();
         }
+        //else{
+        //    objNode.m_filepath.clear();
+        //}
 
 		//process sub object.
         type_xml_node   *pChild = node.first_node(constDef::object);
@@ -721,6 +738,40 @@ ExtraObjectManager::importSpScene(const std::string &path,ObjectNode &parentNode
     return count;
 }
 
+aiMesh*
+ExtraObjectManager::findMeshFromMaterialName(const aiScene *assimpScene,aiNode* pNode,const std::string &matid)
+{
+    bool    bAdd = false;
+    unsigned int tricount = 0;
+    for(unsigned int i = 0; i < pNode->mNumMeshes; i++)
+    {
+        aiMesh  *pMesh = assimpScene->mMeshes[pNode->mMeshes[i]];
+
+        if(pMesh->mPrimitiveTypes & aiPrimitiveType_TRIANGLE)
+        {//必须拥有triangle的材质。
+            aiMaterial *pMat = assimpScene->mMaterials[pMesh->mMaterialIndex];
+            if(pMat)
+            {
+                aiString name;
+                if( (pMat->Get(AI_MATKEY_NAME,name) == aiReturn_SUCCESS) && (boost::iequals(name.C_Str(),matid) ) )
+                {
+                    return pMesh;
+                }
+            }
+        }
+    }
+
+    //开始处理孩子。
+    for(unsigned int i = 0; i < pNode->mNumChildren; i++)
+    {
+        aiNode *child = pNode->mChildren[i];
+        aiMesh *pRet = findMeshFromMaterialName(assimpScene,child,matid);
+        if(pRet)
+            return pRet;
+    }
+    return NULL;
+}
+
 
 bool
 ExtraObjectManager::importObjects(const std::string& path,ObjectNode &obj,ImportContext &ctx)
@@ -742,19 +793,7 @@ ExtraObjectManager::importObjects(const std::string& path,ObjectNode &obj,Import
 //        std::cerr << "importer.GetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE) = " << importer.GetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE) <<std::endl;
 //        importer.SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE,80.f);
 
-        const aiScene* assimpScene = importer.ReadFile( path,
-                aiProcess_ValidateDataStructure  |
-                aiProcess_GenSmoothNormals       |
-                aiProcess_Triangulate            |
-                aiProcess_JoinIdenticalVertices  |
-                aiProcess_ImproveCacheLocality   |
-                aiProcess_FixInfacingNormals     |
-                aiProcess_FindDegenerates        |
-                aiProcess_FindInvalidData        |
-                aiProcess_OptimizeMeshes         |
-                aiProcess_OptimizeGraph          |
-                aiProcess_Debone                 |
-                aiProcess_SortByPType);
+        const aiScene* assimpScene = importer.ReadFile( path, GetDefaultAssimpFlags() );
         if(assimpScene && assimpScene->HasMeshes())
         {//process data.
             if(assimpScene->mNumMeshes == 1)
@@ -772,6 +811,8 @@ ExtraObjectManager::importObjects(const std::string& path,ObjectNode &obj,Import
                 }
                 bAdd = true;
             }
+        }else{
+            Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("无法加载文件'%s'"))%path) );
         }
     }
 

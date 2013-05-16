@@ -333,6 +333,8 @@ MainFrame::onClose(wxCloseEvent& event)
     // deinitialize the frame manager
     m_mgr.UnInit();
 	Destroy();
+    wxTheApp->ExitMainLoop();
+    exit(0);
 	event.Skip(false);
 }
 

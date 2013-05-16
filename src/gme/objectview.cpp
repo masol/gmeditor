@@ -132,10 +132,31 @@ ObjectView::refreshAll(void)
 }
 
 void
+ObjectView::deleteChild(wxTreeListItem &parent)
+{
+	wxTreeListItem child = m_treelist->GetFirstChild(parent);
+	while(child)
+	{
+        wxTreeListItem tempChild = m_treelist->GetNextSibling(child);
+        m_treelist->DeleteItem(child);
+		child = tempChild;
+	}
+}
+
+
+void
 ObjectView::refresh(const std::string &id)
 {
-	wxTreeListItem  parent = FindItem(id,m_treelist->GetRootItem());
-	BOOST_ASSERT_MSG(parent,"data panic....pls check");
+    wxTreeListItem  parent;
+    if(id.empty())
+    {
+        parent = m_treelist->GetRootItem();
+        m_treelist->DeleteAllItems();
+    }else{
+        parent = FindItem(id,m_treelist->GetRootItem());
+	    BOOST_ASSERT_MSG(parent,"data panic....pls check");
+        deleteChild(parent);
+    }
 	DocObj	obj;
 	DocMat	mat;
 	gme::ObjectNode &root = obj.getRootObject();

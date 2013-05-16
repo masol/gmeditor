@@ -29,8 +29,41 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 #include <boost/math/constants/constants.hpp>
+#include <assimp/scene.h>           // Output data structure
+
 
 namespace gme{
+
+
+void
+ExtraCameraManager::importAiCamera(aiCamera *pCam)
+{
+    if(!pCam)
+        return;
+    Camera cam;
+    if(pCam->mName.length)
+        cam.name = pCam->mName.C_Str();
+
+    cam.fieldOfView = pCam->mHorizontalFOV * 180.0f / boost::math::constants::pi<float>();
+    cam.orig[0] = pCam->mPosition.x;
+    cam.orig[1] = pCam->mPosition.y;
+    cam.orig[2] = pCam->mPosition.z;
+
+    cam.target[0] = pCam->mLookAt.x;
+    cam.target[1] = pCam->mLookAt.y;
+    cam.target[2] = pCam->mLookAt.z;
+
+    cam.up[0] = pCam->mUp.x;
+    cam.up[1] = pCam->mUp.y;
+    cam.up[2] = pCam->mUp.z;
+
+    //cam.focalDistance = (pCam->mLookAt - pCam->mPosition).Length();
+
+    this->m_cam_vector.push_back(cam);
+
+    if(this->m_current_select == -1)
+        this->m_current_select = 0;
+}
 
 int
 ExtraCameraManager::findAndImportCamera(type_xml_node &node)
