@@ -570,11 +570,11 @@ ExtraObjectManager::importObjects(type_xml_node &node,ObjectNode &objNode,Import
             if(pOptimize)
                 flag = pOptimize->value();
             assimpData.setAiScene(importer.ReadFile( objNode.m_filepath, GetDefaultAssimpFlags(flag) ));
-            if(ctx.aiScene() && ctx.aiScene()->HasCameras())
+            if(ctx.getAiScene() && ctx.getAiScene()->HasCameras())
             {//load camera.
-                for(unsigned int idx = 0; idx < ctx.aiScene()->mNumCameras; idx++)
+                for(unsigned int idx = 0; idx < ctx.getAiScene()->mNumCameras; idx++)
                 {
-                    Doc::instance().pDocData->camManager.importAiCamera(ctx.aiScene()->mCameras[idx]);
+                    Doc::instance().pDocData->camManager.importAiCamera(ctx.getAiScene()->mCameras[idx]);
                 }
             }
         }
@@ -594,14 +594,14 @@ ExtraObjectManager::importObjects(type_xml_node &node,ObjectNode &objNode,Import
 
             //如果从ctx中加载模型成功，则try_loadFromFile被设置为false.
             bool    try_loadFromFile = true;;
-            if(ctx.aiScene())
+            if(ctx.getAiScene())
             {
                 if(pIdAttr)
                 {//拥有ID.从aiScene中加载。
-                    aiMesh *pMesh = findMeshFromMaterialName(ctx.aiScene(),ctx.aiScene()->mRootNode,pIdAttr->value());
+                    aiMesh *pMesh = findMeshFromMaterialName(ctx.getAiScene(),ctx.getAiScene()->mRootNode,pIdAttr->value());
                     if(pMesh)
                     {
-                        if(!importAiMesh(ctx.aiScene(),pMesh,objNode,ctx))
+                        if(!importAiMesh(ctx.getAiScene(),pMesh,objNode,ctx))
                         {
                             Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("加载材质id为'%s'的模型失败!"))%pIdAttr->value()) );
                         }else{
@@ -741,8 +741,6 @@ ExtraObjectManager::importSpScene(const std::string &path,ObjectNode &parentNode
 aiMesh*
 ExtraObjectManager::findMeshFromMaterialName(const aiScene *assimpScene,aiNode* pNode,const std::string &matid)
 {
-    bool    bAdd = false;
-    unsigned int tricount = 0;
     for(unsigned int i = 0; i < pNode->mNumMeshes; i++)
     {
         aiMesh  *pMesh = assimpScene->mMeshes[pNode->mMeshes[i]];

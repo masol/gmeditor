@@ -62,7 +62,7 @@ private:
         return false;
     }
 public:
-    inline const aiScene*  aiScene(void)const
+    inline const aiScene*  getAiScene(void)const
     {
         return m_assimpScene;
     }

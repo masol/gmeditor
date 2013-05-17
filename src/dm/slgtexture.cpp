@@ -2049,7 +2049,7 @@ bool
 ExtraTextureManager::defineImageMapTexture(ImportContext &ctx,const std::string &src,std::string &id)
 {
     std::string fullpath = ctx.findFile(src,true);
-    if(fullpath.length())
+    if(fullpath.length() && boost::filesystem::exists(fullpath))
     {
         std::stringstream   tex;
         if(id.length() == 0)

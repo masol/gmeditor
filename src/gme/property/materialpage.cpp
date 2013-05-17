@@ -186,7 +186,8 @@ MaterialPage::addTextureContent(wxPGProperty *pTexType,type_xml_node *pSelf,int 
         {//@TODO: add default image here.
             BOOST_ASSERT_MSG(false,"not implement");
         }
-        this->AppendIn(pTexType,new wxImageFileProperty(gmeWXT("文件"),"file",pAttr->value()));
+        wxString  filename(pAttr->value(),gme_wx_utf8_conv);
+        this->AppendIn(pTexType,new wxImageFileProperty(gmeWXT("文件"),"file",filename));
 
         float gain = 1.0f;
         pAttr = pSelf->first_attribute("gain");

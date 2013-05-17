@@ -179,22 +179,22 @@ DocIO::loadSlgScene(const std::string &path)
         pDocData->closeScene();
         luxrays::Properties cmdLineProp;
         //我们需要自动应用本地的渲染配置(例如平台选择以及设备选择,未指定的话采用本地配置文件，未配置的自动使用最大集合)。
-        {
-            int	platformId = 0;
-            if(Option::instance().is_existed(Setting::OPT_PLATFORMID))
-            {
-                platformId = boost::lexical_cast<int>(Option::instance().get<std::string>(Setting::OPT_PLATFORMID));
-            }
-            cmdLineProp.SetString(Setting::OPT_PLATFORMID,boost::lexical_cast<std::string>(platformId));
+        //{
+        //    int	platformId = 0;
+        //    if(Option::instance().is_existed(Setting::OPT_PLATFORMID))
+        //    {
+        //        platformId = boost::lexical_cast<int>(Option::instance().get<std::string>(Setting::OPT_PLATFORMID));
+        //    }
+        //    cmdLineProp.SetString(Setting::OPT_PLATFORMID,boost::lexical_cast<std::string>(platformId));
 
-            if(Option::instance().is_existed(Setting::OPT_DEVICESTR))
-            {
-                cmdLineProp.SetString(Setting::OPT_DEVICESTR,Option::instance().get<std::string>(Setting::OPT_DEVICESTR));
-            }else{
-                std::string	full = clHardwareInfo::instance().getFullSelectString(platformId);
-                cmdLineProp.SetString(Setting::OPT_DEVICESTR,full);
-            }
-        }
+        //    if(Option::instance().is_existed(Setting::OPT_DEVICESTR))
+        //    {
+        //        cmdLineProp.SetString(Setting::OPT_DEVICESTR,Option::instance().get<std::string>(Setting::OPT_DEVICESTR));
+        //    }else{
+        //        std::string	full = clHardwareInfo::instance().getFullSelectString(platformId);
+        //        cmdLineProp.SetString(Setting::OPT_DEVICESTR,full);
+        //    }
+        //}
 
         slg::RenderConfig *config = new slg::RenderConfig(&path, &cmdLineProp);
         pDocData->m_session.reset(new slg::RenderSession(config));
@@ -215,10 +215,11 @@ DocIO::loadSlgScene(const std::string &path)
     }
     catch(cl::Error err)
     {
-        std::cerr << err.what() << "(" << err.err() << ")" << std::endl;
+        Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("无法加载场景:%s。失败原因%s:(%s)")) % path % err.what() % err.err() ) );
         pDocData->m_session.reset();
     }catch(std::runtime_error err)
     {
+        Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("无法加载场景:%s。失败原因:'%s'")) % path % err.what()) );
         pDocData->m_session.reset();
     }
     return false;

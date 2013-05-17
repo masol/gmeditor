@@ -298,7 +298,8 @@ EnvLightPage::appendEnvLight(wxPGProperty* pType,DocSetting &setting)
     case slg::TYPE_IL:
     {
         slg::InfiniteLight *pRealLight = dynamic_cast<slg::InfiniteLight*>(scene->envLight);
-        this->AppendIn(pType,new wxImageFileProperty(gmeWXT("文件"),constDef::file,setting.getHDRLighterPath()));
+        wxString  filename(setting.getHDRLighterPath().c_str(),gme_wx_utf8_conv);
+        this->AppendIn(pType,new wxImageFileProperty(gmeWXT("文件"),constDef::file,filename));
         wxColour    color(255,255,255);
         luxrays::Spectrum c = pRealLight->GetGain();
         color.Set(c.r * 255.0f,c.g * 255.0f,c.b * 255.0f);
