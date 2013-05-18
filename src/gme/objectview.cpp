@@ -205,7 +205,9 @@ ObjectView::refresh(void)
 void
 ObjectView::addChild(wxTreeListItem& parent,const ObjectNode &node,DocMat &objop)
 {
-	wxTreeListItem item = m_treelist->AppendItem(parent,node.name());
+    wxMBConvUTF8	gme_wx_utf8_conv;
+    wxString    name(node.name().c_str(),gme_wx_utf8_conv);
+	wxTreeListItem item = m_treelist->AppendItem(parent,name);
     //here,we set item text to materail name,not matid!
 //    m_treelist->SetItemText(item, 1, objop.getMatName(node.matid()));
 //    m_treelist->SetItemText(item, 2, "");

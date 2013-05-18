@@ -21,6 +21,8 @@
 #include "dm/objectnode.h"
 #include "docprivate.h"
 #include "slg/slg.h"
+#include <boost/filesystem/fstream.hpp>
+#include <boost/scope_exit.hpp>
 #include "openctm/openctm.h"
 
 //include OpenGL
@@ -32,9 +34,22 @@
 #include <GL/gl.h>
 #endif
 
+static
+CTMuint CTMCALL
+FStream_CTMwritefn(const void * aBuf, CTMuint aCount, void * aUserData)
+{
+    boost::filesystem::ofstream *pStream = (boost::filesystem::ofstream*)aUserData;
+    pStream->write((const char*)aBuf,aCount);
+    return aCount;
+}
+
 template<class T>
 bool    SaveCtmFile(bool useplynormals,T *pMesh,const std::string &filename,gme::conditional_md5 &md5)
 {
+    boost::filesystem::ofstream stream(filename,std::ios::out | std::ios::binary);
+    if(!stream)
+        return false;
+
     CTMcontext context = NULL;
     CTMuint    vertCount, triCount, * indices;
     CTMfloat   *vertices;
@@ -79,7 +94,8 @@ bool    SaveCtmFile(bool useplynormals,T *pMesh,const std::string &filename,gme:
         ctmAddUVMap(context,aUVCoords,"def",NULL);
     }
 
-    ctmSave(context, filename.c_str());
+    //ctmSave(context, filename.c_str());
+    ctmSaveCustom(context,FStream_CTMwritefn,&stream);
 
     //ctxHashValue = md5.finalize().hexdigest();
 
@@ -90,6 +106,7 @@ bool    SaveCtmFile(bool useplynormals,T *pMesh,const std::string &filename,gme:
     if(context)
         ctmFreeContext(context);
 
+    stream.close();
 
     return true;
 }
@@ -200,6 +217,7 @@ ObjectNode::drawSelf(void)
             luxrays::Point *ppt = pMesh->GetVertices();
             luxrays::Triangle *ptri = pMesh->GetTriangles();
 
+#if 0
             glBegin(GL_TRIANGLES);
 
             for(unsigned int idx = 0; idx < triCount; idx++)
@@ -216,9 +234,11 @@ ObjectNode::drawSelf(void)
             }
 
             glEnd();
+#else
 // we can not use glVertexPointer, slg is left-handed,but opengl use right-handed coordinate....
-//            glVertexPointer(3,GL_FLOAT,0,ppt);
-//            glDrawElements(GL_TRIANGLES,triCount * 3,GL_UNSIGNED_INT,ptri);
+            glVertexPointer(3,GL_FLOAT,0,ppt);
+            glDrawElements(GL_TRIANGLES,triCount * 3,GL_UNSIGNED_INT,ptri);
+#endif
         }
     }
 }
@@ -227,6 +247,10 @@ void
 ObjectNode::draw(const Eigen::Matrix4f &matrix)
 {
     drawSelf();
+    BOOST_FOREACH(ObjectNode &child,m_children)
+    {
+        child.draw(matrix);
+    }
 }
 
 

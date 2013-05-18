@@ -22,6 +22,7 @@
 #include "slgmaterial.h"
 #include "slgsetting.h"
 #include "docprivate.h"
+#include "aistream.h"
 #include "slg/slg.h"
 #include "luxrays/luxrays.h"
 #include "luxrays/core/exttrianglemesh.h"
@@ -40,6 +41,28 @@
 
 
 namespace gme{
+
+SlgMesh2Name::SlgMesh2Name(void)
+{
+    slg::Scene  *scene = Doc::instance().pDocData->getSession()->renderConfig->scene;
+    m_meshNameArray = scene->meshDefs.GetExtMeshNames();
+    m_meshIdx2NameIdx.resize(m_meshNameArray.size());
+    u_int   nameIdx = 0;
+    for(std::vector< std::string >::const_iterator it = m_meshNameArray.begin(); it < m_meshNameArray.end(); ++it,++nameIdx)
+    {
+        m_meshIdx2NameIdx[scene->meshDefs.GetExtMeshIndex(*it)] = nameIdx;
+    }
+}
+
+const std::string&
+SlgMesh2Name::getMeshName(const luxrays::ExtMesh* pMesh)
+{
+    slg::Scene  *scene = Doc::instance().pDocData->getSession()->renderConfig->scene;
+    u_int meshNameIdx = m_meshIdx2NameIdx[scene->meshDefs.GetExtMeshIndex(pMesh)];
+    return m_meshNameArray[meshNameIdx];
+}
+
+
 
 static inline unsigned int
 GetDefaultAssimpFlags(const char* flag = NULL)
@@ -198,20 +221,35 @@ ExtraObjectManager::removeMesh(const std::string &id)
     return true;
 }
 
+static
+CTMuint CTMCALL
+FStream_CTMreadfn(void * aBuf, CTMuint aCount, void * aUserData)
+{
+    boost::filesystem::ifstream *pStream = (boost::filesystem::ifstream*)aUserData;
+    pStream->read((char*)aBuf,aCount);
+    return pStream->gcount();
+}
+
 bool
 ExtraObjectManager::importCTMObj(const std::string& path,ObjectNode &obj,ImportContext &ctx)
 {
     bool   bAdd = false;
+    boost::filesystem::ifstream stream(path,std::ios::in | std::ios::binary);
+    if(!stream)
+        return false;
+
     CTMcontext context = ctmNewContext(CTM_IMPORT);
-    BOOST_SCOPE_EXIT( (&context) )
+    BOOST_SCOPE_EXIT( (&context) (&stream) )
     {
         if(context){
             ctmFreeContext(context);
         }
+        stream.close();
     }
     BOOST_SCOPE_EXIT_END
 
-    ctmLoad(context, path.c_str());
+    //ctmLoad(context, path.c_str());
+    ctmLoadCustom(context,FStream_CTMreadfn,&stream);
     if(ctmGetError(context) == CTM_NONE)
     {
         CTMuint    vertCount, triCount;
@@ -565,6 +603,8 @@ ExtraObjectManager::importObjects(type_xml_node &node,ObjectNode &objNode,Import
         {//拥有非ctm的文件节点。尝试将其做为groupfile加入ctx.
 //          std::cerr << "importer.GetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE) = " << importer.GetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE) <<std::endl;
 //          importer.SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE,80.f);
+            importer.SetIOHandler(AiIOSystem::create());
+
             type_xml_attr *pOptimize = node.first_attribute("optimize");
             const char* flag = NULL;
             if(pOptimize)
@@ -625,7 +665,19 @@ ExtraObjectManager::importObjects(type_xml_node &node,ObjectNode &objNode,Import
                     ///@fixme : how to set transform?
                     loadOk = importObjects(objNode.filepath(),objNode,ctx);
                 }else{
-                    Doc::SysLog(Doc::LOG_ERROR,__("无法加载造型信息！"));
+                    if(objNode.filepath().empty())
+                    {
+                        if(pIdAttr)
+                        {
+                            Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("被合并的模型'%s'。这是由于您使用了相同材质而导致模型被自动合并。"))%objNode.name() )  );
+                        }else
+                        {
+                            Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("模型'%s'没有指定模型文件，也没有指定模型集合的标识。"))%objNode.name() )  );
+                        }
+                    }else
+                    {
+                        Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("从文件'%s'中加载模型'%s'失败。"))%objNode.filepath()%objNode.name() )  );
+                    }
                 }
             }
 
@@ -680,6 +732,56 @@ ExtraObjectManager::findAndImportObject(type_xml_node &node,ObjectNode &parentNo
     return ret;
 }
 
+std::string
+ExtraObjectManager::selectObject(float filmx,float filmy)
+{
+    if(Doc::instance().pDocData->m_session.get() == NULL)
+        return "";
+    slg::Scene *scene = Doc::instance().pDocData->m_session->renderConfig->scene;
+    if(scene == NULL)
+        return "";
+  //  std::string     id =
+    luxrays::Ray    eyeRay;
+    ///@todo u1 and u2 affect by depth of field.
+    float oldlr = scene->camera->lensRadius;
+    scene->camera->lensRadius = 0.0f;
+    scene->camera->GenerateRay(filmx,filmy,&eyeRay,0.001f,0.012f);
+    scene->camera->lensRadius = oldlr;
+    std::vector<luxrays::ExtMesh*> meshes = scene->meshDefs.GetAllMesh();
+    float   minT = eyeRay.maxt;
+    luxrays::ExtMesh    *pMinMesh = NULL;
+    BOOST_FOREACH(luxrays::ExtMesh* m,meshes)
+    {
+        ///@todo : cache bbox in ObjectNode Tree.
+        if(m->GetBBox().IntersectP(eyeRay))
+        {
+            luxrays::Triangle *pTris = m->GetTriangles();
+            luxrays::Point    *pPtSet = m->GetVertices();
+            unsigned int triCount = m->GetTotalTriangleCount();
+            for(unsigned int idx = 0; idx < triCount; idx++)
+            {
+                float t,b1,b2;
+                if(pTris[idx].Intersect(eyeRay,pPtSet,&t,&b1,&b2))
+                {//intersected.return it!
+                    if(t < minT)
+                    {
+                        minT = t;
+                        pMinMesh = m;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    if(pMinMesh)
+    {
+        SlgMesh2Name    mesh2Name;
+        return mesh2Name.getMeshName(pMinMesh);
+    }
+    return "";
+}
+
 int
 ExtraObjectManager::importSpScene(const std::string &path,ObjectNode &parentNode,ImportContext &ctx)
 {
@@ -708,7 +810,7 @@ ExtraObjectManager::importSpScene(const std::string &path,ObjectNode &parentNode
         const int flag = NS_RAPIDXML::parse_no_element_values | NS_RAPIDXML::parse_trim_whitespace;
         try{
             doc.parse<flag>(buffer);
-            //doc.append_attribute(allocate_attribute(&doc,constDef::file,ctx.docBasepath()));
+            doc.append_attribute(allocate_attribute(&doc,constDef::file,ctx.docBasepath()));
 
             type_xml_node   *pScene = doc.first_node("scene");
             type_xml_node   *pObjects = NULL;
@@ -732,6 +834,8 @@ ExtraObjectManager::importSpScene(const std::string &path,ObjectNode &parentNode
             count = findAndImportObject(*pObjects,parentNode,ctx);
         }catch(std::exception &e)
         {
+            Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("在加载文件'%s'时发生异常:%s"))%path % e.what() ) );
+            e.what();
             (void)e;
         }
     }
@@ -787,6 +891,7 @@ ExtraObjectManager::importObjects(const std::string& path,ObjectNode &obj,Import
     }else{
     //使用assimp加载其它数据。
         Assimp::Importer importer;
+        importer.SetIOHandler(AiIOSystem::create());
 
 //        std::cerr << "importer.GetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE) = " << importer.GetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE) <<std::endl;
 //        importer.SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE,80.f);

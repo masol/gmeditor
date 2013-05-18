@@ -20,6 +20,7 @@
 #include "utils/option.h"
 #include "dm/docimg.h"
 #include "dm/docio.h"
+#include "dm/docobj.h"
 #include "dm/doccamera.h"
 #include "glrenderframe.h"
 #include "../cmdids.h"
@@ -50,6 +51,8 @@ END_EVENT_TABLE()
 GlRenderFrame::GlRenderFrame(wxWindow* parent,int *args,int vm) : inherited(parent,wxID_ANY,args,wxDefaultPosition, wxDefaultSize) , m_refreshTimer(this)
 {
     m_context.reset(new wxGLContext(this));
+
+    m_lastViewPoint.x = m_lastViewPoint.y = m_lastViewPoint.width = m_lastViewPoint.height = 0;
 
     m_edit_mode = cmd::GID_MD_ROTATE;
 
@@ -306,13 +309,11 @@ void GlRenderFrame::render(void)
         m_needClearColor = false;
     }
 
-    gme::DocImg::ViewPort vp;
-
-    drawBackground(winsize,pixels,vp);
+    drawBackground(winsize,pixels,m_lastViewPoint);
 
     if(m_view_selection)
     {//draw selection.
-        img.drawSelectedObject(vp);
+        img.drawSelectedObject(m_lastViewPoint);
     }
 
     //glFlush();
@@ -435,6 +436,28 @@ void GlRenderFrame::doMouseEvent(wxMouseEvent& event)
         break;
     case cmd::GID_MD_ZOOM:
         zoomCam(event);
+        break;
+    case cmd::GID_MD_SELECT:
+        if(event.ButtonUp() && m_lastViewPoint.width > 0 && m_lastViewPoint.height > 0)
+        {//只在button up时检查。
+            if(event.GetX() >= m_lastViewPoint.x && event.GetX() <= (m_lastViewPoint.x + m_lastViewPoint.width)
+                && event.GetY() >= m_lastViewPoint.y && event.GetY() <= (m_lastViewPoint.y + m_lastViewPoint.height) )
+            {
+                DocObj  obj;
+                float filmx = ((float)event.GetX() - m_lastViewPoint.x );
+                float filmy = ((float)event.GetY() - m_lastViewPoint.y );
+                if(m_viewMode == VM_FULLWINDOW || m_viewMode == VM_SCALEWITHASPECT)
+                {
+                    wxSize size = this->GetSize();
+                    float xScale = (float)m_docWidth / (float)m_lastViewPoint.width;
+                    float yScale = (float)m_docHeight / (float)m_lastViewPoint.height;
+
+                    filmx *= xScale;
+                    filmy *= yScale;
+                }
+                obj.select(filmx,m_docHeight - filmy);
+            }
+        }
         break;
     }
 }

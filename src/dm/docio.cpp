@@ -429,7 +429,7 @@ DocIO::exportSpoloScene(const std::string &pathstring,bool bExportRes)
     boost::filesystem::path path(pathstring);
     boost::filesystem::path root_path = path.parent_path();
 
-    std::ofstream   ofstream;
+    boost::filesystem::ofstream   ofstream;
     ofstream.open(pathstring.c_str());
     if(ofstream.is_open())
     {

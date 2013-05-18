@@ -39,6 +39,18 @@ class ExtMesh;
 
 namespace gme{
 
+class  SlgMesh2Name
+{
+private:
+    ///@brief 用于从pmesh出发反向查找name的变量。
+    std::vector<u_int>          m_meshIdx2NameIdx;
+    std::vector< std::string >  m_meshNameArray;
+public:
+    SlgMesh2Name(void);
+    const std::string&      getMeshName(const luxrays::ExtMesh* pMesh);
+};
+
+
 class ExtraObjectManager
 {
 private:
@@ -83,6 +95,8 @@ public:
             it++;
          }
     }
+    ///@brief select object according file coordinate.return object's id if selected.otherwise return empty string.
+    std::string    selectObject(float filmx,float filmy);
 public:
     /** @brief Loading objects from the model file according to objNode information.
      * @details If not given matid / objid. Then create random id.

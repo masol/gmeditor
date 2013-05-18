@@ -121,6 +121,18 @@ DocObj::select(const std::string &id)
     return pDocData->addSelection(id);
 }
 
+///@todo move to slgobject.
+void
+DocObj::select(float filmx,float filmy)
+{
+    std::string selid = pDocData->objManager.selectObject(filmx,filmy);
+    clearSelection();
+    if(!selid.empty())
+    {
+        pDocData->addSelection(selid);
+    }
+}
+
 bool
 DocObj::deselect(const std::string &id)
 {

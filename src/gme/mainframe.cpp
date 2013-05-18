@@ -206,6 +206,7 @@ MainFrame::createMenubar()
 		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_ROTATE, gmeWXT("旋转(&R)"), gmeWXT("自身旋转。"));
 		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_ROTATE_AROUND_CENTER, gmeWXT("中心点旋转(&C)"), gmeWXT("绕摄像机焦点旋转。"));
 		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_ZOOM, gmeWXT("缩放(&Z)"), gmeWXT("缩放控制。"));
+		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_SELECT, gmeWXT("选择(&S)"), gmeWXT("点击选择模式。"));
         pEditMenu->AppendSubMenu(pEditmodeMenu,gmeWXT("编辑模式(&M)"),gmeWXT("控制主窗口的编辑模式。"));
 
         pMenuBar->Append(pEditMenu, gmeWXT("编辑(&E)"));

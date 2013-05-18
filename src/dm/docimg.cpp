@@ -210,8 +210,6 @@ DocImg::drawSelectedObject(ViewPort &vp)
     std::vector<std::string>&   selection = pDocData->getSelection();
     if(selection.size() == 0)
         return;
-//    glEnableClientState(GL_VERTEX_ARRAY);
-    glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
 
     // switch to projection matrix
     glMatrixMode(GL_PROJECTION);
@@ -245,7 +243,12 @@ DocImg::drawSelectedObject(ViewPort &vp)
         scene->camera->target.x,scene->camera->target.y,scene->camera->target.z,\
         scene->camera->up.x,scene->camera->up.y,scene->camera->up.z);
 
-    //glRotatef(-90,scene->camera->up.x,scene->camera->up.y,scene->camera->up.z);
+    //set selection color. 
+    ///@todo configure this.
+    glColor3f(1.0f,1.0f,1.0f);
+    //ensure mode. do not need restore. @fixme: move it to init?
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
 
     BOOST_FOREACH(const std::string &oid,selection)
     {

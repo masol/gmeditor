@@ -18,6 +18,7 @@
 
 #include "config.h"
 #include "dm/doc.h"
+#include "utils/i18n.h"
 #include "slgtexture.h"
 #include "docprivate.h"
 #include "slg/slg.h"
@@ -1115,9 +1116,9 @@ ExtraTextureManager::createTexture(ImportContext &ctx,type_xml_node &self)
                     std::string fullpath;
                     const char* basepath = getFilepathFromDocument(self);
                     if(basepath)
-                        fullpath = boost::filesystem::canonical(fileAttr->value(),basepath).string();
+                        fullpath = boost::filesystem::absolute(fileAttr->value(),basepath).string();
                     else
-                        fullpath = boost::filesystem::canonical(fileAttr->value()).string();
+                        fullpath = boost::filesystem::absolute(fileAttr->value()).string();
 
                     if(boost::filesystem::exists(fullpath))
                     {
@@ -1132,7 +1133,10 @@ ExtraTextureManager::createTexture(ImportContext &ctx,type_xml_node &self)
                         result = defineAndUpdate(id,ctx.scene(),ss.str());
 
                         ctx.addAction(slg::IMAGEMAPS_EDIT);
-                        ctx.addAction(slg::MATERIAL_TYPES_EDIT);
+//                        ctx.addAction(slg::MATERIAL_TYPES_EDIT);
+                    }else
+                    {
+                        Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("请求的贴图'%s'不存在，贴图退化为灰度图。"))%fileAttr->value()) );
                     }
                 }
             }
@@ -1475,7 +1479,7 @@ ExtraTextureManager::buildDefaultTexture(SlgUtil::UpdateContext &ctx,const slg::
                 ctx.editor.scene()->DefineTextures(ss.str());
 
                 ctx.editor.addAction(slg::IMAGEMAPS_EDIT);
-                ctx.editor.addAction(slg::MATERIAL_TYPES_EDIT);
+//                ctx.editor.addAction(slg::MATERIAL_TYPES_EDIT);
 //                ctx.editor.needRefresh(true);
 
                 m_slgname2filepath_map[id] = fullpath;
@@ -1775,7 +1779,7 @@ ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Textur
                     newProps.SetString(prefix + newId + ".file",ctx.value);
                     m_slgname2filepath_map[newId] = ctx.value;
                     ctx.editor.addAction(slg::IMAGEMAPS_EDIT);
-                    ctx.editor.addAction(slg::MATERIAL_TYPES_EDIT);
+//                    ctx.editor.addAction(slg::MATERIAL_TYPES_EDIT);
                     bNeedRefresh = true;
                 }else if(curKey == "gamma")
                 {
@@ -2063,7 +2067,7 @@ ExtraTextureManager::defineImageMapTexture(ImportContext &ctx,const std::string 
         m_tex2id[ctx.scene()->texDefs.GetTexture(id)] = id;
 
         ctx.addAction(slg::IMAGEMAPS_EDIT);
-        ctx.addAction(slg::MATERIAL_TYPES_EDIT);
+//        ctx.addAction(slg::MATERIAL_TYPES_EDIT);
         return true;
     }
     return false;

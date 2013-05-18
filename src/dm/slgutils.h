@@ -51,7 +51,7 @@ public:
                 m_session->renderConfig->scene->RemoveUnusedMaterials();
                 m_session->renderConfig->scene->RemoveUnusedTextures();
             }
-            if(m_session->editActions.Has(slg::IMAGEMAPS_EDIT))//m_bNeedRefresh || m_session->editActions.Has(slg::MATERIAL_TYPES_EDIT))
+            if( m_session->editActions.Has(slg::IMAGEMAPS_EDIT) || m_session->editActions.Has(slg::MATERIAL_TYPES_EDIT) )//m_bNeedRefresh )
             {///@fixme: we must restart render when we have IMAGEMAPS_EDIT.
                 m_session->editActions.Reset();
                 m_session->EndEdit();

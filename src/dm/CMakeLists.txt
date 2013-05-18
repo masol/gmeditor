@@ -41,6 +41,7 @@ set(DM_SRCS
     setting.cpp
     localsetting.cpp
     docsetting.cpp
+    aistream.cpp
    )
 
 

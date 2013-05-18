@@ -40,6 +40,7 @@ protected:
     friend class ExtraCameraManager;
     friend class SlgMaterial2Name;
     friend class SlgTexture2Name;
+    friend class SlgMesh2Name;
 	friend class ObjectNode;
     friend class Singleton<Doc>;
     typedef Singleton<Doc>   inherited;

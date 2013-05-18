@@ -46,6 +46,8 @@ public:
     void    clearSelection(void);
     /// @brief add id to selection vector.return true if event fired.
     bool    select(const std::string &id);
+    /// @brief select object through filmx and filmy.
+    void    select(float filmx,float filmy);
     /// @brief remove id from selection vector.return true if event fired.
     bool    deselect(const std::string &id);
     /// @brief return the selection vector.

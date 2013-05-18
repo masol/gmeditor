@@ -67,6 +67,8 @@ protected:
     long     m_lasty;
     int      m_edit_mode; //左钮编辑模式。
     bool     m_view_selection; //是否绘制选中对象。
+    ///@brief 记录了最后一次绘制的viewpoint.
+    gme::DocImg::ViewPort m_lastViewPoint;
     inline float  getFactor(wxMouseEvent& event)
     {
         float factor = 1.0f;
