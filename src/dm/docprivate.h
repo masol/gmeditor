@@ -41,6 +41,10 @@ private:
     /** @brief  auto-focus.
     **/
     bool                                    m_bAutofocus;
+    /** @brief auto-target to selection.
+    **/
+    bool                                    m_bAutoTarget;
+    void        onSelectedChanged(void);
 public:
     typedef boost::function<void (int,int)>     type_imagesize_handler;
     typedef boost::function<void (void)>        type_state_handler;
@@ -83,6 +87,14 @@ private:
         selection_Evt.clear();
     }
 public:
+    inline  bool    autoTarget(void)const
+    {
+        return m_bAutoTarget;
+    }
+    inline  void    autoTarget(bool at)
+    {
+        m_bAutoTarget = at;
+    }
     inline  bool    autoFocus(void)const
     {
         return m_bAutofocus;
@@ -108,8 +120,9 @@ public:
     {
         if(std::find(m_selectionVector.begin(),m_selectionVector.end(),oid) == m_selectionVector.end())
         {
-            fireSelection(SEL_ITEMSELECTED,oid);
             m_selectionVector.push_back(oid);
+            fireSelection(SEL_ITEMSELECTED,oid);
+            onSelectedChanged();
             return true;
         }
         return false;

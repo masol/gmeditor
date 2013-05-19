@@ -732,6 +732,26 @@ ExtraObjectManager::findAndImportObject(type_xml_node &node,ObjectNode &parentNo
     return ret;
 }
 
+luxrays::BBox
+ExtraObjectManager::getSelectionBBox(void)
+{
+    luxrays::BBox   ret;
+    std::vector<std::string>&   selection = Doc::instance().pDocData->getSelection();
+    if(selection.size() > 0)
+    {
+        BOOST_FOREACH(const std::string &oid,selection)
+        {
+            //ObjectNodePath  path;
+            ObjectNode *pSelf = getRoot().findObject(oid,NULL);
+            if(pSelf)
+            {
+                pSelf->unionBBox(&ret);
+            }
+        }
+    }
+    return ret;
+}
+
 std::string
 ExtraObjectManager::selectObject(float filmx,float filmy)
 {

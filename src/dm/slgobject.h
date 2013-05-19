@@ -97,6 +97,9 @@ public:
     }
     ///@brief select object according file coordinate.return object's id if selected.otherwise return empty string.
     std::string    selectObject(float filmx,float filmy);
+
+    ///@brief get bbox of selected object.
+    luxrays::BBox    getSelectionBBox(void);
 public:
     /** @brief Loading objects from the model file according to objNode information.
      * @details If not given matid / objid. Then create random id.

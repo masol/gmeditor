@@ -65,6 +65,9 @@ protected:
 	void onViewSelection(wxCommandEvent &event);
     void onUpdateViewSelection(wxUpdateUIEvent &event);
 
+	void onAutoTarget(wxCommandEvent &event);
+    void onUpdateAutoTarget(wxUpdateUIEvent &event);
+
 	void onViewPane(wxCommandEvent &event);
     void onUpdateViewPane(wxUpdateUIEvent &event);
 
@@ -109,6 +112,8 @@ private:
 	wxTextCtrl      *m_logWindow;
 	std::string      m_filepath;
     void    createMenubar();
+    ///@brief append shortcut and return it.
+    wxString&   appendShortCutString(int cmdid,wxString &shortCut);
 	void    createToolbar();
     void    createStatusbar();
     ///@todo meory leak detected by valgrind, caused by wxAuiManager loading paninfo using expat xmlparser.

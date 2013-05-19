@@ -431,7 +431,7 @@ void GlRenderFrame::doMouseEvent(wxMouseEvent& event)
     case cmd::GID_MD_ROTATE:
         rotateCam(event);
         break;
-    case cmd::GID_MD_ROTATE_AROUND_CENTER:
+    case cmd::GID_MD_ROTATE_AROUND_FOCUS:
         rotateCamAroundCenter(event);
         break;
     case cmd::GID_MD_ZOOM:

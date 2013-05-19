@@ -253,6 +253,24 @@ ObjectNode::draw(const Eigen::Matrix4f &matrix)
     }
 }
 
+void
+ObjectNode::unionBBox(luxrays::BBox  *pbox)
+{
+    if(!this->matid().empty())
+    {
+        luxrays::ExtMesh *pMesh = ExtraObjectManager::getExtMesh(this->id());
+        if(pMesh)
+        {
+            *pbox = luxrays::Union(*pbox,pMesh->GetBBox());
+        }
+    }
+    BOOST_FOREACH(ObjectNode &child,m_children)
+    {
+        child.unionBBox(pbox);
+    }
+}
+
+
 
 type_xml_node*
 ObjectNode::dump(type_xml_node &parent,dumpContext &ctx)

@@ -108,6 +108,8 @@ typedef std::vector<Camera>     type_cam_vector;
 class DocCamera : public DocScopeLocker
 {
 public:
+    bool    autoTarget(void);
+    void    autoTarget(bool at);
     /** @brief rotating around target.distx and disty is in document coordinate.
     **/
     bool   targetRotate(int distx,int disty,float optRotateFactor);

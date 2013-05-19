@@ -178,6 +178,19 @@ DocCamera::straightTranslate(float factor)
 }
 
 bool
+DocCamera::autoTarget(void)
+{
+    return pDocData->autoTarget();
+}
+
+void
+DocCamera::autoTarget(bool at)
+{
+    pDocData->autoTarget(at);
+}
+
+
+bool
 DocCamera::targetRotate(int distx,int disty,float optRotateFactor)
 {
     if(!pDocData->m_started)

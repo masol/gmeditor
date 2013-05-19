@@ -150,8 +150,8 @@ msgid "自身旋转。"
 msgstr "Self-rotation"
 
 #: src\gme\mainframe.cpp:202
-msgid "中心点旋转(&C)"
-msgstr "Rotate Round Center Point(&C)"
+msgid "焦点旋转(&C)"
+msgstr "Rotate Round Focus Point(&C)"
 
 #: src\gme\mainframe.cpp:202
 msgid "绕摄像机焦点旋转。"

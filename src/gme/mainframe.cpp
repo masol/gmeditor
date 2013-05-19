@@ -27,6 +27,7 @@
 #include "dm/docobj.h"
 #include "dm/docctl.h"
 #include "dm/docimg.h"
+#include "dm/doccamera.h"
 #include <boost/locale.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/bind.hpp>
@@ -97,6 +98,10 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_MENU(cmd::GID_RENDER_START,MainFrame::onRenderStart)
 	EVT_MENU(cmd::GID_RENDER_STOP,MainFrame::onRenderStop)
 	EVT_MENU(cmd::GID_RENDER_PAUSE,MainFrame::onRenderPause)
+
+	EVT_MENU(cmd::GID_AUTO_TARGET,MainFrame::onAutoTarget)
+	EVT_UPDATE_UI(cmd::GID_AUTO_TARGET,MainFrame::onUpdateAutoTarget)
+    
     EVT_MENU_RANGE(cmd::GID_PANE_BEGIN, cmd::GID_PANE_END,MainFrame::onViewPane)
     EVT_UPDATE_UI_RANGE(cmd::GID_PANE_BEGIN,cmd::GID_PANE_END,MainFrame::onUpdateViewPane)
     EVT_MENU_RANGE(cmd::GID_VM_BEGIN,cmd::GID_VM_END,MainFrame::onViewmodeChanged)
@@ -169,6 +174,42 @@ MainFrame::~MainFrame()
 
 boost::function<bool (std::string &)>   MainFrame::sv_getImageFilepath;
 
+
+wxString&
+MainFrame::appendShortCutString(int cmdid,wxString &shortCut)
+{
+    switch(cmdid)
+    {
+    case cmd::GID_MD_LOCK:
+        shortCut.append("\tCtrl+L");
+        break;
+    case cmd::GID_MD_PANE:
+        shortCut.append("\tCtrl+P");
+        break;
+    case cmd::GID_MD_ROTATE:
+        shortCut.append("\tCtrl+R");
+        break;
+    case cmd::GID_MD_ROTATE_AROUND_FOCUS:
+        shortCut.append("\tCtrl+F");
+        break;
+    case cmd::GID_MD_ZOOM:
+        shortCut.append("\tCtrl+Z");
+        break;
+    case cmd::GID_MD_SELECT:
+        shortCut.append("\tCtrl+X");
+        break;
+    case cmd::GID_AUTO_TARGET:
+        shortCut.append("\tCtrl+A");
+        break;
+    case cmd::GID_VIEWSELECTION:
+        shortCut.append("\tCtrl+V");
+        break;
+    default:
+        break;
+    }
+    return shortCut;
+}
+
 void
 MainFrame::createMenubar()
 {
@@ -201,13 +242,16 @@ MainFrame::createMenubar()
 
 		pEditMenu->AppendSeparator();
         wxMenu *pEditmodeMenu = new wxMenu();
-		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_LOCK, gmeWXT("锁定(&L)"), gmeWXT("锁定窗口。"));
-		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_PANE, gmeWXT("平移(&P)"), gmeWXT("平移控制。"));
-		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_ROTATE, gmeWXT("旋转(&R)"), gmeWXT("自身旋转。"));
-		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_ROTATE_AROUND_CENTER, gmeWXT("中心点旋转(&C)"), gmeWXT("绕摄像机焦点旋转。"));
-		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_ZOOM, gmeWXT("缩放(&Z)"), gmeWXT("缩放控制。"));
-		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_SELECT, gmeWXT("选择(&S)"), gmeWXT("点击选择模式。"));
+		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_LOCK,appendShortCutString(cmd::GID_MD_LOCK,gmeWXT("锁定(&L)")), gmeWXT("锁定窗口。"));
+		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_PANE, appendShortCutString(cmd::GID_MD_PANE,gmeWXT("平移(&P)")), gmeWXT("平移控制。"));
+		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_ROTATE, appendShortCutString(cmd::GID_MD_ROTATE,gmeWXT("旋转(&R)")), gmeWXT("自身旋转。"));
+		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_ROTATE_AROUND_FOCUS, appendShortCutString(cmd::GID_MD_ROTATE_AROUND_FOCUS,gmeWXT("焦点旋转(&C)")), gmeWXT("绕摄像机焦点旋转。"));
+		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_ZOOM, appendShortCutString(cmd::GID_MD_ZOOM,gmeWXT("缩放(&Z)")), gmeWXT("缩放控制。"));
+		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_SELECT, appendShortCutString(cmd::GID_MD_SELECT,gmeWXT("选择(&S)")), gmeWXT("点击选择模式。"));
         pEditMenu->AppendSubMenu(pEditmodeMenu,gmeWXT("编辑模式(&M)"),gmeWXT("控制主窗口的编辑模式。"));
+
+		pEditMenu->AppendSeparator();
+		pEditMenu->AppendCheckItem(cmd::GID_AUTO_TARGET,appendShortCutString(cmd::GID_AUTO_TARGET,gmeWXT("自动对正(&A)")),gmeWXT("选择物体时自动校正摄像机中心点."));
 
         pMenuBar->Append(pEditMenu, gmeWXT("编辑(&E)"));
     }
@@ -225,7 +269,7 @@ MainFrame::createMenubar()
 		pViewModeMenu->AppendRadioItem(cmd::GID_VM_FULLWINDOW, gmeWXT("全屏缩放(&P)"), gmeWXT("自动缩放以充满全屏。"));
 		pViewModeMenu->AppendRadioItem(cmd::GID_VM_SCALEWITHASPECT, gmeWXT("等比缩放(&P)"), gmeWXT("自动缩放到全屏并保持文档的横纵必不变。"));
         pViewMenu->AppendSubMenu(pViewModeMenu,gmeWXT("显示方式(&M)"),gmeWXT("控制主窗口如何匹配渲染图的尺寸。"));
-		pViewMenu->AppendCheckItem(cmd::GID_VIEWSELECTION, gmeWXT("标识选中对象(&Z)"), gmeWXT("在编辑视图中标识选中对象。"));
+		pViewMenu->AppendCheckItem(cmd::GID_VIEWSELECTION, appendShortCutString(cmd::GID_VIEWSELECTION,gmeWXT("标识选中对象(&Z)")), gmeWXT("在编辑视图中标识选中对象。"));
 
 		pViewMenu->AppendSeparator();
         wxMenu *pLogLevel = new wxMenu();
@@ -297,6 +341,23 @@ MainFrame::createToolbar()
 
 		m_mgr.AddPane(pEditTbr,wxAuiPaneInfo().Name(gmeWXT("edittoolbar")).Caption(gmeWXT("编辑场景工具栏")).
 			ToolbarPane().Top().Position(1));
+	}
+
+	{//View Toolbar
+		wxAuiToolBar *pViewTbr = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+                                                  wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW| wxAUI_TB_HORIZONTAL);
+
+		pViewTbr->AddTool(cmd::GID_MD_LOCK,gmeWXT("锁定"),wxBitmap(xpm::help),gmeWXT("锁定说明"),wxITEM_RADIO);
+		pViewTbr->AddTool(cmd::GID_MD_PANE,gmeWXT("平移"),wxBitmap(xpm::help),gmeWXT("平移说明"),wxITEM_RADIO);
+		pViewTbr->AddTool(cmd::GID_MD_ROTATE,gmeWXT("旋转"),wxBitmap(xpm::help),gmeWXT("旋转说明"),wxITEM_RADIO);
+		pViewTbr->AddTool(cmd::GID_MD_ROTATE_AROUND_FOCUS,gmeWXT("焦点旋转"),wxBitmap(xpm::help),gmeWXT("焦点旋转说明"),wxITEM_RADIO);
+		pViewTbr->AddTool(cmd::GID_MD_ZOOM,gmeWXT("缩放"),wxBitmap(xpm::help),gmeWXT("缩放说明"),wxITEM_RADIO);
+		pViewTbr->AddTool(cmd::GID_MD_SELECT,gmeWXT("选择"),wxBitmap(xpm::help),gmeWXT("选择说明"),wxITEM_RADIO);
+
+		pViewTbr->Realize();
+
+		m_mgr.AddPane(pViewTbr,wxAuiPaneInfo().Name(gmeWXT("编辑工具栏")).Caption(gmeWXT("编辑")).
+			ToolbarPane().Top().Position(2));
 	}
 
 	{//Help Toolbar
@@ -520,6 +581,21 @@ void
 MainFrame::onUpdateViewSelection(wxUpdateUIEvent &event)
 {
     event.Check(m_renderView->isViewSelection());
+}
+
+void
+MainFrame::onAutoTarget(wxCommandEvent &event)
+{
+    (void)event;
+    DocCamera dc;
+    dc.autoTarget(!dc.autoTarget());
+}
+
+void
+MainFrame::onUpdateAutoTarget(wxUpdateUIEvent &event)
+{
+    DocCamera dc;
+    event.Check(dc.autoTarget());
 }
 
 void

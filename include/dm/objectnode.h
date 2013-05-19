@@ -27,6 +27,10 @@
 #include <fstream>
 #include "dm/xmlutil.h"
 
+namespace luxrays{
+    class BBox;
+}
+
 namespace gme{
 
 class ObjectNode;
@@ -183,6 +187,7 @@ protected:
     ///@brief notify some child removed.
     void    onChildRemoved(const std::string &childid);
 public:
+    void    unionBBox(luxrays::BBox  *pbox);
     /** @brief 将自身的矩阵应用到matrix上以获取世界坐标系到对象坐标系的变幻矩阵。
     **/
     void    applyMatrix(Eigen::Matrix4f &matrix);

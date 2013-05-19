@@ -30,7 +30,8 @@ namespace gme{
 DocPrivate::DocPrivate(void)
 {
     m_started = false;
-    m_bAutofocus = true;
+    m_bAutofocus = false;
+    m_bAutoTarget = false;
 }
 
 void
@@ -55,13 +56,33 @@ DocPrivate::closeScene(void)
     fireStateChanged(STATE_CLOSE);
 }
 
-
-
 DocPrivate::~DocPrivate(void)
 {
     clearAllListen();
     closeScene();
 }
+
+void
+DocPrivate::onSelectedChanged(void)
+{
+    if(m_bAutoTarget && this->m_session.get() && this->m_session->renderConfig->scene)
+    {
+        luxrays::BBox bbox = objManager.getSelectionBBox();
+        if(bbox.IsValid())
+        {
+    	    m_session->BeginEdit();
+    
+            slg::PerspectiveCamera *camera = this->m_session->renderConfig->scene->camera;
+
+            camera->target = bbox.Center();
+    	    camera->Update(m_session->film->GetWidth(), m_session->film->GetHeight());
+	        m_session->editActions.AddAction(slg::CAMERA_EDIT);
+    	    m_session->EndEdit();
+        }
+    }
+}
+
+
 
 }
 
