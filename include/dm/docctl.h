@@ -28,6 +28,8 @@ class DocCtl : public DocScopeLocker
 {
 public:
     bool    isRuning();
+    bool    isPause();
+    bool    isStop();
     bool    start();
     bool    stop();
     bool    pause();

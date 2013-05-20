@@ -26,6 +26,51 @@
 
 namespace gme{
 
+struct  RenderInfo{
+    unsigned int    pass;
+    float           convergence;
+    double          elapsedTime;
+    double          totalRaysSec;
+    double          totalSamplesSec;
+private:
+    inline void    deepCopy(const RenderInfo& ri)
+    {
+        this->pass = ri.pass;
+        this->convergence = ri.convergence;
+        this->elapsedTime = ri.elapsedTime;
+        this->totalRaysSec = ri.totalRaysSec;
+        this->totalSamplesSec = ri.totalSamplesSec;
+    }
+public:
+    RenderInfo(void)
+    {
+        pass = 0;
+        this->convergence = 0;
+        this->elapsedTime = 0;
+        this->totalRaysSec = 0;
+        this->totalSamplesSec = 0;
+    }
+    RenderInfo(const RenderInfo& ref)
+    {
+        deepCopy(ref);
+    }
+    inline RenderInfo& operator=(const RenderInfo& ri)
+    {
+        deepCopy(ri);
+        return *this;
+    }
+    ///@brief add renderinfo from another.
+    inline  void    merge(const RenderInfo& ri)
+    {
+        this->pass += ri.pass;
+        ///@fixme : how to do about convergence?
+        this->convergence = (this->convergence + ri.convergence) / 2;
+        this->elapsedTime += ri.elapsedTime;
+        this->totalRaysSec += ri.totalRaysSec;
+        this->totalSamplesSec += ri.totalSamplesSec;
+    }
+};
+
 class DocPrivate;
 class Doc : public Singleton<Doc>
 {
@@ -42,11 +87,11 @@ protected:
     friend class SlgTexture2Name;
     friend class SlgMesh2Name;
 	friend class ObjectNode;
+	friend class CacheFilm;
     friend class Singleton<Doc>;
     typedef Singleton<Doc>   inherited;
     Doc(void);
     boost::recursive_mutex      m_mutex;
-    DocPrivate                  *pDocData;
 private:
     /** @brief 锁定文档。
     **/
@@ -62,6 +107,7 @@ private:
     static  type_func_syslog        sv_syslog_func;
     static  int                     sv_syslog_level;
 public:
+    DocPrivate                  *pDocData;
     enum{
         LOG_TRACE,
         LOG_DEBUG,

@@ -34,6 +34,9 @@ BEGIN_EVENT_TABLE(GMEStatusBar, GMEStatusBar::inherit)
 	EVT_MENU(cmd::GID_SB_SE_TIME,GMEStatusBar::OnSetTime)
 	EVT_MENU(cmd::GID_SB_SE_CONVERGENCE,GMEStatusBar::OnSetConvergence)
 	EVT_MENU(cmd::GID_SB_SE_CLEARALL,GMEStatusBar::OnClearCondition)
+
+    EVT_MENU_RANGE(cmd::GID_SB_RI_BEGIN,cmd::GID_SB_RI_END,GMEStatusBar::onRenderInfoType)
+    EVT_UPDATE_UI_RANGE(cmd::GID_SB_RI_BEGIN,cmd::GID_SB_RI_END,GMEStatusBar::onUpdateRenderInfoType)
 END_EVENT_TABLE()
 
 GMEStatusBar::GMEStatusBar(wxWindow *parent, long style)
@@ -63,6 +66,8 @@ GMEStatusBar::GMEStatusBar(wxWindow *parent, long style)
     m_targetPass = 0;
     m_targetTime = 0;
     m_targetConv = 0;
+
+    m_showType = gme::DocImg::RI_NATIVE;
 
     m_pGauge->Connect(wxEVT_LEFT_UP,wxMouseEventHandler(GMEStatusBar::OnGaugeClick),NULL,this);
     m_micro_tick = boost::posix_time::microsec_clock::local_time();
@@ -115,6 +120,10 @@ GMEStatusBar::OnGaugeClick(wxMouseEvent& event)
     menu.Append(cmd::GID_SB_SE_TIME, gmeWXT("设置时间终止"));
     menu.Append(cmd::GID_SB_SE_CONVERGENCE, gmeWXT("设置覆盖率终止"));
     menu.Append(cmd::GID_SB_SE_CLEARALL, gmeWXT("永久渲染"));
+    menu.AppendSeparator();
+    menu.AppendCheckItem(cmd::GID_SB_RI_NATIVE, gmeWXT("本地效率"));
+    menu.AppendCheckItem(cmd::GID_SB_RI_CONTRIBUTE, gmeWXT("贡献效率"));
+    menu.AppendCheckItem(cmd::GID_SB_RI_TOTAL, gmeWXT("总效率"));
 
     m_pGauge->PopupMenu(&menu, point);
 }
@@ -155,8 +164,8 @@ GMEStatusBar::OnIdle(wxIdleEvent& event)
     if(diff.total_milliseconds() > opt_refresh_tick)
     {
         DocImg  img;
-        DocImg::RenderInfo  ri;
-        if(img.getRenderInfo(ri))
+        gme::RenderInfo  ri;
+        if(img.getRenderInfo(m_showType,ri))
         {
             std::string    info = boost::str(boost::format("%2.2f%%")% (ri.convergence * 100.0f));
             SetStatusText(info, Field_CONVERGENCE);
@@ -215,7 +224,11 @@ GMEStatusBar::OnIdle(wxIdleEvent& event)
             }
 
         }else{
-            SetStatusText("", Field_CONVERGENCE);
+            SetStatusText("--", Field_CONVERGENCE);
+            SetStatusText("--", Field_PASS);
+            SetStatusText("--", Field_RPS);
+            SetStatusText("--", Field_SPS);
+            SetStatusText("--:--:--", Field_TIME);
         }
         m_micro_tick = now;
     }
@@ -224,6 +237,44 @@ GMEStatusBar::OnIdle(wxIdleEvent& event)
 
 GMEStatusBar::~GMEStatusBar()
 {
+}
+
+void
+GMEStatusBar::onRenderInfoType(wxCommandEvent &event)
+{
+    switch(event.GetId())
+    {
+    case cmd::GID_SB_RI_NATIVE:
+        this->m_showType = gme::DocImg::RI_NATIVE;
+        break;
+    case cmd::GID_SB_RI_CONTRIBUTE:
+        this->m_showType = gme::DocImg::RI_CONTRIBUTE;
+        break;
+    case cmd::GID_SB_RI_TOTAL:
+        this->m_showType = gme::DocImg::RI_TOTAL;
+        break;
+    }
+}
+
+int
+GMEStatusBar::getCmdIdFromShowType(void)
+{
+    switch(this->m_showType)
+    {
+    case gme::DocImg::RI_TOTAL:
+        return cmd::GID_SB_RI_TOTAL;
+    case gme::DocImg::RI_CONTRIBUTE:
+        return cmd::GID_SB_RI_CONTRIBUTE;
+    case gme::DocImg::RI_NATIVE:
+        return cmd::GID_SB_RI_NATIVE;
+    }
+    throw std::runtime_error("invalid type");
+}
+
+void
+GMEStatusBar::onUpdateRenderInfoType(wxUpdateUIEvent &event)
+{
+    event.Check(event.GetId() == getCmdIdFromShowType());
 }
 
 

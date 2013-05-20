@@ -42,6 +42,7 @@ set(DM_SRCS
     localsetting.cpp
     docsetting.cpp
     aistream.cpp
+    cachefilm.cpp
    )
 
 

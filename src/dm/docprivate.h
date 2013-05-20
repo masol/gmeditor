@@ -24,6 +24,7 @@
 #include "slgmaterial.h"
 #include "slgobject.h"
 #include "slgcamera.h"
+#include "cachefilm.h"
 #include <boost/shared_ptr.hpp>
 #include "utils/eventlisten.h"
 #include <boost/function.hpp>
@@ -45,6 +46,16 @@ private:
     **/
     bool                                    m_bAutoTarget;
     void        onSelectedChanged(void);
+    /** @brief 记录当前状态。
+    **/
+    int                                     m_state;
+    CacheFilm                               m_cacheFilm;
+
+    enum{
+        ST_STOPPED,
+        ST_RUNNING,
+        ST_PAUSED
+    };
 public:
     typedef boost::function<void (int,int)>     type_imagesize_handler;
     typedef boost::function<void (void)>        type_state_handler;
@@ -53,6 +64,7 @@ public:
     enum{
         STATE_OPEN,
         STATE_CLOSE,
+        STATE_PAUSE,
         STATE_AUTOFOCUS_CHANGED,
         STATE_MAX
     };
@@ -65,12 +77,33 @@ public:
         SEL_MAX
     };
 
+    inline  CacheFilm&  cachefilm(void)
+    {
+        return m_cacheFilm;
+    }
+
+    inline  bool    isRunning(void)const
+    {
+        return (m_state == ST_RUNNING);
+    }
+    inline  bool    isStop(void)const
+    {
+        return (m_state == ST_STOPPED);
+    }
+    inline  bool    isPause(void)const
+    {
+        return (m_state == ST_PAUSED);
+    }
+    void    start(void);
+    inline void    stop(void)
+    {
+        closeScene();
+    }
+    void    pause(void);
+
     ///@todo: 需要一个材质转化专家系统来支持材质转化。
 	//
     boost::shared_ptr<slg::RenderSession>   m_session;
-    /** @fixme: slg的started为保护成员。
-    **/
-    bool                                    m_started;
 
 	ExtraTextureManager               texManager;
 	ExtraMaterialManager              matManager;
@@ -87,6 +120,7 @@ private:
         selection_Evt.clear();
     }
 public:
+    bool  getNativeRenderInfo(RenderInfo &ri);
     inline  bool    autoTarget(void)const
     {
         return m_bAutoTarget;
@@ -163,15 +197,6 @@ public:
     inline  void    fireSizeChanged(void)
     {
         imageSize_Evt.fire(m_session->film->GetWidth(),m_session->film->GetHeight());
-    }
-
-    inline  void    startScene(void)
-    {
-        BOOST_ASSERT(m_session.get() != NULL);
-        m_session->Start();
-        m_started = true;
-        fireStateChanged(STATE_OPEN);
-        fireSizeChanged();
     }
 };
 

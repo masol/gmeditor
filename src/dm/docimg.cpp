@@ -70,7 +70,7 @@ DocImg::setSize(int w,int h)
                     session->renderConfig->scene->camera->GetFilmHeight());
 
             session->Start();
-
+            pDocData->cachefilm().invalidate();
             pDocData->imageSize_Evt.fire(w,h);
 
         }
@@ -169,15 +169,8 @@ DocImg::getData(ImageDataScale *pdata,int w, int h,const float* pixels)
 const float*
 DocImg::getPixels(void)
 {
-    slg::RenderSession* session = pDocData->getSession();
-
-    if(session && session->film)
-    {
-        session->renderEngine->UpdateFilm();
-	    session->film->UpdateScreenBuffer();
-	    return session->film->GetScreenBuffer();
-    }
-    return NULL;
+    pDocData->cachefilm().updateNativeFilm();
+    return pDocData->cachefilm().getPixels();
 }
 
 bool
@@ -243,7 +236,7 @@ DocImg::drawSelectedObject(ViewPort &vp)
         scene->camera->target.x,scene->camera->target.y,scene->camera->target.z,\
         scene->camera->up.x,scene->camera->up.y,scene->camera->up.z);
 
-    //set selection color. 
+    //set selection color.
     ///@todo configure this.
     glColor3f(1.0f,1.0f,1.0f);
     //ensure mode. do not need restore. @fixme: move it to init?
@@ -275,20 +268,27 @@ DocImg::drawSelectedObject(ViewPort &vp)
 }
 
 
-
 bool
-DocImg::getRenderInfo(RenderInfo &ri)
+DocImg::getRenderInfo(int type,RenderInfo &ri)
 {
-    slg::RenderSession* session = pDocData->getSession();
-
-    if(session && session->film)
+    if(type == RI_NATIVE)
     {
-        ri.convergence = session->renderEngine->GetConvergence();
-        ri.elapsedTime = session->renderEngine->GetRenderingTime();
-        ri.pass = session->renderEngine->GetPass();
-        ri.totalRaysSec = session->renderEngine->GetTotalRaysSec();
-        ri.totalSamplesSec = session->renderEngine->GetTotalSamplesSec();
-        return true;
+        return pDocData->getNativeRenderInfo(ri);
+    }else if(type == RI_CONTRIBUTE)
+    {
+        return pDocData->cachefilm().getContributeRenderInfo(ri);
+    }else
+    {
+        RenderInfo native,contribute;
+        if(pDocData->getNativeRenderInfo(native))
+        {
+            ri.merge(native);
+            if(pDocData->cachefilm().getContributeRenderInfo(contribute))
+            {
+                ri.merge(contribute);
+            }
+            return true;
+        }
     }
     return false;
 }

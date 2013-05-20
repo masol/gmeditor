@@ -118,7 +118,7 @@ Camera::setDefault(const Camera &cam)
 bool
 DocCamera::translate(int distx,int disty,float optTranslateFactor)
 {
-    if(!pDocData->m_started)
+    if(!pDocData->isRunning())
         return false;
     slg::RenderSession* session = pDocData->getSession();
     if(session && session->film)
@@ -143,6 +143,7 @@ DocCamera::translate(int distx,int disty,float optTranslateFactor)
 	    camera->Update(session->film->GetWidth(), session->film->GetHeight());
 	    session->editActions.AddAction(slg::CAMERA_EDIT);
 	    session->EndEdit();
+        pDocData->cachefilm().invalidate();
 	    return true;
 	}
 	return false;
@@ -151,7 +152,7 @@ DocCamera::translate(int distx,int disty,float optTranslateFactor)
 bool
 DocCamera::straightTranslate(float factor)
 {
-    if(!pDocData->m_started)
+    if(!pDocData->isRunning())
         return false;
     slg::RenderSession* session = pDocData->getSession();
     if(session && session->film)
@@ -172,6 +173,7 @@ DocCamera::straightTranslate(float factor)
 	    camera->Update(session->film->GetWidth(), session->film->GetHeight());
 	    session->editActions.AddAction(slg::CAMERA_EDIT);
 	    session->EndEdit();
+	    pDocData->cachefilm().invalidate();
 	    return true;
 	}
 	return false;
@@ -193,7 +195,7 @@ DocCamera::autoTarget(bool at)
 bool
 DocCamera::targetRotate(int distx,int disty,float optRotateFactor)
 {
-    if(!pDocData->m_started)
+    if(!pDocData->isRunning())
         return false;
     slg::RenderSession* session = pDocData->getSession();
     if(session && session->film)
@@ -216,6 +218,7 @@ DocCamera::targetRotate(int distx,int disty,float optRotateFactor)
 	    camera->Update(session->film->GetWidth(), session->film->GetHeight());
 	    session->editActions.AddAction(slg::CAMERA_EDIT);
 	    session->EndEdit();
+	    pDocData->cachefilm().invalidate();
 	    return true;
 	}
 	return false;
@@ -226,7 +229,7 @@ DocCamera::targetRotate(int distx,int disty,float optRotateFactor)
 bool
 DocCamera::rotate(int distX,int distY,float optRotateFactor)
 {
-    if(!pDocData->m_started)
+    if(!pDocData->isRunning())
         return false;
     slg::RenderSession* session = pDocData->getSession();
     if(session && session->film)
@@ -248,6 +251,7 @@ DocCamera::rotate(int distX,int distY,float optRotateFactor)
 	    camera->Update(session->film->GetWidth(), session->film->GetHeight());
 	    session->editActions.AddAction(slg::CAMERA_EDIT);
 	    session->EndEdit();
+	    pDocData->cachefilm().invalidate();
 	    return true;
 	}
 	return false;
@@ -288,6 +292,7 @@ DocCamera::restoreFrom(Camera &cam)
         slgCam->Update(session->film->GetWidth(), session->film->GetHeight());
 	    session->editActions.AddAction(slg::CAMERA_EDIT);
 	    session->EndEdit();
+	    pDocData->cachefilm().invalidate();
         return true;
     }
     return false;

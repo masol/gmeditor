@@ -27,16 +27,28 @@ namespace gme{
 bool
 DocCtl::isRuning()
 {
-    return pDocData->m_started;
+    return pDocData->isRunning();
 }
+
+bool
+DocCtl::isPause()
+{
+    return pDocData->isPause();
+}
+
+bool
+DocCtl::isStop()
+{
+    return pDocData->isStop();
+}
+
 
 bool
 DocCtl::start()
 {
-    if(pDocData->m_session && !pDocData->m_started)
+    if(pDocData->m_session && !pDocData->isRunning() )
     {
-        pDocData->m_session->Start();
-        pDocData->m_started = true;
+        pDocData->start();
         return true;
     }
     return false;
@@ -45,10 +57,9 @@ DocCtl::start()
 bool
 DocCtl::stop()
 {
-    if(pDocData->m_session && pDocData->m_started)
+    if( pDocData->m_session && pDocData->isRunning() )
     {
-        pDocData->m_session->Stop();
-        pDocData->m_started = false;
+        pDocData->closeScene();
         return true;
     }
     return false;
@@ -57,8 +68,11 @@ DocCtl::stop()
 bool
 DocCtl::pause()
 {
-    ///@todo save current film to docdata then stop.
-    BOOST_ASSERT_MSG(false,"NOT IMPLEMNT");
+    if( pDocData->m_session && pDocData->isRunning() )
+    {
+        pDocData->pause();
+        return true;
+    }
     return false;
 }
 

@@ -80,6 +80,7 @@ DocObj::importObject(const std::string &path,ObjectNode *pParent)
     {
         pDocData->m_session->Stop();
         pDocData->m_session->Start();
+        pDocData->cachefilm().invalidate();
     }
 
 

@@ -54,7 +54,11 @@ protected:
     void OnSetConvergence(wxCommandEvent &event);
     void OnClearCondition(wxCommandEvent &event);
     void SetTimeField(unsigned int time,int field_id);
+
+    void onRenderInfoType(wxCommandEvent &event);
+    void onUpdateRenderInfoType(wxUpdateUIEvent &event);
 private:
+    int  getCmdIdFromShowType(void);
     wxStaticBitmap *m_statbmp;
     wxGauge        *m_pGauge;
     int             m_targetPass;   //目标pass.
@@ -62,6 +66,8 @@ private:
     int             m_targetConv;   //目标覆盖率。
     boost::posix_time::ptime    m_micro_tick;   //控制刷新率.
     int             opt_refresh_tick;   //0.5s default
+    ///@biref   度量信息的显示模式。缺省是native.
+    int             m_showType;
 
     DECLARE_EVENT_TABLE()
 };

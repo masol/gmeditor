@@ -210,7 +210,7 @@ DocIO::loadSlgScene(const std::string &path)
             //slg以当前路径为拼接原则，而不是相对于文件。
             loadExtraFromSlgSceneFile(boost::filesystem::canonical(scnFile/*,boost::filesystem::absolute(path.parent_path())*/).string());
         }
-        pDocData->startScene();
+        pDocData->start();
         return true;
     }
     catch(cl::Error err)
@@ -324,7 +324,7 @@ DocIO::initAndStartScene(slg::Scene *scene)
     std::cerr << confgSS.str();
     slg::RenderConfig *config = new slg::RenderConfig(confgSS.str(),*scene);
     pDocData->m_session.reset(new slg::RenderSession(config));
-    pDocData->startScene();
+    pDocData->start();
 }
 
 

@@ -362,6 +362,7 @@ DocMat::updateProperty(const std::vector<std::string> &keyPath,const std::string
                 //error occupy.we stop and start session here. caused by opencl
                 pDocData->m_session->Stop();
                 pDocData->m_session->Start();
+                pDocData->cachefilm().invalidate();
             }
             //ret = ExtraMaterialManager::updateMaterial(editor,pMat,keyPath,0,value,parent);
         }

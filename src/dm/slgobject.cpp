@@ -227,7 +227,7 @@ FStream_CTMreadfn(void * aBuf, CTMuint aCount, void * aUserData)
 {
     boost::filesystem::ifstream *pStream = (boost::filesystem::ifstream*)aUserData;
     pStream->read((char*)aBuf,aCount);
-    return pStream->gcount();
+    return (CTMuint)pStream->gcount();
 }
 
 bool
@@ -755,7 +755,7 @@ ExtraObjectManager::getSelectionBBox(void)
 std::string
 ExtraObjectManager::selectObject(float filmx,float filmy)
 {
-    if(Doc::instance().pDocData->m_session.get() == NULL)
+    if(!Doc::instance().pDocData->isRunning())
         return "";
     slg::Scene *scene = Doc::instance().pDocData->m_session->renderConfig->scene;
     if(scene == NULL)
@@ -814,7 +814,7 @@ ExtraObjectManager::importSpScene(const std::string &path,ObjectNode &parentNode
         }BOOST_SCOPE_EXIT_END
         // get length of file:
         file.seekg (0, file.end);
-        int length = file.tellg();
+        std::streamoff length = file.tellg();
         file.seekg (0, file.beg);
 
         char * buffer = new char [length + 1];

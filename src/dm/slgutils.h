@@ -45,22 +45,8 @@ public:
         inline void  resetAction(void){
             m_session->editActions.Reset();
         }
-        inline ~Editor()
-        {
-            if (m_session->editActions.Has(slg::MATERIALS_EDIT)) {
-                m_session->renderConfig->scene->RemoveUnusedMaterials();
-                m_session->renderConfig->scene->RemoveUnusedTextures();
-            }
-            if( m_session->editActions.Has(slg::IMAGEMAPS_EDIT) || m_session->editActions.Has(slg::MATERIAL_TYPES_EDIT) )//m_bNeedRefresh )
-            {///@fixme: we must restart render when we have IMAGEMAPS_EDIT.
-                m_session->editActions.Reset();
-                m_session->EndEdit();
-                m_session->Stop();
-                m_session->Start();
-            }else{
-                m_session->EndEdit();
-            }
-        }
+        ///@brief implement in docPrviate.
+        ~Editor();
         inline void addAction(const slg::EditAction a)
         {
             m_session->editActions.AddAction(a);

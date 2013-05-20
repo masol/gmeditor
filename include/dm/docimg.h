@@ -75,13 +75,6 @@ struct ImageDataScroll : public ImageDataBase
 class DocImg : public DocScopeLocker
 {
 public:
-    struct  RenderInfo{
-        unsigned int    pass;
-        float           convergence;
-        double          elapsedTime;
-        double          totalRaysSec;
-        double          totalSamplesSec;
-    };
     typedef boost::function<void (int,int)>     type_imagesize_handler;
 protected:
     bool    getData(ImageDataScale *pdata,int w, int h,const float* pixels);
@@ -95,18 +88,25 @@ public:
 
     ///@brief 绘制选中的对象。
     void    drawSelectedObject(ViewPort &vp);
-    bool    getRenderInfo(RenderInfo &ri);
+    enum{
+        RI_NATIVE,
+        RI_CONTRIBUTE,
+        RI_TOTAL
+    };
+    bool    getRenderInfo(int type,RenderInfo &ri);
     bool    getSize(int &w,int &h);
     bool    setSize(int w,int h);
     void    onImagesizeChanged(type_imagesize_handler handler);
 
     ///@brief for glrender.
     const float*    getPixels(void);
-    ///@brief for software render.
-    bool    getData(ImageDataBase *pdata);
-
     ///@brief save the image result.
     bool    saveImage(const std::string &fullpath);
+
+    /**@brief for software render.
+     *@deprecated : not support software render.
+    **/
+    bool    getData(ImageDataBase *pdata);
 };
 
 }

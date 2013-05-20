@@ -83,6 +83,7 @@ DocSetting::changeSkyEnv(void)
         prop.SetString("scene.skylight.dir","0.0 0.0 1.0");
         scene->AddSkyLight(prop);
         session->Start();
+        pDocData->cachefilm().invalidate();
         bSetOK = true;
     }
     return bSetOK;
@@ -105,6 +106,7 @@ DocSetting::enableSun(void)
             scene->AddSunLight(prop);
             //editor.addAction(slg::SUNLIGHT_EDIT);
             session->Start();
+            pDocData->cachefilm().invalidate();
             bSetOK = true;
         }
     }
@@ -125,6 +127,7 @@ DocSetting::disableSun(void)
             delete scene->sunLight;
             scene->sunLight = NULL;
             session->Start();
+            pDocData->cachefilm().invalidate();
             bSetOK = true;
         }
     }
@@ -145,6 +148,7 @@ DocSetting::disableEnv(void)
             delete scene->envLight;
             scene->envLight = NULL;
             session->Start();
+            pDocData->cachefilm().invalidate();
             bSetOK = true;
         }
     }
@@ -325,6 +329,7 @@ DocSetting::changeHDRfile(const std::string &fullpath)
 		}
         scene->AddInfiniteLight(prop);
         session->Start();
+        pDocData->cachefilm().invalidate();
         //editor.addAction(slg::INFINITELIGHT_EDIT);
         bSetOK = true;
     }
