@@ -69,6 +69,27 @@ public:
         this->totalRaysSec += ri.totalRaysSec;
         this->totalSamplesSec += ri.totalSamplesSec;
     }
+    ///@brief avg merge from ri.
+    inline  void    avgMerge(const RenderInfo& ri)
+    {
+        this->pass += ri.pass;
+        ///@fixme : how to do about convergence?
+        this->convergence = (this->convergence + ri.convergence) / 2;
+        this->elapsedTime += ri.elapsedTime;
+        if(this->totalRaysSec > 0.0f)
+        {
+            this->totalRaysSec = (this->totalRaysSec + ri.totalRaysSec) / 2;
+        }else{
+            this->totalRaysSec = ri.totalRaysSec;
+        }
+
+        if(this->totalSamplesSec > 0.0f)
+        {
+            this->totalSamplesSec = (this->totalSamplesSec + ri.totalSamplesSec) / 2;
+        }else{
+            this->totalSamplesSec = ri.totalSamplesSec;
+        }
+    }
 };
 
 class DocPrivate;

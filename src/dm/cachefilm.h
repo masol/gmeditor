@@ -24,6 +24,7 @@
 #include "slg/film/film.h"
 #include <vector>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <iostream>
 #include "dm/doc.h"
 
 namespace gme{
@@ -48,7 +49,7 @@ public:
     enum{
         CT_INVALID,
         CT_PAUSE,
-        CT_NATIVE,
+        CT_FILE,
         CT_LAN,
         CT_INTERNET,
         CT_MAX
@@ -61,10 +62,15 @@ protected:
     {
     }
 public:
+    int    getType(void)const
+    {
+        return m_type;
+    }
     inline RenderInfo&  getRenderInfo()
     {
         return m_renderInfo;
     }
+    bool saveTotalFilm(std::ostream &out);
     virtual ~ContributeFilm(void)
     {
         if(m_film)
@@ -115,6 +121,10 @@ public:
     /** @brief merge film.
     **/
     void        mergeFilm(slg::Film *pfilm);
+
+    ///@biref throw exception on error.
+    void        loadFilm(slg::Film *psysfilm,const std::string &filmfile);
+    bool        saveFilm(const std::string &filmfile);
 
     /** @brief update local film.
     **/

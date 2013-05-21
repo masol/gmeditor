@@ -56,6 +56,10 @@ private:
         ST_RUNNING,
         ST_PAUSED
     };
+    ///@brief 指示了加载时的film文件。
+    std::string                       m_filmPathfile;
+    ///@brief 指示了film是否被有效更新过。
+    bool                              m_fileFilmValid;
 public:
     typedef boost::function<void (int,int)>     type_imagesize_handler;
     typedef boost::function<void (void)>        type_state_handler;
@@ -81,6 +85,20 @@ public:
     {
         return m_cacheFilm;
     }
+
+    inline  const std::string& filmFilePath(void)
+    {
+        return m_filmPathfile;
+    }
+
+    inline  void filmFilePath(const std::string &path,bool bFilmValid = true)
+    {
+        m_filmPathfile = path;
+        m_fileFilmValid = bFilmValid;
+    }
+
+    ///@brief 将当前渲染状态保存到film状态文件中。
+    bool    saveFilm(const std::string &path);
 
     inline  bool    isRunning(void)const
     {
@@ -112,6 +130,9 @@ public:
     SingleEventListen<type_imagesize_handler>   imageSize_Evt;
     EventListen<int,type_state_handler>         state_Evt;
     EventListen<int,type_selection_handler>     selection_Evt;
+
+    ///@brief 指示保存时是否需要强制导出。(由于我们导入了多submesh的模型).
+    bool                              forceExport;
 private:
     inline  void    clearAllListen(void)
     {

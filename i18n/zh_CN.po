@@ -736,3 +736,7 @@ msgid ""
 msgstr ""
 "找不到opencl环境，使用CPU渲染，这将会严重影响您的体验，请检查您的硬件环境以及"
 "驱动设置(可以使用GPU-Z来检查OPENCL环境是否就绪)。"
+
+#: src/dm/cachefilm.cpp:67
+msgid "invalid format"
+msgstr "无效格式"

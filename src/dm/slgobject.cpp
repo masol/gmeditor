@@ -830,7 +830,7 @@ ExtraObjectManager::importSpScene(const std::string &path,ObjectNode &parentNode
         const int flag = NS_RAPIDXML::parse_no_element_values | NS_RAPIDXML::parse_trim_whitespace;
         try{
             doc.parse<flag>(buffer);
-            doc.append_attribute(allocate_attribute(&doc,constDef::file,ctx.docBasepath()));
+            //doc.append_attribute(allocate_attribute(&doc,constDef::file,ctx.docBasepath()));
 
             type_xml_node   *pScene = doc.first_node("scene");
             type_xml_node   *pObjects = NULL;
@@ -846,6 +846,18 @@ ExtraObjectManager::importSpScene(const std::string &path,ObjectNode &parentNode
                 if(pLights)
                 {//load lights define.
                     ExtraSettingManager::createLights(ctx,*pLights);
+                }
+                if(ctx.loadFilm())
+                {
+                    type_xml_node *pFilm = pScene->first_node(constDef::film);
+                    if(pFilm)
+                    {
+                        type_xml_attr *pFile = pFilm->first_attribute(constDef::file);
+                        if(pFile)
+                        {
+                            Doc::instance().pDocData->filmFilePath(boost::filesystem::absolute(pFile->value(),ctx.docBasepath()).string());
+                        }
+                    }
                 }
             }
             ///@brief load object library here.

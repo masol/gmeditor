@@ -65,6 +65,10 @@ DocObj::importObject(const std::string &path,ObjectNode *pParent)
                 }else{
                     pParent->addChild(node);
                 }
+                if(!pDocData->forceExport && pParent->getChildCount() > 2)
+                {//如果包含的孩子大于1.(2是因为包含了自己)
+                    pDocData->forceExport = true;
+                }
                 bLoadSuc = true;
             }
         }
@@ -76,6 +80,7 @@ DocObj::importObject(const std::string &path,ObjectNode *pParent)
         }
     }
 
+    ///@fixme: shall we need restart session here?
     if(bLoadSuc)
     {
         pDocData->m_session->Stop();

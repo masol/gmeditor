@@ -743,3 +743,7 @@ msgstr ""
 "seriously affect your experience. Please check your hardware environment and "
 "driver settings (you can use GPU-Z to check whether OPENCL environment is "
 "ready)."
+
+#: src/dm/cachefilm.cpp:67
+msgid "invalid format"
+msgstr "invalid format"

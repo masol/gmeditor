@@ -279,14 +279,9 @@ DocImg::getRenderInfo(int type,RenderInfo &ri)
         return pDocData->cachefilm().getContributeRenderInfo(ri);
     }else
     {
-        RenderInfo native,contribute;
-        if(pDocData->getNativeRenderInfo(native))
+        if(pDocData->getNativeRenderInfo(ri))
         {
-            ri.merge(native);
-            if(pDocData->cachefilm().getContributeRenderInfo(contribute))
-            {
-                ri.merge(contribute);
-            }
+            pDocData->cachefilm().getContributeRenderInfo(ri);
             return true;
         }
     }

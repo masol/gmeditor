@@ -80,22 +80,23 @@ namespace gme
 		static  const char* lights;
 		static  const char* envlight;
 		static  const char* sunlight;
+        static  const char* film;
     };
 
-    inline const char* getFilepathFromDocument(const type_xml_node &node)
-    {
-        type_xml_doc *pDoc = node.document();
-        //BOOST_ASSERT_MSG(pDoc != NULL,"invalid node,must from doc");
-        if(pDoc)
-        {
-            type_xml_attr  *fileAttr = pDoc->first_attribute(constDef::file);
-            if(fileAttr)
-            {
-                return fileAttr->value();
-            }
-        }
-        return NULL;
-    }
+    //inline const char* getFilepathFromDocument(const type_xml_node &node)
+    //{
+    //    type_xml_doc *pDoc = node.document();
+    //    //BOOST_ASSERT_MSG(pDoc != NULL,"invalid node,must from doc");
+    //    if(pDoc)
+    //    {
+    //        type_xml_attr  *fileAttr = pDoc->first_attribute(constDef::file);
+    //        if(fileAttr)
+    //        {
+    //            return fileAttr->value();
+    //        }
+    //    }
+    //    return NULL;
+    //}
 
     inline std::string getIdFromNode(const type_xml_node &node)
     {

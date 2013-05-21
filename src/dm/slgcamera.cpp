@@ -160,6 +160,18 @@ ExtraCameraManager::GetObjectBBox(luxrays::BBox &box,ObjectNode *pNode)
 }
 
 void
+ExtraCameraManager::saveCurrentCamera(void)
+{
+    int selected = getSelect();
+    if(selected >= 0)
+    {
+        Camera& cam = m_cam_vector[selected];
+        saveTo(Doc::instance().pDocData->getSession(),cam);
+    }
+}
+
+
+void
 ExtraCameraManager::viewAll(const std::string &objid)
 {
     luxrays::BBox   box;

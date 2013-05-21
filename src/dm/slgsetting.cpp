@@ -56,7 +56,7 @@ ExtraSettingManager::dump(type_xml_node &parent,dumpContext &ctx)
                 target = boost::filesystem::gme_ext::ensureNonExistFile(target);
 
                 boost::filesystem::copy(src_fullpath,target);
-                write_file = target.string();
+                write_file = target.filename().string();
             }else{//不保存资源，直接保存src_filepath.
                 write_file = src_fullpath.string();
             }

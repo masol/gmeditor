@@ -17,17 +17,16 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "config.h"
+#include <boost/format.hpp>
 #include "docprivate.h"
 #include "dm/docmat.h"
 #include "slgobject.h"
+#include "utils/i18n.h"
 #include "slgtexture.h"
 #include "slgmaterial.h"
 #include "slgutils.h"
 
-
-
 namespace gme{
-
 
 SlgUtil::Editor::~Editor()
 {
@@ -54,9 +53,13 @@ SlgUtil::Editor::~Editor()
 
 DocPrivate::DocPrivate(void)
 {
-    m_state = DocPrivate::ST_STOPPED;
+    //全局相关。
     m_bAutofocus = false;
     m_bAutoTarget = false;
+    //场景相关。(close时需要重置)
+    m_state = DocPrivate::ST_STOPPED;
+    forceExport = false;
+    m_fileFilmValid = false;
 }
 
 void
@@ -73,9 +76,10 @@ DocPrivate::closeScene(void)
         }
         m_session.reset();
     }
+    forceExport = false;
     this->m_state = ST_STOPPED;
-    //m_bAutofocus不变，这个选项跨场景。
-    //m_bAutofocus = false;
+    m_filmPathfile.clear();
+    m_fileFilmValid = false;
     objManager.clear();
     matManager.clear();
     texManager.clear();
@@ -90,6 +94,12 @@ DocPrivate::~DocPrivate(void)
     closeScene();
 }
 
+bool
+DocPrivate::saveFilm(const std::string &path)
+{
+    return this->cachefilm().saveFilm(path);
+}
+
 void
 DocPrivate::start(void)
 {
@@ -97,6 +107,21 @@ DocPrivate::start(void)
     bool   bPause = isPause();
     m_session->Start();
     m_state = ST_RUNNING;
+    if(m_fileFilmValid && !m_filmPathfile.empty() )
+    {//load film from file
+        m_fileFilmValid = false;
+        if(boost::filesystem::exists(m_filmPathfile))
+        {
+            try{
+                this->cachefilm().loadFilm(this->m_session->film,m_filmPathfile);
+            }catch(std::exception &e)
+            {
+                Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("从文件'%s'中恢复渲染状态时发生异常:%s。不能基于上次渲染结果继续，重新开始渲染。"))%m_filmPathfile % __(e.what()) ) );
+            }
+        }else{
+            Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("渲染状态文件'%s'不存在。不能基于上次渲染结果继续，重新开始渲染。"))%m_filmPathfile ) );
+        }
+    }
     if(!bPause)
     {
         fireStateChanged(STATE_OPEN);
@@ -134,6 +159,7 @@ DocPrivate::onSelectedChanged(void)
 	        m_session->editActions.AddAction(slg::CAMERA_EDIT);
     	    m_session->EndEdit();
     	    cachefilm().invalidate();
+    	    camManager.saveCurrentCamera();
         }
     }
 }

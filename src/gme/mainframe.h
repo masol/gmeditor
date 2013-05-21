@@ -45,14 +45,22 @@ protected:
 
 	/** Processes menu File|Open */
 	void onMenuFileOpen(wxCommandEvent &event);
+
 	/** Processes menu File|Import */
 	void onMenuFileImport(wxCommandEvent &event);
-	/** Processes menu File|Save */
+    void onUpdateMenuFileImport(wxUpdateUIEvent& event);
+    
+    /** Processes menu File|Save */
 	void onMenuFileSave(wxCommandEvent &event);
+  	void onUpdateMenuFileSave(wxUpdateUIEvent& event);
+    
 	void onMenuFileSaveImage(wxCommandEvent &event);
+  	void onUpdateMenuFileSaveImage(wxUpdateUIEvent& event);
 
 	/** Processes menu File|Export */
 	void onMenuFileExport(wxCommandEvent &event);
+  	void onUpdateonMenuFileExport(wxUpdateUIEvent& event);
+    
 	/** Processes menu File|Quit */
 	void onMenuFileQuit(wxCommandEvent &event);
 
@@ -83,11 +91,11 @@ protected:
 	/** Updata Render Menu Edit Delete UI**/
 	void onUpdateMenuEditDelete(wxUpdateUIEvent& event);
 
-	/** Updata Render Start UI**/
+	/** Updata Render UI**/
 	void onUpdateRenderStart(wxUpdateUIEvent& event);
-
-	/** Updata Render Stop UI**/
 	void onUpdateRenderStop(wxUpdateUIEvent& event);
+	void onUpdateRenderPause(wxUpdateUIEvent& event);
+    
 
     void onEditmodeChanged(wxCommandEvent &event);
     void onUpdateEditmode(wxUpdateUIEvent &event);
@@ -98,8 +106,6 @@ protected:
     void onLogLevelChanged(wxCommandEvent &event);
     void onUpdateLogLevel(wxUpdateUIEvent &event);
 
-	/** Update Save\Export\Import UI**/
-	void onUpdateSaveAndEdit(wxUpdateUIEvent &event);
 private:
     static  boost::function<bool (std::string &)>   sv_getImageFilepath;
 	bool getImageFilepath(std::string &result);

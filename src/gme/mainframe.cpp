@@ -87,17 +87,24 @@ static void Log_Adapter(int level,const char* msgstr,const char* mask)
 BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_MENU(wxID_OPEN, MainFrame::onMenuFileOpen)
 	EVT_MENU(wxID_SAVE, MainFrame::onMenuFileSave)
-	EVT_UPDATE_UI(wxID_SAVE,MainFrame::onUpdateSaveAndEdit)
+	EVT_UPDATE_UI(wxID_SAVE,MainFrame::onUpdateMenuFileSave)
 	EVT_MENU(cmd::GID_EXPORT, MainFrame::onMenuFileExport)
+	EVT_UPDATE_UI(cmd::GID_EXPORT,MainFrame::onUpdateonMenuFileExport)
 	EVT_MENU(cmd::GID_IMPORT, MainFrame::onMenuFileImport)
-	EVT_MENU(cmd::GID_SAVE_IMAGE, MainFrame::onMenuFileSaveImage)
-	EVT_UPDATE_UI_RANGE(cmd::GID_EXPORT,cmd::GID_IMPORT,MainFrame::onUpdateSaveAndEdit)
+	EVT_UPDATE_UI(cmd::GID_IMPORT,MainFrame::onUpdateMenuFileImport)
+    EVT_MENU(cmd::GID_SAVE_IMAGE, MainFrame::onMenuFileSaveImage)
+	EVT_UPDATE_UI(cmd::GID_SAVE_IMAGE,MainFrame::onUpdateMenuFileSaveImage)
+
 	EVT_MENU(wxID_EXIT, MainFrame::onMenuFileQuit)
 	EVT_MENU(wxID_DELETE, MainFrame::onMenuEditDelete)
+	EVT_UPDATE_UI(wxID_DELETE,MainFrame::onUpdateMenuEditDelete)
 	EVT_MENU(wxID_ABOUT, MainFrame::onMenuHelpAbout)
 	EVT_MENU(cmd::GID_RENDER_START,MainFrame::onRenderStart)
+	EVT_UPDATE_UI(cmd::GID_RENDER_START,MainFrame::onUpdateRenderStart)
 	EVT_MENU(cmd::GID_RENDER_STOP,MainFrame::onRenderStop)
+	EVT_UPDATE_UI(cmd::GID_RENDER_STOP,MainFrame::onUpdateRenderStop)
 	EVT_MENU(cmd::GID_RENDER_PAUSE,MainFrame::onRenderPause)
+	EVT_UPDATE_UI(cmd::GID_RENDER_PAUSE,MainFrame::onUpdateRenderPause)
 
 	EVT_MENU(cmd::GID_AUTO_TARGET,MainFrame::onAutoTarget)
 	EVT_UPDATE_UI(cmd::GID_AUTO_TARGET,MainFrame::onUpdateAutoTarget)
@@ -114,12 +121,7 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_MENU(cmd::GID_VIEWSELECTION,MainFrame::onViewSelection)
 	EVT_UPDATE_UI(cmd::GID_VIEWSELECTION,MainFrame::onUpdateViewSelection)
 
-
-	EVT_UPDATE_UI(wxID_DELETE,MainFrame::onUpdateMenuEditDelete)
-	EVT_UPDATE_UI(cmd::GID_RENDER_START,MainFrame::onUpdateRenderStart)
-	EVT_UPDATE_UI(cmd::GID_RENDER_STOP,MainFrame::onUpdateRenderStop)
 	EVT_CLOSE(MainFrame::onClose)
-
 END_EVENT_TABLE()
 
 MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
@@ -482,6 +484,13 @@ MainFrame::onMenuFileSaveImage(wxCommandEvent &event)
 }
 
 void
+MainFrame::onUpdateMenuFileSaveImage(wxUpdateUIEvent& event)
+{
+    DocCtl dc;
+    event.Enable(dc.isRuning() || dc.isPause());
+}
+
+void
 MainFrame::onMenuFileImport(wxCommandEvent &event)
 {
     ImportDialog    dialog(this);
@@ -496,6 +505,14 @@ MainFrame::onMenuFileImport(wxCommandEvent &event)
         obj.importObject(dialog.GetPath(),pParent);
 	}
 }
+
+void
+MainFrame::onUpdateMenuFileImport(wxUpdateUIEvent& event)
+{
+    DocCtl  dc;
+    event.Enable(dc.isRuning());
+}
+
 
 bool
 MainFrame::getImageFilepath(std::string &result)
@@ -534,6 +551,14 @@ MainFrame::onMenuFileExport(wxCommandEvent &event)
 	}
 }
 
+void
+MainFrame::onUpdateonMenuFileExport(wxUpdateUIEvent& event)
+{
+    DocCtl  dc;
+    event.Enable(dc.isRuning() || dc.isPause());
+}
+
+
 
 void
 MainFrame::onMenuFileSave(wxCommandEvent &event)
@@ -553,6 +578,13 @@ MainFrame::onMenuFileSave(wxCommandEvent &event)
 	{
 	   dio.exportScene(m_filepath,false);
 	}
+}
+
+void
+MainFrame::onUpdateMenuFileSave(wxUpdateUIEvent &event)
+{
+	DocCtl dctl;
+    event.Enable(dctl.isPause() || dctl.isRuning());
 }
 
 void
@@ -631,45 +663,44 @@ void
 MainFrame::onRenderStart(wxCommandEvent &event)
 {
 	DocCtl dctl;
-	if(!dctl.isRuning())
-	{
-		dctl.start();
-	}
+	dctl.start();
 }
 
 void
 MainFrame::onRenderStop(wxCommandEvent &event)
 {
 	DocCtl dctl;
-	if(dctl.isRuning())
-	{
-		dctl.stop();
-	}
+	dctl.stop();
 }
 
 void
 MainFrame::onRenderPause(wxCommandEvent &event)
 {
 	DocCtl dctl;
-	if(dctl.isRuning())
-	{
-		dctl.pause();
-	}
+	dctl.pause();
 }
 
 void
 MainFrame::onUpdateRenderStart(wxUpdateUIEvent& event)
 {
 	DocCtl dctl;
-	//event.Enable(!dctl.isRuning()&&!m_filepath.empty());
+    event.Enable(dctl.isPause());
 }
 
 void
 MainFrame::onUpdateRenderStop(wxUpdateUIEvent& event)
 {
 	DocCtl dctl;
-	//event.Enable(dctl.isRuning());
+    event.Enable(dctl.isRuning() || dctl.isPause());
 }
+
+void
+MainFrame::onUpdateRenderPause(wxUpdateUIEvent& event)
+{
+	DocCtl dctl;
+    event.Enable(dctl.isRuning());
+}
+
 
 void
 MainFrame::onUpdateMenuEditDelete(wxUpdateUIEvent& event)
@@ -678,13 +709,6 @@ MainFrame::onUpdateMenuEditDelete(wxUpdateUIEvent& event)
     //@FIXME: need to implement obj.canDeleteItem. to remove last object cause slg crash.
     event.Enable(obj.getSelection().size() > 0);
 }
-
-void
-MainFrame::onUpdateSaveAndEdit(wxUpdateUIEvent &event)
-{
-//	event.Enable(!m_filepath.empty());
-}
-
 
 } //namespace gme
 

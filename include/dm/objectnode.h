@@ -266,6 +266,17 @@ public:
     {
         return (m_matid.length() == 0 && m_filepath.length() == 0);
     }
+    int     getChildCount(void)const
+    {
+        int ret = 1;
+        type_child_container::const_iterator  it = begin();
+        while(it != end())
+        {
+            ret += it->getChildCount();
+            it++;
+        }
+        return ret;
+    }
 	inline  void    name(const std::string &n){
 	    m_name = n;
 	}

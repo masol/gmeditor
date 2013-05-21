@@ -54,7 +54,7 @@ GlRenderFrame::GlRenderFrame(wxWindow* parent,int *args,int vm) : inherited(pare
 
     m_lastViewPoint.x = m_lastViewPoint.y = m_lastViewPoint.width = m_lastViewPoint.height = 0;
 
-    m_edit_mode = cmd::GID_MD_ROTATE;
+    m_edit_mode = cmd::GID_MD_ROTATE_AROUND_FOCUS;
 
     m_needClearColor = true;
     m_rorateAroundTarget = false;

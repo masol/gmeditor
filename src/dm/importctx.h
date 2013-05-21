@@ -40,6 +40,7 @@ private:
     int             m_editAction;
     std::string     m_docBasePath;
     const aiScene*  m_assimpScene;
+    bool            m_loadFilm;
     bool fileFiles(const boost::filesystem::path &filename,const boost::filesystem::path &dir,boost::filesystem::path &result)
     {
         boost::filesystem::path pathfile = dir / filename;
@@ -94,13 +95,21 @@ public:
     {
         return m_docBasePath;
     }
+    inline bool loadFilm(void)const
+    {
+        return m_loadFilm;
+    }
+    inline void loadFilm(bool lf)
+    {
+        m_loadFilm = lf;
+    }
     ImportContext(slg::Scene* s,const std::string &srcFile)
     {
         m_scene = s;
         m_editAction = 0;
-        m_docBasePath = srcFile;
         m_assimpScene = NULL;
-        m_docBasePath = boost::filesystem::canonical(m_docBasePath).parent_path().string();
+        m_loadFilm = false;
+        m_docBasePath = boost::filesystem::canonical(srcFile).parent_path().string();
     }
     inline void addAction(const slg::EditAction a)
     {

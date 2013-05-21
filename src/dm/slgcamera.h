@@ -34,6 +34,8 @@ private:
     type_cam_vector     m_cam_vector;
     int                 m_current_select;
 public:
+    ///@brief save current camera information to current selected camera.
+    void    saveCurrentCamera(void);
     ExtraCameraManager(){
         m_current_select = -1;
     }

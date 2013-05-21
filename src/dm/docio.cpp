@@ -357,10 +357,16 @@ DocIO::loadAssimpScene(const std::string &path)
                 pDocData->objManager.getRoot().addChild(obj);
             }
 
+            if(!pDocData->forceExport && pDocData->objManager.getRoot().getChildCount() > 2)
+            {//如果包含的孩子大于1.(2是因为包含了自己)
+                pDocData->forceExport = true;
+            }
+
             initAndStartScene(scene);
             return true;
         }else{
             delete scene;
+            Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("场景加载失败:场景'%s'中未包含可加载模型。")) % path ) );
         }
     }
     catch(cl::Error err)
@@ -382,6 +388,8 @@ DocIO::loadSpsScene(const std::string &path)
         slg::Scene *scene = new slg::Scene();
 
         ImportContext   ctx(scene,path);
+        //load mode, try to restore film if exist.
+        ctx.loadFilm(true);
 
         //首先，尝试将path指定的资源加载。
         int count = ExtraObjectManager::importSpScene(path,pDocData->objManager.getRoot(),ctx);
@@ -443,6 +451,13 @@ DocIO::exportSpoloScene(const std::string &pathstring,bool bExportRes)
         ofstream << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
         ofstream << "<scene>" << std::endl;
 
+        //如果场景中包含了外部引入的模型。这里强制资源导出。
+        if(!bExportRes && pDocData->forceExport)
+        {
+            bExportRes = true;
+            Doc::SysLog(Doc::LOG_STATUS,boost::str(boost::format(__("由于场景中包含了外部引入的组模型，在保存到场景'%s'时，自动转入导出模式。")) % pathstring ) );
+        }
+
 //        //write scene config.
 //        ofstream << "<settings>" << std::endl;
 //        ofstream << "</settings>" << std::endl;
@@ -453,16 +468,19 @@ DocIO::exportSpoloScene(const std::string &pathstring,bool bExportRes)
             std::ostream_iterator<char>   oit(ofstream);
             type_xml_doc    xmldoc;
 
-            //dump object.
-            type_xml_node * pNode = xmldoc.allocate_node(NS_RAPIDXML::node_element,"objects");
-            xmldoc.append_node(pNode);
             int flags = dumpContext::DUMP_NORMAL;
             if(bExportRes)
             {
                 flags = (dumpContext::DUMP_SAVECTM | dumpContext::DUMP_COPYRES);
             }
             dumpContext     ctx(flags,boost::filesystem::path(pathstring).parent_path());
-            pDocData->objManager.dump(*pNode,ctx);
+
+            //dump object.
+            {
+                type_xml_node * pNode = xmldoc.allocate_node(NS_RAPIDXML::node_element,"objects");
+                xmldoc.append_node(pNode);
+                pDocData->objManager.dump(*pNode,ctx);
+            }
 
             //dump lights.
             {
@@ -472,19 +490,50 @@ DocIO::exportSpoloScene(const std::string &pathstring,bool bExportRes)
             }
 
             //dump camera.
-            type_xml_node * pCameras = xmldoc.allocate_node(NS_RAPIDXML::node_element,"cameras");
-            xmldoc.append_node(pCameras);
-            if(pDocData->camManager.getSelect() != -1)
             {
-                pDocData->camManager.dumpAll(*pCameras);
-            }else{
-                Camera  cam;
-                cam.name = "default";
-                ExtraCameraManager::saveTo(pDocData->m_session.get(),cam);
-                DocCamera::dumpOne(*pCameras,cam);
-                pCameras->append_attribute(allocate_attribute(&xmldoc,constDef::active,"0"));
+                type_xml_node * pCameras = xmldoc.allocate_node(NS_RAPIDXML::node_element,"cameras");
+                xmldoc.append_node(pCameras);
+                if(pDocData->camManager.getSelect() != -1)
+                {
+                    pDocData->camManager.dumpAll(*pCameras);
+                }else{
+                    Camera  cam;
+                    cam.name = "default";
+                    ExtraCameraManager::saveTo(pDocData->m_session.get(),cam);
+                    DocCamera::dumpOne(*pCameras,cam);
+                    pCameras->append_attribute(allocate_attribute(&xmldoc,constDef::active,"0"));
+                }
             }
 
+            //dump film.
+            {
+                std::string   write_file;
+                boost::filesystem::path target;
+                if( ctx.isCopyResource() || pDocData->filmFilePath().empty() )
+                {
+                    //没有定义文件名。此时直接保存资源。
+	                boost::filesystem::path target_model = ctx.target / "film%%%%%%.dmp";
+                    target = boost::filesystem::unique_path(target_model);
+                    if(pDocData->filmFilePath().empty())
+                    {
+                        pDocData->filmFilePath(target.string(),false);
+                    }
+                }else{
+                    target = pDocData->filmFilePath();
+                }
+                if(pDocData->saveFilm(target.string()))
+                {
+                    if(ctx.isCopyResource())
+                    {
+                        write_file = target.filename().string();
+                    }else{
+                        write_file = target.string();
+                    }
+                    type_xml_node * pFilm = xmldoc.allocate_node(NS_RAPIDXML::node_element,constDef::film);
+                    xmldoc.append_node(pFilm);
+                    pFilm->append_attribute(allocate_attribute(&xmldoc,constDef::file,write_file));
+                }
+            }
 
             rapidxml::print(oit,xmldoc);
         }

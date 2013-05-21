@@ -171,6 +171,7 @@ const char* constDef::focalDistance = "focalDistance";
 const char* constDef::envlight = "envlight";
 const char* constDef::sunlight = "sunlight";
 const char* constDef::lights = "lights";
+const char* constDef::film = "film";
 
 ObjectNode*
 ObjectNode::findObject(const std::string &id,ObjectNodePath *pPath)

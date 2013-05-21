@@ -1113,12 +1113,7 @@ ExtraTextureManager::createTexture(ImportContext &ctx,type_xml_node &self)
                 {
                     std::string     id = getIdFromNode(self);
 
-                    std::string fullpath;
-                    const char* basepath = getFilepathFromDocument(self);
-                    if(basepath)
-                        fullpath = boost::filesystem::absolute(fileAttr->value(),basepath).string();
-                    else
-                        fullpath = boost::filesystem::absolute(fileAttr->value()).string();
+                    std::string fullpath = boost::filesystem::absolute(fileAttr->value(),ctx.docBasepath()).string();
 
                     if(boost::filesystem::exists(fullpath))
                     {

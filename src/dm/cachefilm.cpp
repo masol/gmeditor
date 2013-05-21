@@ -17,9 +17,15 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "config.h"
+#include <boost/filesystem/fstream.hpp>
+#include <boost/serialization/serialization.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/scope_exit.hpp>
 #include "cachefilm.h"
 #include "docprivate.h"
 #include "dm/docimg.h"
+#include "archivefilm.h"
 
 
 namespace gme{
@@ -36,6 +42,39 @@ public:
     }
 };
 
+class FileFilm : public ContributeFilm
+{
+public:
+    const   static  boost::uint_least32_t   magic;
+    FileFilm(slg::Film *film,const std::string &localFile) : ContributeFilm(CT_FILE)
+    {
+        m_film = new slg::Film(film->GetWidth(),film->GetHeight());
+        m_film->CopyDynamicSettings(*film);
+        m_film->Init();
+        boost::filesystem::ifstream in(localFile,std::ios::in | std::ios::binary);
+        if(in)
+        {
+            BOOST_SCOPE_EXIT( (&in) )
+            {
+                in.close();
+            }
+            BOOST_SCOPE_EXIT_END
+
+            boost::archive::binary_iarchive ia(in,boost::archive::no_header);
+            boost::uint_least32_t	magid,version;
+            ia >> magid;
+            if(magid != FileFilm::magic)
+                throw std::runtime_error("invalid format");
+            ia >> version;
+            boost::serialization::load(ia,m_renderInfo,version);
+            boost::serialization::load(ia,(*m_film),version);
+        }
+    }
+};
+
+const  boost::uint_least32_t   FileFilm::magic = 0x42a4bdf7;
+
+
 
 CacheFilm::CacheFilm(void)
 {
@@ -49,6 +88,51 @@ CacheFilm::~CacheFilm(void)
 {
     invalidate();
 }
+
+void
+CacheFilm::loadFilm(slg::Film *psysfilm,const std::string &filmfile)
+{
+    this->appendContribute(new FileFilm(psysfilm,filmfile));
+}
+
+bool
+CacheFilm::saveFilm(const std::string &filmfile)
+{
+    //m_lastMerge_tick  = 0;
+    updateNativeFilm();
+
+    slg::Film   *pCurrentFilm = m_totalFilm;
+    if(!pCurrentFilm)
+    {
+        pCurrentFilm = Doc::instance().pDocData->getSession()->film;
+    }
+
+    RenderInfo  ri;
+    if(pCurrentFilm && Doc::instance().pDocData->getNativeRenderInfo(ri) )
+    {
+        boost::filesystem::ofstream out(filmfile,std::ios::out | std::ios::binary | std::ios::trunc);
+        if(out)
+        {
+            BOOST_SCOPE_EXIT( (&out) )
+            {
+                out.close();
+            }
+            BOOST_SCOPE_EXIT_END
+
+            getContributeRenderInfo(ri);
+
+            boost::archive::binary_oarchive oa(out,boost::archive::no_header);
+            boost::uint_least32_t	version = 1;
+            oa << FileFilm::magic;
+            oa << version;
+            boost::serialization::save(oa,ri,version);
+            boost::serialization::save(oa,(*pCurrentFilm),version);
+            return true;
+        }
+    }
+    return false;
+}
+
 
 slg::Film*
 CacheFilm::getTotalFilmFromNative(slg::RenderSession  *session)
@@ -116,7 +200,10 @@ CacheFilm::getContributeRenderInfo(RenderInfo &ri)
         {
             //slg::Film   *film = ct->getFilm();
             //if(film)
+            if(ct->getType() == ContributeFilm::CT_PAUSE || ct->getType() == ContributeFilm::CT_FILE)
             {
+                ri.avgMerge(ct->getRenderInfo());
+            }else{
                 ri.merge(ct->getRenderInfo());
             }
         }
