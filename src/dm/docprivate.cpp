@@ -112,11 +112,17 @@ DocPrivate::start(void)
         m_fileFilmValid = false;
         if(boost::filesystem::exists(m_filmPathfile))
         {
+            bool    bSuc = false;
             try{
                 this->cachefilm().loadFilm(this->m_session->film,m_filmPathfile);
-            }catch(std::exception &e)
+                bSuc = true;
+            }catch(std::exception e)
             {
-                Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("从文件'%s'中恢复渲染状态时发生异常:%s。不能基于上次渲染结果继续，重新开始渲染。"))%m_filmPathfile % __(e.what()) ) );
+                (void)e;
+            }
+            if(!bSuc)
+            {
+                Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("从文件'%s'中恢复渲染状态时发生异常。不能基于上次渲染结果继续，重新开始渲染。")) % m_filmPathfile ) );
             }
         }else{
             Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("渲染状态文件'%s'不存在。不能基于上次渲染结果继续，重新开始渲染。"))%m_filmPathfile ) );

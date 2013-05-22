@@ -28,6 +28,7 @@ set(UTILS_SRCS
     pathext.cpp
     MD5.cpp
     i18n.cpp
+	sysinfo.cpp
    )
 
 

@@ -21,6 +21,8 @@
 #include <boost/serialization/serialization.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
+//#include <boost/iostreams/filtering_streambuf.hpp>
+//#include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/scope_exit.hpp>
 #include "cachefilm.h"
 #include "docprivate.h"
@@ -45,7 +47,6 @@ public:
 class FileFilm : public ContributeFilm
 {
 public:
-    const   static  boost::uint_least32_t   magic;
     FileFilm(slg::Film *film,const std::string &localFile) : ContributeFilm(CT_FILE)
     {
         m_film = new slg::Film(film->GetWidth(),film->GetHeight());
@@ -60,20 +61,46 @@ public:
             }
             BOOST_SCOPE_EXIT_END
 
-            boost::archive::binary_iarchive ia(in,boost::archive::no_header);
-            boost::uint_least32_t	magid,version;
-            ia >> magid;
-            if(magid != FileFilm::magic)
-                throw std::runtime_error("invalid format");
-            ia >> version;
-            boost::serialization::load(ia,m_renderInfo,version);
-            boost::serialization::load(ia,(*m_film),version);
+            CacheFilm::loadFromStream(in,m_film,m_renderInfo);
         }
     }
 };
 
-const  boost::uint_least32_t   FileFilm::magic = 0x42a4bdf7;
 
+static const  boost::uint_least32_t   FilmStreamMagic = 0x42a4bdf7;
+void   
+CacheFilm::saveToStream(std::ostream &out,const slg::Film* pFilm,const RenderInfo &ri)
+{
+    //boost::iostreams::filtering_streambuf<boost::iostreams::output> filter_out;
+    //filter_out.push(boost::iostreams::bzip2_compressor());
+    //filter_out.push(out);
+    //boost::archive::binary_oarchive oa(filter_out,boost::archive::no_header);
+
+    boost::archive::binary_oarchive oa(out,boost::archive::no_header);
+    boost::uint_least32_t	version = 1;
+    oa << FilmStreamMagic;
+    oa << version;
+    boost::serialization::save(oa,ri,version);
+    boost::serialization::save(oa,(*pFilm),version);
+}
+
+void
+CacheFilm::loadFromStream(std::istream &in,slg::Film* pFilm,RenderInfo &ri)
+{
+    //boost::iostreams::filtering_streambuf<boost::iostreams::input> filter_in;
+    //filter_in.push(boost::iostreams::bzip2_decompressor());
+    //filter_in.push(in);
+    //boost::archive::binary_iarchive ia(filter_in,boost::archive::no_header);
+
+    boost::archive::binary_iarchive ia(in,boost::archive::no_header);
+    boost::uint_least32_t	magid,version;
+    ia >> magid;
+    if(magid != FilmStreamMagic)
+        throw std::runtime_error("invalid format");
+    ia >> version;
+    boost::serialization::load(ia,ri,version);
+    boost::serialization::load(ia,(*pFilm),version);
+}
 
 
 CacheFilm::CacheFilm(void)
@@ -121,12 +148,8 @@ CacheFilm::saveFilm(const std::string &filmfile)
 
             getContributeRenderInfo(ri);
 
-            boost::archive::binary_oarchive oa(out,boost::archive::no_header);
-            boost::uint_least32_t	version = 1;
-            oa << FileFilm::magic;
-            oa << version;
-            boost::serialization::save(oa,ri,version);
-            boost::serialization::save(oa,(*pCurrentFilm),version);
+            CacheFilm::saveToStream(out,pCurrentFilm,ri);
+
             return true;
         }
     }

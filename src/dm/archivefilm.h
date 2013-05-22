@@ -137,7 +137,7 @@ namespace boost { namespace serialization {
     }
 
     template<class Archive>
-    void save(Archive & ar, gme::RenderInfo & ri, const unsigned int version)
+    void save(Archive & ar, const gme::RenderInfo & ri, const unsigned int version)
     {
         uint_least32_t	pass = ri.pass;
         ar << pass << ri.convergence << ri.elapsedTime << ri.totalRaysSec << ri.totalSamplesSec;

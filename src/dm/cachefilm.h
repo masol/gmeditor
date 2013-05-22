@@ -112,6 +112,8 @@ public:
     /** @brief save film to file.
     **/
     static  void            saveToFile(slg::Film *pFilm,const std::string &filename);
+    static  void            saveToStream(std::ostream &out,const slg::Film* pFilm,const RenderInfo &ri);
+    static  void            loadFromStream(std::istream &in,slg::Film* pFilm,RenderInfo &ri);
 public:
     CacheFilm(void);
     ~CacheFilm(void);
