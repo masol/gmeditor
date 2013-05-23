@@ -23,18 +23,25 @@
 #include "docprivate.h"
 #include "slgmaterial.h"
 #include "slgsetting.h"
+#include "slgutils.h"
 #include <boost/assert.hpp>
 
 
 namespace gme
 {
 
-//void
-//DocSetting::getEnvLight(type_xml_node &parent)
-//{
-//    dumpContext ctx(dumpContext::DUMP_NORMAL,boost::filesystem::current_path());
-//    ExtraSettingManager::dump(parent,ctx);
-//}
+bool
+DocSetting::forceRefresh(void)
+{
+    return SlgUtil::Editor::forceRefresh();
+}
+
+void
+DocSetting::forceRefresh(bool forceRefresh)
+{
+    SlgUtil::Editor::forceRefresh(forceRefresh);
+}
+
 
 const std::string&
 DocSetting::getHDRLighterPath(void)

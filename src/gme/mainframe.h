@@ -106,6 +106,9 @@ protected:
     void onLogLevelChanged(wxCommandEvent &event);
     void onUpdateLogLevel(wxUpdateUIEvent &event);
 
+    void onSetting(wxCommandEvent &event);
+    void onUpdateSetting(wxUpdateUIEvent &event);
+    int  getLoadingFlagFromCmd(int cmdid);
 private:
     static  boost::function<bool (std::string &)>   sv_getImageFilepath;
 	bool getImageFilepath(std::string &result);

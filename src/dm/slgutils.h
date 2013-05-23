@@ -31,12 +31,27 @@ public:
     struct   Editor{
     protected:
         slg::RenderSession      *m_session;
-        //bool                    m_bNeedRefresh;
+        ///@brief to avoid bug in slg.export force refresh to user.
+        ///@todo fix bug in slg.
+        static  bool            m_bForceRefresh;
     public:
+        inline static bool  forceRefresh(void)
+        {
+            return m_bForceRefresh;
+        }
+        inline static void  forceRefresh(bool bforce)
+        {
+            m_bForceRefresh = bforce;
+        }
         inline Editor(slg::RenderSession *session)
         {
             m_session = session;
-            m_session->BeginEdit();
+            if(m_bForceRefresh)
+            {
+                m_session->Stop();
+            }else{
+                m_session->BeginEdit();
+            }
             //m_bNeedRefresh = false;
         }
         inline void  needRefresh(bool v){

@@ -27,6 +27,7 @@
 #include "dm/docobj.h"
 #include "dm/docctl.h"
 #include "dm/docimg.h"
+#include "dm/docsetting.h"
 #include "dm/doccamera.h"
 #include <boost/locale.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -37,6 +38,8 @@
 #include "filedialog.h"
 #include "gmestatus.h"
 
+#include "buildinfo.h"
+
 namespace gme{
 
 ///@todo move the follow function to customize log window when it implement.
@@ -44,6 +47,11 @@ static void Log_Adapter(int level,const char* msgstr,const char* mask)
 {
     wxMBConvUTF8	gme_wx_utf8_conv;
     wxString  msg(msgstr,gme_wx_utf8_conv);
+    if(msg.empty() && *msgstr)
+    {
+        msg = wxString(__("报告的日志中包含了非UTF-8编码的字符，这通常是由于文件采用了非UTF8编码引发的。请使用编码转化工具将其转为UTF8编码文件。其原始内容为:\n\t\t"),gme_wx_utf8_conv);
+        msg.append(msgstr);
+    }
     switch(level)
     {
     case Doc::LOG_TRACE:
@@ -117,6 +125,9 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
     EVT_UPDATE_UI_RANGE(cmd::GID_MD_START,cmd::GID_MD_END,MainFrame::onUpdateEditmode)
     EVT_MENU_RANGE(cmd::GID_LOG_BEGIN,cmd::GID_LOG_END,MainFrame::onLogLevelChanged)
     EVT_UPDATE_UI_RANGE(cmd::GID_LOG_BEGIN,cmd::GID_LOG_END,MainFrame::onUpdateLogLevel)
+    EVT_MENU_RANGE(cmd::GID_SET_BEGIN,cmd::GID_SET_END,MainFrame::onSetting)
+    EVT_UPDATE_UI_RANGE(cmd::GID_SET_BEGIN,cmd::GID_SET_END,MainFrame::onUpdateSetting)
+
 
 	EVT_MENU(cmd::GID_VIEWSELECTION,MainFrame::onViewSelection)
 	EVT_UPDATE_UI(cmd::GID_VIEWSELECTION,MainFrame::onUpdateViewSelection)
@@ -298,9 +309,33 @@ MainFrame::createMenubar()
 		pMenuBar->Append(pViewMenu, gmeWXT("视图(&V)"));
 	}
 
+    {// setting
+		wxMenu *pSettingMenu = new wxMenu();
+		pSettingMenu->AppendCheckItem(cmd::GID_SET_FORCEREFRESH, gmeWXT("强制刷新"), gmeWXT("每次编辑时强制刷新GPU缓冲。"));
+		pSettingMenu->AppendSeparator();
+
+        wxMenu *pLoadingMenu = new wxMenu();
+		pLoadingMenu->AppendCheckItem(cmd::GID_SET_ValidateDataStructure, gmeWXT("数据有效性校正(&A)"), gmeWXT("检查导入模型的索引、动画以及骨骼的关联有效性，如果无效，自动校正之。"));
+		pLoadingMenu->AppendCheckItem(cmd::GID_SET_GenSmoothNormals, gmeWXT("产生顶点曲线(&G)"), gmeWXT("自动计算基于顶点的法线，这将产生光滑感。"));
+		pLoadingMenu->AppendCheckItem(cmd::GID_SET_JoinIdenticalVertices, gmeWXT("合并相同顶点(&J)"), gmeWXT("自动合并具有相同坐标的顶点。"));
+		pLoadingMenu->AppendCheckItem(cmd::GID_SET_RemoveRedundantMaterials, gmeWXT("移除冗余材质(&R)"), gmeWXT("将冗余材质移除。"));
+		pLoadingMenu->AppendCheckItem(cmd::GID_SET_ImproveCacheLocality, gmeWXT("提升缓冲效率(&I)"), gmeWXT("校正模型以提升ACMR(average post-transform vertex cache miss ratio)。"));
+		pLoadingMenu->AppendCheckItem(cmd::GID_SET_FixInfacingNormals, gmeWXT("校正反转法线(&F)"), gmeWXT("根据包围盒方向尝试校正错误方向的法线。"));
+		pLoadingMenu->AppendCheckItem(cmd::GID_SET_FindDegenerates, gmeWXT("退化校正(&D)"), gmeWXT("由于点的移除，有些面会退化为点或者线，退化校正会把这些点和线移除。"));
+		pLoadingMenu->AppendCheckItem(cmd::GID_SET_FindInvalidData, gmeWXT("无效数据校正(&V)"), gmeWXT("检查是否有原点法线以及溢出数据，并自动校正这些数据。"));
+		pLoadingMenu->AppendCheckItem(cmd::GID_SET_FlipUVs, gmeWXT("UV反转(&U)"), gmeWXT("反转UV以适应导出器错误。"));
+		pLoadingMenu->AppendCheckItem(cmd::GID_SET_OptimizeMeshes, gmeWXT("模型合并(&O)"), gmeWXT("尝试合并模型并保持绘制结果不变。"));
+		pLoadingMenu->AppendCheckItem(cmd::GID_SET_Debone, gmeWXT("骨骼解绑(&B)"), gmeWXT("尝试按照初始位置解绑骨骼，这允许我们渲染封套后的模型。"));
+
+        pSettingMenu->AppendSubMenu(pLoadingMenu,gmeWXT("加载设定"),gmeWXT("设定导入外部模型时对模型的自动处理。"));
+
+		pMenuBar->Append(pSettingMenu, gmeWXT("设置(&S)"));
+	}
+
 	{//Help
 		wxMenu *pHelpMenu = new wxMenu();
-		pHelpMenu->Append(wxID_ABOUT,gmeWXT("关于(&A)"),gmeWXT("关于我们的信息"));
+		pHelpMenu->Append(wxID_ABOUT,gmeWXT("关于(&A)"),gmeWXT("关于飞鹿材质编辑器"));
+
 
 		pMenuBar->Append(pHelpMenu,gmeWXT("帮助(&H)"));
 	}
@@ -436,6 +471,85 @@ MainFrame::onUpdateViewmode(wxUpdateUIEvent& event)
 {
     event.Check(this->m_renderView->isCurrentViewmodeFromCmd(event.GetId()));
 }
+
+int
+MainFrame::getLoadingFlagFromCmd(int cmdid)
+{
+    switch(cmdid)
+    {
+    case cmd::GID_SET_ValidateDataStructure:
+        return DocSetting::ValidateDataStructure;
+        break;
+    case cmd::GID_SET_GenSmoothNormals:
+        return DocSetting::GenSmoothNormals;
+        break;
+    case cmd::GID_SET_JoinIdenticalVertices:
+        return DocSetting::JoinIdenticalVertices;
+        break;
+    case cmd::GID_SET_RemoveRedundantMaterials:
+        return DocSetting::RemoveRedundantMaterials;
+        break;
+    case cmd::GID_SET_ImproveCacheLocality:
+        return DocSetting::ImproveCacheLocality;
+        break;
+    case cmd::GID_SET_FixInfacingNormals:
+        return DocSetting::FixInfacingNormals;
+        break;
+    case cmd::GID_SET_FindDegenerates:
+        return DocSetting::FindDegenerates;
+        break;
+    case cmd::GID_SET_FindInvalidData:
+        return DocSetting::FindInvalidData;
+        break;
+    case cmd::GID_SET_FlipUVs:
+        return DocSetting::FlipUVs;
+        break;
+    case cmd::GID_SET_OptimizeMeshes:
+        return DocSetting::OptimizeMeshes;
+        break;
+    case cmd::GID_SET_Debone:
+        return DocSetting::Debone;
+        break;
+    }
+    BOOST_ASSERT_MSG(false,"invalid loading flag.");
+    throw std::runtime_error("invalid loading flag");
+}
+
+void
+MainFrame::onSetting(wxCommandEvent &event)
+{
+    switch(event.GetId())
+    {
+    case cmd::GID_SET_FORCEREFRESH:
+        DocSetting::forceRefresh(!DocSetting::forceRefresh());
+        break;
+    default:
+        {
+            int loadingFlag = getLoadingFlagFromCmd(event.GetId());
+            if(DocSetting::hasLoadingFlag(loadingFlag))
+            {
+                DocSetting::clearLoadingFlag(loadingFlag);
+            }else
+            {
+                DocSetting::setLoadingFlag(loadingFlag);
+            }
+        }
+    }
+}
+
+void
+MainFrame::onUpdateSetting(wxUpdateUIEvent &event)
+{
+    switch(event.GetId())
+    {
+    case cmd::GID_SET_FORCEREFRESH:
+        event.Check(DocSetting::forceRefresh());
+        break;
+    default:
+        event.Check(DocSetting::hasLoadingFlag(getLoadingFlagFromCmd(event.GetId())));
+    }
+}
+
 
 void
 MainFrame::onLogLevelChanged(wxCommandEvent &event)
@@ -606,8 +720,14 @@ MainFrame::onMenuHelpAbout(wxCommandEvent &event)
 {
 	DECLARE_WXCONVERT;
 
-	(void)wxMessageBox(gmeWXT("这是一个ABOUT消息框"),
-                       gmeWXT("About us"),
+    std::stringstream   ss;
+    ss << __("GMEDITOR version : ") << GME_VERSION_MAJOR << '.' << GME_VERSION_MINOR << std::endl;
+    ss << __("build number : ") << gme_build_number << std::endl;
+    ss << __("build time : ") << gme_build_time << std::endl;
+    wxString content(ss.str().c_str(),gme_wx_utf8_conv);
+
+	(void)wxMessageBox(content,
+                       gmeWXT("关于飞鹿材质编辑器"),
                        wxOK | wxICON_INFORMATION);
 }
 

@@ -317,7 +317,7 @@ MaterialPage::addTextureContent(wxPGProperty *pTexType,type_xml_node *pSelf,int 
 
 
 void
-MaterialPage::addTexture(wxPGProperty &parent,type_xml_node *pParent,const std::string &childTag,int flag)
+MaterialPage::addTexture(wxPGProperty &parent,type_xml_node *pParent,const std::string &childTag,int flag,const char* name)
 {
     DECLARE_WXCONVERT;
 //build texture.
@@ -350,7 +350,7 @@ MaterialPage::addTexture(wxPGProperty &parent,type_xml_node *pParent,const std::
 
     id = childTag;
 
-    wxPGProperty* pTexType = new wxEnumProperty(gmeWXT(getNameFromTagName(childTag).c_str()),id, soc);
+    wxPGProperty* pTexType = new wxEnumProperty(gmeWXT( name ? name : getNameFromTagName(childTag).c_str() ),id, soc);
     this->SetPropertyValue(pTexType,type);
     this->AppendIn(&parent,pTexType);
 
@@ -457,12 +457,12 @@ MaterialPage::addMaterialContent(wxPGProperty &matType,type_xml_node *pSelf,int 
     }else if(type == DocMat::GLOSSY2)
     {
         addTexture(matType,pSelf,constDef::kd);
-        addTexture(matType,pSelf,constDef::ks);
+        addTexture(matType,pSelf,constDef::ks,0,"清漆颜色");
+        addTexture(matType,pSelf,constDef::index,0,"清漆折射率");
         addTexture(matType,pSelf,constDef::uroughness);
         addTexture(matType,pSelf,constDef::vroughness);
-        addTexture(matType,pSelf,constDef::ka);
-        addTexture(matType,pSelf,constDef::d);
-        addTexture(matType,pSelf,constDef::index);
+        addTexture(matType,pSelf,constDef::ka,0,"清漆吸收色");
+        addTexture(matType,pSelf,constDef::d,0,"清漆厚度");
         bool multibounce = false;
         type_xml_attr   *pAttr = pSelf->first_attribute("multibounce");
         if(pAttr && (boost::iequals(pAttr->value(),"true")))
@@ -475,8 +475,8 @@ MaterialPage::addMaterialContent(wxPGProperty &matType,type_xml_node *pSelf,int 
     {
         addTexture(matType,pSelf,constDef::uroughness);
         addTexture(matType,pSelf,constDef::vroughness);
-        addTexture(matType,pSelf,constDef::n);
-        addTexture(matType,pSelf,constDef::k);
+        addTexture(matType,pSelf,constDef::n,0,"绝对折射率");
+        addTexture(matType,pSelf,constDef::k,0,"吸收系数");
     }else
     {
         BOOST_ASSERT_MSG(false,"unknow material type!");

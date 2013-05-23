@@ -316,7 +316,7 @@ DocIO::initAndStartScene(slg::Scene *scene)
         Doc::SysLog(Doc::LOG_WARNING,__("找不到opencl环境，使用CPU渲染，这将会严重影响您的体验，请检查您的硬件环境以及驱动设置(可以使用GPU-Z来检查OPENCL环境是否就绪)。"));
         confgSS << "renderengine.type = PATHCPU" << std::endl;
     }
-    //confgSS << "opencl.gpu.workgroup.size = " << 64 << std::endl;
+    confgSS << "opencl.gpu.workgroup.size = " << 64 << std::endl;
     confgSS << "path.maxdepth = " << 8 << std::endl;
     confgSS << "path.russianroulette.depth = " << 5 << std::endl;
     confgSS << "batch.halttime = 0" << std::endl;
@@ -399,6 +399,7 @@ DocIO::loadSpsScene(const std::string &path)
             initAndStartScene(scene);
             return true;
         }else{
+            Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("从文件'%s'中未能加载任何场景。")) % path ) );
             delete scene;
         }
     }

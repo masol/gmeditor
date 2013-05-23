@@ -19,6 +19,7 @@
 #ifndef GME_UTILS_SYSINFO_H
 #define GME_UTILS_SYSINFO_H
 
+#include <string>
 
 /**
  * @file        sysinfo.h
@@ -27,11 +28,14 @@
 namespace gme
 {
 
-struct	SysInfo{
-	/** @brief 获取系统idle的时间(没有任何用户输入的时间).
-	**/
-	static	int		GetSystemIdleMicroSecond(void);
-};
+    struct	SysInfo{
+	    /** @brief 获取系统idle的时间(没有任何用户输入的时间).
+	    **/
+	    static	int		GetSystemIdleMicroSecond(void);
+    };
+
+    std::string SysWideToNativeMB(const std::wstring& wide);
+    std::wstring SysNativeMBToWide(const std::string& native_mb);
 
 }
 

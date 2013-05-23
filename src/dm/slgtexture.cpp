@@ -1113,7 +1113,7 @@ ExtraTextureManager::createTexture(ImportContext &ctx,type_xml_node &self)
                 {
                     std::string     id = getIdFromNode(self);
 
-                    std::string fullpath = boost::filesystem::absolute(fileAttr->value(),ctx.docBasepath()).string();
+                    std::string fullpath = ctx.findFile(fileAttr->value());
 
                     if(boost::filesystem::exists(fullpath))
                     {
@@ -2047,7 +2047,7 @@ ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Textur
 bool
 ExtraTextureManager::defineImageMapTexture(ImportContext &ctx,const std::string &src,std::string &id)
 {
-    std::string fullpath = ctx.findFile(src,true);
+    std::string fullpath = ctx.findFile(src);
     if(fullpath.length() && boost::filesystem::exists(fullpath))
     {
         std::stringstream   tex;

@@ -28,17 +28,16 @@
 
 namespace gme{
 
+bool  SlgUtil::Editor::m_bForceRefresh = true;
 SlgUtil::Editor::~Editor()
 {
     if (m_session->editActions.Has(slg::MATERIALS_EDIT)) {
         m_session->renderConfig->scene->RemoveUnusedMaterials();
         m_session->renderConfig->scene->RemoveUnusedTextures();
     }
-    if( m_session->editActions.Has(slg::IMAGEMAPS_EDIT) || m_session->editActions.Has(slg::MATERIAL_TYPES_EDIT) )//m_bNeedRefresh )
+    if( m_bForceRefresh ) //m_session->editActions.Has(slg::IMAGEMAPS_EDIT) || m_session->editActions.Has(slg::MATERIAL_TYPES_EDIT) )//m_bNeedRefresh )
     {///@fixme: we must restart render when we have IMAGEMAPS_EDIT.
         m_session->editActions.Reset();
-        m_session->EndEdit();
-        m_session->Stop();
         m_session->Start();
         Doc::instance().pDocData->cachefilm().invalidate();
     }else{
@@ -49,6 +48,21 @@ SlgUtil::Editor::~Editor()
         m_session->EndEdit();
     }
 }
+
+std::string
+ImportContext::findFile(const std::string &srcpath)
+{
+    if(srcpath.length() == 0)
+        return srcpath;
+    try{
+        return Doc::instance().pDocData->findFile(srcpath,m_docBasePath);
+    }catch(std::exception e)
+    {
+        Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("找不到文件'%s'。")) % srcpath  ) );
+    }
+    return "";
+}
+
 
 
 DocPrivate::DocPrivate(void)

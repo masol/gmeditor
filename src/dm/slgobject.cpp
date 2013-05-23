@@ -18,6 +18,7 @@
 
 #include "config.h"
 #include "dm/doc.h"
+#include "dm/docsetting.h"
 #include "slgobject.h"
 #include "slgmaterial.h"
 #include "slgsetting.h"
@@ -42,6 +43,22 @@
 
 namespace gme{
 
+const  int DocSetting::ValidateDataStructure = aiProcess_ValidateDataStructure;
+const  int DocSetting::GenSmoothNormals = aiProcess_GenSmoothNormals;
+const  int DocSetting::JoinIdenticalVertices = aiProcess_JoinIdenticalVertices;
+const  int DocSetting::RemoveRedundantMaterials = aiProcess_RemoveRedundantMaterials;
+const  int DocSetting::ImproveCacheLocality = aiProcess_ImproveCacheLocality;
+const  int DocSetting::FixInfacingNormals = aiProcess_FixInfacingNormals;
+const  int DocSetting::FindDegenerates = aiProcess_FindDegenerates;
+const  int DocSetting::FindInvalidData = aiProcess_FindInvalidData;
+const  int DocSetting::FlipUVs = aiProcess_FlipUVs;
+const  int DocSetting::OptimizeMeshes = aiProcess_OptimizeMeshes;
+const  int DocSetting::Debone = aiProcess_Debone;
+
+int DocSetting::sv_loadingFlags = aiProcess_ValidateDataStructure | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices |   \
+                                    aiProcess_ImproveCacheLocality | aiProcess_FixInfacingNormals | \
+                                    aiProcess_FindInvalidData | aiProcess_OptimizeMeshes | aiProcess_Debone;
+
 SlgMesh2Name::SlgMesh2Name(void)
 {
     slg::Scene  *scene = Doc::instance().pDocData->getSession()->renderConfig->scene;
@@ -50,7 +67,8 @@ SlgMesh2Name::SlgMesh2Name(void)
     u_int   nameIdx = 0;
     for(std::vector< std::string >::const_iterator it = m_meshNameArray.begin(); it < m_meshNameArray.end(); ++it,++nameIdx)
     {
-        m_meshIdx2NameIdx[scene->meshDefs.GetExtMeshIndex(*it)] = nameIdx;
+        u_int mesh_idx = scene->meshDefs.GetExtMeshIndex(*it);
+        m_meshIdx2NameIdx[mesh_idx] = nameIdx;
     }
 }
 
@@ -69,22 +87,16 @@ GetDefaultAssimpFlags(const char* flag = NULL)
 {
     if(!flag)
     {
-        return  aiProcess_ValidateDataStructure  |
-                aiProcess_GenSmoothNormals       |
-                aiProcess_Triangulate            |
-                aiProcess_JoinIdenticalVertices  |
-                aiProcess_ImproveCacheLocality   |
-                aiProcess_FixInfacingNormals     |
-                aiProcess_FindDegenerates        |
-                aiProcess_FindInvalidData        |
-                aiProcess_OptimizeMeshes         |
-                aiProcess_Debone                 |
-                aiProcess_PreTransformVertices   |
-                aiProcess_SortByPType;
+        return  aiProcess_Triangulate     |
+                DocSetting::loadingFlag() |
+                aiProcess_PreTransformVertices;
     }
     if(boost::iequals(flag,"false"))
     {
         return aiProcess_Triangulate | aiProcess_PreTransformVertices;
+    }else if(boost::iequals(flag,"false"))
+    {
+        return DocSetting::loadingFlag() | aiProcess_Triangulate | aiProcess_PreTransformVertices;
     }
     unsigned int retvar = boost::lexical_cast<int>(flag);
     return retvar | (aiProcess_Triangulate | aiProcess_PreTransformVertices);
@@ -234,9 +246,27 @@ bool
 ExtraObjectManager::importCTMObj(const std::string& path,ObjectNode &obj,ImportContext &ctx)
 {
     bool   bAdd = false;
+    //首先检查模型是否已经被加载过了:
+    if(!obj.id().empty())
+    {
+        luxrays::ExtMesh *pMesh = NULL;
+        try{
+            pMesh = ctx.scene()->meshDefs.GetExtMesh(obj.id());
+        }catch(std::runtime_error &e)
+        {
+            (void)e;
+        }
+        if(pMesh)
+        {
+            Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("从文件'%s'中加载id为'%s'的模型,但是本id已经被定义过，忽略本次加载请求。"))%path %obj.id() ) );
+            return false;
+        }
+    }
     boost::filesystem::ifstream stream(path,std::ios::in | std::ios::binary);
     if(!stream)
+    {
         return false;
+    }
 
     CTMcontext context = ctmNewContext(CTM_IMPORT);
     BOOST_SCOPE_EXIT( (&context) (&stream) )
@@ -421,37 +451,43 @@ ExtraObjectManager::importAiMesh(const aiScene *assimpScene,aiMesh* pMesh,Object
             }
         }
 
-        for(unsigned int i = 0; i < AI_MAX_NUMBER_OF_TEXTURECOORDS; i++)
+        if(realFace > 0)
         {
-            if(pMesh->mTextureCoords[i])
-            {//prepare uv data.only use first valid channel.
-                uv = new luxrays::UV[pMesh->mNumVertices];
-                aiVector3D *aiUV = pMesh->mTextureCoords[i];
-                for(i = 0; i < pMesh->mNumVertices; i++)
-                {
-                    uv[i].u = aiUV[i].x;
-                    uv[i].v = aiUV[i].y;
+            for(unsigned int i = 0; i < AI_MAX_NUMBER_OF_TEXTURECOORDS; i++)
+            {
+                if(pMesh->mTextureCoords[i])
+                {//prepare uv data.only use first valid channel.
+                    uv = new luxrays::UV[pMesh->mNumVertices];
+                    aiVector3D *aiUV = pMesh->mTextureCoords[i];
+                    for(i = 0; i < pMesh->mNumVertices; i++)
+                    {
+                        uv[i].u = aiUV[i].x;
+                        uv[i].v = aiUV[i].y;
+                    }
+                    break;
                 }
-                break;
             }
+
+            if(pMesh->HasNormals())
+            {
+                normal = new luxrays::Normal[pMesh->mNumVertices];
+                memcpy(normal,pMesh->mNormals,sizeof(luxrays::Normal) * pMesh->mNumVertices);
+            }
+
+
+            std::string     meshIdentify = DefineObject(ctx.scene(),pMesh->mNumVertices, realFace,pPoint, pTri, normal, uv, NULL,NULL,false);
+
+            ///@fixme : 这里加入matrix导入.
+            // Add the object to the scene
+            ctx.scene()->AddObject(obj.id(), meshIdentify,
+                    "scene.objects." + obj.id() + ".material = " + obj.matid() + "\n"
+                    "scene.objects." + obj.id() + ".useplynormals = 0\n"
+                );
+            bAdd = true;
+        }else{
+            delete[] pPoint;
+            delete[] pTri;
         }
-
-        if(pMesh->HasNormals())
-        {
-            normal = new luxrays::Normal[pMesh->mNumVertices];
-            memcpy(normal,pMesh->mNormals,sizeof(luxrays::Normal) * pMesh->mNumVertices);
-        }
-
-
-        std::string     meshIdentify = DefineObject(ctx.scene(),pMesh->mNumVertices, realFace,pPoint, pTri, normal, uv, NULL,NULL,false);
-
-        ///@fixme : 这里加入matrix导入.
-        // Add the object to the scene
-        ctx.scene()->AddObject(obj.id(), meshIdentify,
-                "scene.objects." + obj.id() + ".material = " + obj.matid() + "\n"
-                "scene.objects." + obj.id() + ".useplynormals = 0\n"
-            );
-        bAdd = true;
     }
     return bAdd;
 }
@@ -584,7 +620,7 @@ ExtraObjectManager::importObjects(type_xml_node &node,ObjectNode &objNode,Import
                 objNode.m_name = pAttr->value();
             }else if(boost::iequals(constDef::file,pAttr->name()))
             {
-                objNode.m_filepath = ctx.findFile(pAttr->value(),false);//boost::filesystem::canonical(pAttr->value(),basepath).string();
+                objNode.m_filepath = ctx.findFile(pAttr->value());//boost::filesystem::canonical(pAttr->value(),basepath).string();
             }else if(boost::iequals(constDef::transformation,pAttr->name()))
             {
                 transform = pAttr->value();

@@ -38,6 +38,21 @@ namespace gme
 **/
 class DocSetting : public DocScopeLocker
 {
+protected:
+    static   int     sv_loadingFlags;
+public:
+    ///@brief for include files reason, follow const define in slgobject.cpp.
+    static   const  int ValidateDataStructure;
+    static   const  int GenSmoothNormals;
+    static   const  int JoinIdenticalVertices;
+    static   const  int RemoveRedundantMaterials;
+    static   const  int ImproveCacheLocality;
+    static   const  int FixInfacingNormals;
+    static   const  int FindDegenerates;
+    static   const  int FindInvalidData;
+    static   const  int FlipUVs;
+    static   const  int OptimizeMeshes;
+    static   const  int Debone;
 public:
     //film 接口:
 	type_xml_node*   getToneMap(type_xml_node &parent);
@@ -52,7 +67,6 @@ public:
     void   setAccelType(int type);
 
     //light(evnlight and sunlight) interface:
-    //void  getEnvLight(type_xml_node &parent);
     bool  changeHDRfile(const std::string &fullpath);
     bool  changeEnvGain(const luxrays::Spectrum &g);
     bool  changeEnvUDelta(float d);
@@ -67,6 +81,32 @@ public:
     bool  changeSunGain(const luxrays::Spectrum &g);
     bool  changeSunTurbidity(float t);
     bool  changeSunRelsize(float t);
+
+    //@brief 当前设置在编辑时是否强制刷新。
+    static  bool    forceRefresh(void);
+    static  void    forceRefresh(bool forceRefresh);
+
+    //@brief 当前加载设定。
+    inline static  int loadingFlag(void)
+    {
+        return sv_loadingFlags;
+    }
+    inline static  void loadingFlag(int f)
+    {
+        sv_loadingFlags = f;
+    }
+    inline static  bool hasLoadingFlag(int f)
+    {
+        return ((sv_loadingFlags & f) != 0);
+    }
+    inline static  void setLoadingFlag(int f)
+    {
+        sv_loadingFlags |= f;
+    }
+    inline static  void clearLoadingFlag(int f)
+    {
+        sv_loadingFlags &= (~f);
+    }
     
     slg::Scene* getScene(void);
 	const std::string&   getHDRLighterPath(void);

@@ -24,6 +24,7 @@
 #include "gmeproppage.h"
 #include "dm/xmlutil.h"
 #include "dm/docsetting.h"
+#include "luxrays/luxrays.h"
 
 namespace gme{
 
@@ -33,6 +34,7 @@ private:
     typedef GmePropPage  inherit;
     void    clearPage(void);
     void    buildPage(void);
+    void    appendGain(wxPGProperty* parent,luxrays::Spectrum &value,const std::string &id,bool curSyncValue,const std::string &subprefix);
     void    appendEnvLight(wxPGProperty* pType,DocSetting &setting);
     void    appendSunLight(wxPGProperty* pEnable,DocSetting &setting);
     static  const unsigned int DISABLE_LIGHTER = 0x100;
@@ -41,12 +43,20 @@ public:
     virtual ~EnvLightPage();
 private:
     bool OnEnvtypeChanged(wxPGProperty* p,unsigned int type);
+    luxrays::Spectrum   getSepctrum(bool bSync,const std::string &prefix,float gself,const char* ored,const char* ogreen,const char* oblue);
+    int     getTypeFromId(const std::string &id);
+    void    updateGainProperty(bool bSync,const std::string &prefix,float gself,const char* ored,const char* ogreen,const char* oblue);
+    void    changeGainValue(wxPropertyGridEvent& event,int type,luxrays::Spectrum &spectrum,const std::string &prefix,float gself,const char* ored,const char* ogreen,const char* oblue);
 protected:
     void OnPropertyChanging( wxPropertyGridEvent& event );
     void OnPropertyChange( wxPropertyGridEvent& event );
 
 	void  onDocumentClosed(void);
 	void  onDocumentOpend(void);
+	///@brief 同步调整gain值。
+	bool  m_gainSync;
+	bool  m_skygainSync;
+    bool  m_sungainSync;
 private:
     DECLARE_EVENT_TABLE()
 };

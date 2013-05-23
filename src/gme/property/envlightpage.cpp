@@ -77,6 +77,131 @@ EnvLightPage::OnEnvtypeChanged(wxPGProperty* p,unsigned int type)
     return bChangeOk;
 }
 
+luxrays::Spectrum
+EnvLightPage::getSepctrum(bool bSync,const std::string &prefix,float gself,const char* ored,const char* ogreen,const char* oblue)
+{
+    luxrays::Spectrum spectrum;
+    if(bSync)
+    {
+        spectrum.r = spectrum.g = spectrum.b = gself;
+    }
+    else{
+        wxPGProperty *prop;
+        if(ored)
+        {
+            prop = this->GetProperty(prefix + ored);
+            spectrum.r = (float)(double)prop->GetValue();
+        }else{
+            spectrum.r = gself;
+        }
+
+        if(ogreen)
+        {
+            prop = this->GetProperty(prefix + ogreen);
+            spectrum.g = (float)(double)prop->GetValue();
+        }else{
+            spectrum.g = gself;
+        }
+
+        if(oblue)
+        {
+            prop = this->GetProperty(prefix + oblue);
+            spectrum.b = (float)(double)prop->GetValue();
+        }else{
+            spectrum.b = gself;
+        }
+    }
+    return spectrum;
+}
+
+int
+EnvLightPage::getTypeFromId(const std::string &id)
+{
+    if(boost::starts_with(id,"type.gain."))
+    {
+        return slg::TYPE_IL;
+    }else if(boost::starts_with(id,"type.skygain."))
+    {
+        return slg::TYPE_IL_SKY;
+    }else if(boost::starts_with(id,"enable.sungain."))
+    {
+        return slg::TYPE_SUN;
+    }
+    throw std::runtime_error("invalid type.");
+}
+
+void
+EnvLightPage::updateGainProperty(bool bSync,const std::string &prefix,float gself,const char* ored,const char* ogreen,const char* oblue)
+{
+    if(bSync)
+    {
+        wxPGProperty *prop;
+        if(ored)
+        {
+            prop = this->GetProperty(prefix + ored);
+            prop->SetValue(gself);
+        }
+
+        if(ogreen)
+        {
+            prop = this->GetProperty(prefix + ogreen);
+            prop->SetValue(gself);
+        }
+
+        if(oblue)
+        {
+            prop = this->GetProperty(prefix + oblue);
+            prop->SetValue(gself);
+        }
+    }
+}
+
+void
+EnvLightPage::changeGainValue(wxPropertyGridEvent& event,int type,luxrays::Spectrum &spectrum,const std::string &prefix,float gself,const char* ored,const char* ogreen,const char* oblue)
+{
+    switch(type)
+    {
+    case slg::TYPE_IL:
+        {
+            DocSetting  setting;
+            if(!setting.changeEnvGain(spectrum))
+            {
+                if(event.CanVeto())
+                    event.Veto();
+            }else{
+                updateGainProperty(this->m_gainSync,prefix,gself,ored,ogreen,oblue);
+            }
+        }
+        break;
+    case slg::TYPE_IL_SKY:
+        {
+            DocSetting  setting;
+            if(!setting.changeEnvGain(spectrum))
+            {
+                if(event.CanVeto())
+                    event.Veto();
+            }else{
+                updateGainProperty(this->m_skygainSync,prefix,gself,ored,ogreen,oblue);
+            }
+        }
+        break;
+    case slg::TYPE_SUN:
+        {
+            DocSetting  setting;
+            if(!setting.changeSunGain(spectrum))
+            {
+                if(event.CanVeto())
+                    event.Veto();
+            }else{
+                updateGainProperty(this->m_sungainSync,prefix,gself,ored,ogreen,oblue);
+            }
+        }
+        break;
+    default:
+        BOOST_ASSERT(false);
+    }
+}
+
 void
 EnvLightPage::OnPropertyChanging( wxPropertyGridEvent& event )
 {
@@ -99,19 +224,6 @@ EnvLightPage::OnPropertyChanging( wxPropertyGridEvent& event )
         DocSetting  setting;
         std::string     filepath(event.GetValue().GetString().c_str());
         if(!setting.changeHDRfile(filepath) && event.CanVeto())
-        {
-            event.Veto();
-        }
-    }else if(boost::equals(id,"type.gain") || boost::equals(id,"type.skygain"))
-    {
-        DocSetting  setting;
-        BOOST_ASSERT(any_value.CheckType<wxColour>());
-        wxColour color = any_value.As<wxColour>();
-        luxrays::Spectrum g;
-        g.r = (float)color.Red() / 255.0f;
-        g.g = (float)color.Green() / 255.0f;
-        g.b = (float)color.Blue() / 255.0f;
-        if(!setting.changeEnvGain(g) && event.CanVeto())
         {
             event.Veto();
         }
@@ -185,6 +297,57 @@ EnvLightPage::OnPropertyChanging( wxPropertyGridEvent& event )
         {
             event.Veto();
         }
+    }else if(boost::starts_with(id,"type.gain") || boost::starts_with(id,"type.skygain") || boost::starts_with(id,"enable.sungain") )
+    {
+        if(boost::equals(id,"type.gain"))
+        {
+            m_gainSync = any_value.As<bool>();
+        }else if(boost::equals(id,"type.skygain"))
+        {
+            m_skygainSync = any_value.As<bool>();
+        }else if(boost::equals(id,"enable.sungain"))
+        {
+            m_sungainSync = any_value.As<bool>();
+        }else
+        {
+            std::string   prefix = id.substr(0,id.length() - 2);
+            float   gself = any_value.As<float>();
+            const char* ored = "gr";
+            const char* ogreen = "gg";
+            const char* oblue = "gb";
+            if(boost::ends_with(id,"gr"))
+            {
+                ored = NULL;
+            }else if(boost::ends_with(id,"gg"))
+            {
+                ogreen = NULL;
+            }else if(boost::ends_with(id,"gb"))
+            {
+                oblue = NULL;
+            }else{
+                BOOST_ASSERT(false);
+            }
+
+            int type = getTypeFromId(id);
+            bool bSync;
+            switch(type)
+            {
+            case slg::TYPE_IL:
+                bSync = this->m_gainSync;
+                break;
+            case slg::TYPE_IL_SKY:
+                bSync = this->m_skygainSync;
+                break;
+            case slg::TYPE_SUN:
+                bSync = this->m_sungainSync;
+                break;
+            default:
+                BOOST_ASSERT(false);
+            }
+
+            luxrays::Spectrum spectrum = getSepctrum(bSync,prefix,gself,ored,ogreen,oblue);
+            changeGainValue(event,type,spectrum,prefix,gself,ored,ogreen,oblue);
+        }
     }else if(boost::equals(id,"enable.sungain"))
     {
         DocSetting  setting;
@@ -229,6 +392,9 @@ EnvLightPage::OnPropertyChange( wxPropertyGridEvent& event )
 
 EnvLightPage::EnvLightPage()
 {
+    m_gainSync = true;
+    m_skygainSync = true;
+    m_sungainSync = true;
     DocIO   dio;
     dio.onSceneClosed(boost::bind(&EnvLightPage::onDocumentClosed,this));
     dio.onSceneLoaded(boost::bind(&EnvLightPage::onDocumentOpend,this));
@@ -281,9 +447,20 @@ EnvLightPage::appendSunLight(wxPGProperty* pEnable,DocSetting &setting)
     this->AppendIn(pEnable,new wxFloatProperty(gmeWXT("relsize"),"relsize",scene->sunLight->GetRelSize()));
     //sungain
     luxrays::Spectrum c = scene->sunLight->GetGain();
-    color.Set(c.r * 255.0f,c.g * 255.0f,c.b * 255.0f);
-    this->AppendIn(pEnable,new wxColourProperty(gmeWXT("增益"),"sungain",color));
+    appendGain(pEnable,c,"sungain",this->m_sungainSync,"sun");
 }
+
+void
+EnvLightPage::appendGain(wxPGProperty* parent,luxrays::Spectrum &value,const std::string &id,bool curSyncValue,const std::string &subprefix)
+{
+    DECLARE_WXCONVERT;
+    wxPGProperty *pGain = new wxBoolProperty(gmeWXT("增益"),id,curSyncValue);
+    this->AppendIn(parent,pGain);
+    this->AppendIn(pGain,new wxFloatProperty(gmeWXT("红"),subprefix + "gr",value.r));
+    this->AppendIn(pGain,new wxFloatProperty(gmeWXT("绿"),subprefix + "gg",value.g));
+    this->AppendIn(pGain,new wxFloatProperty(gmeWXT("蓝"),subprefix + "gb",value.b));
+}
+
 
 void
 EnvLightPage::appendEnvLight(wxPGProperty* pType,DocSetting &setting)
@@ -300,10 +477,9 @@ EnvLightPage::appendEnvLight(wxPGProperty* pType,DocSetting &setting)
         slg::InfiniteLight *pRealLight = dynamic_cast<slg::InfiniteLight*>(scene->envLight);
         wxString  filename(setting.getHDRLighterPath().c_str(),gme_wx_utf8_conv);
         this->AppendIn(pType,new wxImageFileProperty(gmeWXT("文件"),constDef::file,filename));
-        wxColour    color(255,255,255);
         luxrays::Spectrum c = pRealLight->GetGain();
-        color.Set(c.r * 255.0f,c.g * 255.0f,c.b * 255.0f);
-        this->AppendIn(pType,new wxColourProperty(gmeWXT("增益"),"gain",color));
+
+        appendGain(pType,c,"gain",this->m_gainSync,"");
 
         this->AppendIn(pType,new wxFloatProperty(gmeWXT("uDelta"),"udelta",pRealLight->GetUVMapping()->uDelta));
         this->AppendIn(pType,new wxFloatProperty(gmeWXT("vDelta"),"vdelta",pRealLight->GetUVMapping()->vDelta));
@@ -321,8 +497,7 @@ EnvLightPage::appendEnvLight(wxPGProperty* pType,DocSetting &setting)
         this->AppendIn(pType,new wxColourProperty(gmeWXT("方向"),"dir",color));
 
         luxrays::Spectrum c = pRealLight->GetGain();
-        color.Set(c.r * 255.0f,c.g * 255.0f,c.b * 255.0f);
-        this->AppendIn(pType,new wxColourProperty(gmeWXT("增益"),"skygain",color));
+        appendGain(pType,c,"skygain",this->m_skygainSync,"sg");
 
         this->AppendIn(pType,new wxFloatProperty(gmeWXT("turbidity"),"turbidity",pRealLight->GetTubidity()));
         break;

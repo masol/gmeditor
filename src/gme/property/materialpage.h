@@ -55,7 +55,7 @@ private:
 
     void    addMapping2D(wxPGProperty *pTexType,type_xml_node *pSelf);
     void    addTextureContent(wxPGProperty *pTexType,type_xml_node *pSelf,int type);
-    void    addTexture(wxPGProperty &parent,type_xml_node *pParent,const std::string &childTag,int flag = 0);
+    void    addTexture(wxPGProperty &parent,type_xml_node *pParent,const std::string &childTag,int flag = 0,const char* name = NULL);
     void    buildTextureChoice(wxPGChoices &soc);
     ///@brief 从tag返回一个友好的名称。
     std::string     getNameFromTagName(const std::string &tag);

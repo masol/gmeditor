@@ -19,6 +19,8 @@
 
 #include "config.h"
 #include "utils/pathext.h"
+#include "utils/sysinfo.h"
+#include <boost/locale.hpp>
 
 #if (BOOST_FILESYSTEM_VERSION != 3)
 #ifndef WIN32
@@ -128,7 +130,38 @@ namespace gme_ext{
         return tmp.extension().generic_string();
     }
 
-
+    std::string  fileFetcher::findFile(const std::string &srcpath,const std::string &basepath)
+    {
+        std::string result;
+        boost::filesystem::path path;
+        try{
+            path = boost::filesystem::absolute(srcpath,basepath);
+        }catch(const boost::system::system_error& e)
+        {//we assume e.code().category().name() is 'codecvt'.
+            (void)e;
+        }
+        //if any exception, leave it to caller.
+        //try{
+            if(path.empty())
+            {//srcpath保存了非utf-8编码。try convert it to utf-8.
+                std::string new_srcpath = boost::locale::conv::utf_to_utf<char>(gme::SysNativeMBToWide(srcpath));
+                path = boost::filesystem::absolute(new_srcpath,basepath);
+            }
+            if(boost::filesystem::exists(path))
+            {
+                result = path.string();
+            }else if(this->m_fn_getfile)
+            {
+                if(!m_fn_getfile(path.string(),result))
+                {
+                    result.clear();
+                }
+            }
+        //}catch(std::exception &e)
+        //{//
+        //}
+        return result;
+    }
 
 }//gme_ext
 }//boost

@@ -24,6 +24,7 @@
 #include "slgmaterial.h"
 #include "slgobject.h"
 #include "slgcamera.h"
+#include "utils/pathext.h"
 #include "cachefilm.h"
 #include <boost/shared_ptr.hpp>
 #include "utils/eventlisten.h"
@@ -60,6 +61,8 @@ private:
     std::string                       m_filmPathfile;
     ///@brief 指示了film是否被有效更新过。
     bool                              m_fileFilmValid;
+    ///@brief 指示了路径校正对象。
+    boost::filesystem::gme_ext::fileFetcher m_fileFetcher;
 public:
     typedef boost::function<void (int,int)>     type_imagesize_handler;
     typedef boost::function<void (void)>        type_state_handler;
@@ -80,6 +83,16 @@ public:
         SEL_ITEMSELFREMOVED, //指示某个ObjectNode自身被删除。
         SEL_MAX
     };
+
+    inline void setFileFetcher(boost::filesystem::gme_ext::fileFetcher::type_fn_getfile fn)
+    {
+        m_fileFetcher.setGetFunction(fn);
+    }
+
+    inline std::string findFile(const std::string &srcPath,const std::string &basePath)
+    {
+        return m_fileFetcher.findFile(srcPath,basePath);
+    }
 
     inline  CacheFilm&  cachefilm(void)
     {

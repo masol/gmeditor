@@ -23,8 +23,9 @@
 #include "slg/slg.h"
 #include "slg/sdl/scene.h"
 #include "slg/editaction.h"
-#include <boost/filesystem.hpp>
-#include "utils/pathext.h"
+#include "utils/i18n.h"
+#include "dm/doc.h"
+#include <boost/format.hpp>
 #include <assimp/scene.h>           // Output data structure
 
 namespace gme{
@@ -41,56 +42,13 @@ private:
     std::string     m_docBasePath;
     const aiScene*  m_assimpScene;
     bool            m_loadFilm;
-    bool fileFiles(const boost::filesystem::path &filename,const boost::filesystem::path &dir,boost::filesystem::path &result)
-    {
-        boost::filesystem::path pathfile = dir / filename;
-        if(boost::filesystem::exists(pathfile) && boost::filesystem::is_regular_file(pathfile))
-        {
-            result = pathfile;
-            return true;
-        }
-        boost::filesystem::directory_iterator   end_iter;
-        for(boost::filesystem::directory_iterator dir_iter(dir);dir_iter != end_iter ; ++dir_iter)
-        {
-            if(boost::filesystem::is_directory(*dir_iter))
-            {
-                if(fileFiles(filename,*dir_iter,result))
-                {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 public:
     inline const aiScene*  getAiScene(void)const
     {
         return m_assimpScene;
     }
-    inline std::string  findFile(const std::string &srcpath,bool bSearch)
-    {
-        if(srcpath.length() == 0)
-            return srcpath;
-        boost::filesystem::path fsPath;
-        std::string path = srcpath;
-        try{
-            boost::filesystem::gme_ext::replaceSeparator(path);
-            fsPath = boost::filesystem::absolute(path,m_docBasePath);
-            if(boost::filesystem::exists(fsPath) && boost::filesystem::is_regular_file(fsPath))
-            {
-                return fsPath.string();
-            }
-        }catch(std::exception e)
-        {
-            (void)e;
-        }
-        boost::filesystem::path filename = boost::filesystem::path(path).filename();
-        if(bSearch && fileFiles(filename,m_docBasePath,fsPath))
-        {// search file in m_docBasePath.
-            return fsPath.string();
-        }
-        return "";
-    }
+    ///@brief this method implement in docprivate.cpp
+    std::string  findFile(const std::string &srcpath);
     inline const std::string&  docBasepath(void)const
     {
         return m_docBasePath;

@@ -23,6 +23,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/function.hpp>
 
 /**
  * @file        pathext.h
@@ -86,6 +87,19 @@ namespace gme_ext{
         boost::replace_all(srcPath,"\\","/");
 #endif
     }
+
+    struct  fileFetcher
+    {
+    public:
+        typedef boost::function<bool (const std::string&,std::string &)>   type_fn_getfile;
+        inline void setGetFunction(type_fn_getfile fn)
+        {
+            m_fn_getfile = fn;
+        }
+        std::string  findFile(const std::string &srcpath,const std::string &basepath);
+    protected:
+        type_fn_getfile     m_fn_getfile;
+    };
 
 }//gme_ext
 }//boost
