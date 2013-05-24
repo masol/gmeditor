@@ -205,6 +205,7 @@ EnvLightPage::changeGainValue(wxPropertyGridEvent& event,int type,luxrays::Spect
 void
 EnvLightPage::OnPropertyChanging( wxPropertyGridEvent& event )
 {
+    wxBusyCursor wait;
     wxPGProperty* p = event.GetProperty();
     std::string     id(p->GetName().c_str());
     wxAny any_value = event.GetValue();
@@ -383,6 +384,12 @@ EnvLightPage::OnPropertyChanging( wxPropertyGridEvent& event )
         BOOST_ASSERT_MSG(false,"unknow property!");
     }
 //    std::cerr << "EnvLightPage::OnPropertyChanging('" << p->GetName().c_str() << "', to value '" << event.GetValue().GetString().c_str() << "')" << std::endl;
+
+    gme::MainFrame* mainfrm = dynamic_cast<gme::MainFrame*>(wxTheApp->GetTopWindow());
+    if(mainfrm)
+    {
+        mainfrm->refreshMouseEvt();
+    }
 }
 
 void

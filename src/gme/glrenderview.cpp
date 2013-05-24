@@ -163,6 +163,13 @@ GlRenderView::setViewmodeFromCmd(int cmds)
 }
 
 void
+GlRenderView::refreshMouseEvt(void)
+{
+    m_glframe->refreshMouseEvt();
+}
+
+
+void
 GlRenderView::setEditmodeFromCmd(int mode)
 {
     this->m_glframe->editMode(mode);

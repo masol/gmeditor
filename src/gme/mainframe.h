@@ -40,6 +40,7 @@ public:
     {
         return sv_getImageFilepath;
     }
+    void refreshMouseEvt(void);
 protected:
 	void onClose(wxCloseEvent& event);
 

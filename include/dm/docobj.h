@@ -48,6 +48,7 @@ public:
     bool    select(const std::string &id);
     /// @brief select object through filmx and filmy.
     void    select(float filmx,float filmy);
+    std::string hittest(float filmx,float filmy);
     /// @brief remove id from selection vector.return true if event fired.
     bool    deselect(const std::string &id);
     /// @brief return the selection vector.

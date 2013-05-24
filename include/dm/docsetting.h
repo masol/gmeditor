@@ -38,10 +38,12 @@ namespace gme
 **/
 class DocSetting : public DocScopeLocker
 {
+    ///@brief for include files reason, follow const define in slgobject.cpp.
 protected:
     static   int     sv_loadingFlags;
+    static   bool    sv_ignoreNormal;
+    static   float   sv_aiSmoothing_Angle;
 public:
-    ///@brief for include files reason, follow const define in slgobject.cpp.
     static   const  int ValidateDataStructure;
     static   const  int GenSmoothNormals;
     static   const  int JoinIdenticalVertices;
@@ -107,7 +109,23 @@ public:
     {
         sv_loadingFlags &= (~f);
     }
-    
+    inline static  bool ignoreNormals(void)
+    {
+        return sv_ignoreNormal;
+    }
+    inline static  void ignoreNormals(bool i)
+    {
+        sv_ignoreNormal = i;
+    }
+    inline static  float smoothAngle(void)
+    {
+        return sv_aiSmoothing_Angle;
+    }
+    inline static  void smoothAngle(float angle)
+    {
+        sv_aiSmoothing_Angle = angle;
+    }
+
     slg::Scene* getScene(void);
 	const std::string&   getHDRLighterPath(void);
     //

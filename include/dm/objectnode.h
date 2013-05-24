@@ -286,6 +286,10 @@ public:
 	inline  bool    useplynormals()const{
 	    return m_useplynormals;
     }
+    inline  void    useplynormals(bool buse)
+    {
+        m_useplynormals = buse;
+    }
     ObjectNode()
     {
         m_useplynormals = false;

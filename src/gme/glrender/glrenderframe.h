@@ -55,6 +55,7 @@ public:
         VM_ADJDOC       //按照window size自动矫正DocSize.
     };
     typedef wxGLCanvas    inherited;
+    friend class DnDFile;
 protected:
     boost::shared_ptr<wxGLContext>  m_context;
     boost::posix_time::ptime    m_micro_tick;
@@ -86,6 +87,7 @@ protected:
     void    rotateCamAroundCenter(wxMouseEvent& event);
     void    zoomCam(wxMouseEvent& event);
     void    doMouseEvent(wxMouseEvent& event);
+    bool    getFilmXY(int x,int y,float &filmx,float &filmy);
     ///@brief virtual coord to document coord translate. update after background draw called.
     ///@detail our coord transform no rotation.
     Eigen::Vector2f     m_v2dTranslate;
@@ -120,7 +122,9 @@ protected:
 protected:
     void    drawBackground(const wxSize &winsize,const float *pixels,gme::DocImg::ViewPort &vp);
     void    initGL(void);
+    bool    OnDropFiles(wxCoord x, wxCoord y,const wxArrayString& filenames);
 public:
+    void    refreshMouseEvt(void);
     GlRenderFrame(wxWindow* parent,int* args,int vm);
     virtual ~GlRenderFrame();
     inline bool    viewSelection(void)const

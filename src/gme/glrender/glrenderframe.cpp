@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "config.h"
+#include <wx/dnd.h>
 #include "utils/option.h"
 #include "dm/docimg.h"
 #include "dm/docio.h"
@@ -24,9 +25,42 @@
 #include "dm/doccamera.h"
 #include "glrenderframe.h"
 #include "../cmdids.h"
+#include "../filedialog.h"
+
 
 
 namespace gme{
+
+class DnDFile : public wxFileDropTarget
+{
+private:
+    GlRenderFrame   *m_owner;
+public:
+    DnDFile(GlRenderFrame *owner) : m_owner(owner)
+    {
+    }
+
+    virtual bool OnDropFiles(wxCoord x, wxCoord y,
+                             const wxArrayString& filenames)
+    {
+        if(m_owner)
+        {
+            return m_owner->OnDropFiles(x,y,filenames);
+        }
+        //size_t nFiles = filenames.GetCount();
+        //if(m_owner && nFiles == 1)
+        //{
+        //    std::string filename = boost::locale::conv::utf_to_utf<char>(filenames.Item(0).ToStdWstring());
+        //    m_owner->OnDropFiles
+        //}
+        //wxString str;
+        //str.Printf( wxT("%d files dropped at x= %d, y = %d"), (int)nFiles,x,y);
+
+        //wxMessageBox(str);
+        return false;
+    }
+};
+
 
 BEGIN_EVENT_TABLE(GlRenderFrame, inherited)
 
@@ -87,6 +121,59 @@ GlRenderFrame::GlRenderFrame(wxWindow* parent,int *args,int vm) : inherited(pare
 
     // To avoid windows lose focus.
     this->SetFocus();
+
+    this->SetDropTarget(new DnDFile(this));
+}
+
+bool
+GlRenderFrame::OnDropFiles(wxCoord x, wxCoord y,const wxArrayString& filenames)
+{
+    wxBusyCursor wait;
+
+    size_t nFiles = filenames.GetCount();
+    bool    hasRootId = false;
+    std::string hittedId;
+    for(size_t i = 0; i < nFiles; i++)
+    {
+        std::string filename = boost::locale::conv::utf_to_utf<char>(filenames.Item(i).ToStdWstring());
+
+        DocIO   dio;
+        if(!dio.isValid())
+        {////如果未打开场景,我们只接受模型文件。
+            if(OpenSceneDialog::isSupported(filename))
+            {
+                dio.loadScene(filename);
+            }else{
+                Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("由于文件'%s'不被支持，忽略之。") )% filename));
+            }
+        }else{
+            if(!hasRootId)
+            {
+                hasRootId = true;
+                float filmx,filmy;
+                if(getFilmXY(x,y,filmx,filmy))
+                {
+                    DocObj  obj;
+                    hittedId = obj.hittest(filmx,filmy);
+                }
+            }
+            if(OpenSceneDialog::isSupported(filename))
+            {
+                DocObj obj;
+                gme::ObjectNode *pParent = NULL;
+                if(!hittedId.empty())
+                {
+                    pParent = obj.getRootObject().findObject(hittedId,NULL);
+                }
+                obj.importObject(filename,pParent);
+            }else if(OpenImageDialog::isSupported(filename))
+            {///@todo: 是一张贴图。我们需要弹出菜单以让用户选择通道或者我们根据某个条件来判定通道。
+            }else{
+                Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("由于文件'%s'不被支持，忽略之。") )% filename));
+            }
+        }
+    }
+    return true;
 }
 
 void
@@ -440,27 +527,41 @@ void GlRenderFrame::doMouseEvent(wxMouseEvent& event)
     case cmd::GID_MD_SELECT:
         if(event.ButtonUp() && m_lastViewPoint.width > 0 && m_lastViewPoint.height > 0)
         {//只在button up时检查。
-            if(event.GetX() >= m_lastViewPoint.x && event.GetX() <= (m_lastViewPoint.x + m_lastViewPoint.width)
-                && event.GetY() >= m_lastViewPoint.y && event.GetY() <= (m_lastViewPoint.y + m_lastViewPoint.height) )
+            float filmx,filmy;
+            if(getFilmXY(event.GetX(),event.GetY(),filmx,filmy))
             {
-                DocObj  obj;
-                float filmx = ((float)event.GetX() - m_lastViewPoint.x );
-                float filmy = ((float)event.GetY() - m_lastViewPoint.y );
-                if(m_viewMode == VM_FULLWINDOW || m_viewMode == VM_SCALEWITHASPECT)
-                {
-                    wxSize size = this->GetSize();
-                    float xScale = (float)m_docWidth / (float)m_lastViewPoint.width;
-                    float yScale = (float)m_docHeight / (float)m_lastViewPoint.height;
-
-                    filmx *= xScale;
-                    filmy *= yScale;
-                }
-                obj.select(filmx,m_docHeight - filmy);
+                DocObj obj;
+                obj.select(filmx,filmy);
             }
         }
         break;
     }
 }
+
+bool
+GlRenderFrame::getFilmXY(int x,int y,float &result_filmx,float &result_filmy)
+{
+    if(x >= m_lastViewPoint.x && x <= (m_lastViewPoint.x + m_lastViewPoint.width)
+        && y >= m_lastViewPoint.y && y <= (m_lastViewPoint.y + m_lastViewPoint.height) )
+    {
+        float filmx = ((float)x - m_lastViewPoint.x );
+        float filmy = ((float)y - m_lastViewPoint.y );
+        if(m_viewMode == VM_FULLWINDOW || m_viewMode == VM_SCALEWITHASPECT)
+        {
+            wxSize size = this->GetSize();
+            float xScale = (float)m_docWidth / (float)m_lastViewPoint.width;
+            float yScale = (float)m_docHeight / (float)m_lastViewPoint.height;
+
+            filmx *= xScale;
+            filmy *= yScale;
+        }
+        result_filmx = filmx;
+        result_filmy = m_docHeight - filmy;
+        return true;
+    }
+    return false;
+}
+
 
 void GlRenderFrame::mouseLeftReleased(wxMouseEvent& event)
 {
@@ -530,6 +631,14 @@ void GlRenderFrame::keyPressed(wxKeyEvent& event)
 void GlRenderFrame::keyReleased(wxKeyEvent& event)
 {
 }
+
+void
+GlRenderFrame::refreshMouseEvt(void)
+{
+    this->DeletePendingEvents();
+    m_micro_tick = boost::posix_time::microsec_clock::local_time();
+}
+
 
 }//end namespace gme
 

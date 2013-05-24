@@ -64,6 +64,7 @@ set(GME_SRCS
     mainframe.cpp
 	gmestatus.cpp
 	main.cpp
+	filedialog.cpp
 	data/xpmres.cpp
    )
 

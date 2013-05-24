@@ -541,7 +541,7 @@ MaterialPage::buildPage(const std::string &objid)
         if(pXmlMat)
         {
             std::string content = boost::str(boost::format(__("对象‘%s'的材质定义:") )% pNode->name());
-            wxPGProperty* pCate = this->Append(new wxPropertyCategory(gmeWXT(content.c_str()),"material.catogory"));
+            wxPGProperty* pCate = this->Append(new wxPropertyCategory(wxString(content.c_str(),gme_wx_utf8_conv),"material.catogory"));
             addMaterial(*pCate,pXmlMat,"");
         }
     }
@@ -588,6 +588,8 @@ void MaterialPage::OnPropertyChange( wxPropertyGridEvent& event )
 void
 MaterialPage::OnPropertyChanging( wxPropertyGridEvent& event )
 {
+    wxBusyCursor wait;
+
     wxPGProperty* p = event.GetProperty();
     std::vector< std::string >    idArray;
 
@@ -672,6 +674,11 @@ MaterialPage::OnPropertyChanging( wxPropertyGridEvent& event )
         BOOST_ASSERT_MSG(false,"unreachable code");
     }
 
+    gme::MainFrame* mainfrm = dynamic_cast<gme::MainFrame*>(wxTheApp->GetTopWindow());
+    if(mainfrm)
+    {
+        mainfrm->refreshMouseEvt();
+    }
 //    std::cerr << "MaterialPage::OnPropertyChanging('" << p->GetName().c_str() << "', to value '" << event.GetValue().GetString().c_str() << "')" << std::endl;
 }
 

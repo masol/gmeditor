@@ -64,8 +64,7 @@ bool    SaveCtmFile(bool useplynormals,T *pMesh,const std::string &filename,gme:
     md5.update((const unsigned char *)(void*)vertices,vertCount * 3 * sizeof(CTMfloat));
     md5.update((const unsigned char *)(void*)indices,triCount * 3 * sizeof(CTMuint));
 
-#if 0
-    if(false)//useplynormals) //pMesh->HasNormals())
+    if(useplynormals)//pMesh->HasNormals())
     {
         GME_TRACE("has normals ... ");
         aNormals = new CTMfloat[vertCount * 3];
@@ -78,7 +77,6 @@ bool    SaveCtmFile(bool useplynormals,T *pMesh,const std::string &filename,gme:
         }
         md5.update((const unsigned char *)(void*)aNormals,vertCount * 3 * sizeof(CTMfloat));
     }
-#endif
 
     context = ctmNewContext(CTM_EXPORT);
     ctmDefineMesh(context, vertices, vertCount, indices, triCount, aNormals);

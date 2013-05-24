@@ -75,6 +75,8 @@ enum{
     GID_SET_FlipUVs,
     GID_SET_OptimizeMeshes,
     GID_SET_Debone,
+    GID_SET_IgnoreNormals,
+    GID_SET_CommonNormals,
     GID_SET_END,
 	GID_LOG_BEGIN,
 	GID_LOG_CLOSE,

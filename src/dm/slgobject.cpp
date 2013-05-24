@@ -59,6 +59,9 @@ int DocSetting::sv_loadingFlags = aiProcess_ValidateDataStructure | aiProcess_Ge
                                     aiProcess_ImproveCacheLocality | aiProcess_FixInfacingNormals | \
                                     aiProcess_FindInvalidData | aiProcess_OptimizeMeshes | aiProcess_Debone;
 
+bool DocSetting::sv_ignoreNormal = false;
+float DocSetting::sv_aiSmoothing_Angle = 80.0f;
+
 SlgMesh2Name::SlgMesh2Name(void)
 {
     slg::Scene  *scene = Doc::instance().pDocData->getSession()->renderConfig->scene;
@@ -85,21 +88,24 @@ SlgMesh2Name::getMeshName(const luxrays::ExtMesh* pMesh)
 static inline unsigned int
 GetDefaultAssimpFlags(const char* flag = NULL)
 {
-    if(!flag)
+    unsigned int retFlag = 0;
+    if(flag)
     {
-        return  aiProcess_Triangulate     |
-                DocSetting::loadingFlag() |
-                aiProcess_PreTransformVertices;
+        if(boost::iequals(flag,"false"))
+        {
+        }else if(boost::iequals(flag,"true"))
+        {
+            retFlag = DocSetting::loadingFlag();
+        }
+        retFlag = boost::lexical_cast<int>(flag);
+    }else{
+        retFlag = DocSetting::loadingFlag();
     }
-    if(boost::iequals(flag,"false"))
+    if(DocSetting::ignoreNormals())
     {
-        return aiProcess_Triangulate | aiProcess_PreTransformVertices;
-    }else if(boost::iequals(flag,"false"))
-    {
-        return DocSetting::loadingFlag() | aiProcess_Triangulate | aiProcess_PreTransformVertices;
+        retFlag &= (~aiProcess_GenSmoothNormals);
     }
-    unsigned int retvar = boost::lexical_cast<int>(flag);
-    return retvar | (aiProcess_Triangulate | aiProcess_PreTransformVertices);
+    return retFlag | (aiProcess_Triangulate | aiProcess_PreTransformVertices);
 }
 
 bool
@@ -284,12 +290,14 @@ ExtraObjectManager::importCTMObj(const std::string& path,ObjectNode &obj,ImportC
     {
         CTMuint    vertCount, triCount;
         const CTMuint   *indices;
-        const CTMfloat  *vertices, *uvarray = NULL;
+        const CTMfloat  *vertices, *uvarray = NULL,*normalArray = NULL;
         // Access the mesh data
         vertCount = ctmGetInteger(context, CTM_VERTEX_COUNT);
         vertices = ctmGetFloatArray(context, CTM_VERTICES);
         triCount = ctmGetInteger(context, CTM_TRIANGLE_COUNT);
         indices = ctmGetIntegerArray(context, CTM_INDICES);
+        if(!DocSetting::ignoreNormals())
+            normalArray = ctmGetFloatArray(context, CTM_NORMALS);
 
         boost::uuids::random_generator  gen;
         if(obj.id().length() == 0)
@@ -330,19 +338,27 @@ ExtraObjectManager::importCTMObj(const std::string& path,ObjectNode &obj,ImportC
         luxrays::Triangle   *pTri = new luxrays::Triangle[triCount];
         memcpy(pTri,indices,sizeof(luxrays::Triangle) * triCount);
         luxrays::UV *uv = NULL;
+        luxrays::Normal *normal = NULL;
         if(uvarray)
         {
             uv = new luxrays::UV[vertCount];
             memcpy(uv,uvarray,sizeof(luxrays::UV) * vertCount);
         }
+        if(normalArray != NULL)
+        {
+            normal = new luxrays::Normal[vertCount];
+            memcpy(normal,normalArray,sizeof(luxrays::Normal) * vertCount );
+        }
+
+        obj.useplynormals(normal != NULL);
 
         //define object.
-        std::string  meshIdentify = DefineObject(ctx.scene(),(const long)vertCount, (const long)triCount,pPoint, pTri, NULL, uv, NULL,NULL, false);
+        std::string  meshIdentify = DefineObject(ctx.scene(),(const long)vertCount, (const long)triCount,pPoint, pTri, normal, uv, NULL,NULL, obj.useplynormals() );
 
         // Add the object to the scene
         ctx.scene()->AddObject(obj.id(), meshIdentify,
                 "scene.objects." + obj.id() + ".material = " + obj.matid() + "\n"
-                "scene.objects." + obj.id() + ".useplynormals = 0\n"
+                "scene.objects." + obj.id() + ".useplynormals = " + (obj.useplynormals() ? '1' : '0') + "\n"
             );
 
         ctx.addAction(slg::GEOMETRY_EDIT);
@@ -468,20 +484,22 @@ ExtraObjectManager::importAiMesh(const aiScene *assimpScene,aiMesh* pMesh,Object
                 }
             }
 
-            if(pMesh->HasNormals())
+            if(!DocSetting::ignoreNormals() && pMesh->HasNormals())
             {
                 normal = new luxrays::Normal[pMesh->mNumVertices];
                 memcpy(normal,pMesh->mNormals,sizeof(luxrays::Normal) * pMesh->mNumVertices);
             }
 
+            obj.useplynormals(normal != NULL);
 
-            std::string     meshIdentify = DefineObject(ctx.scene(),pMesh->mNumVertices, realFace,pPoint, pTri, normal, uv, NULL,NULL,false);
+
+            std::string     meshIdentify = DefineObject(ctx.scene(),pMesh->mNumVertices, realFace,pPoint, pTri, normal, uv, NULL,NULL,obj.useplynormals());
 
             ///@fixme : 这里加入matrix导入.
             // Add the object to the scene
             ctx.scene()->AddObject(obj.id(), meshIdentify,
                     "scene.objects." + obj.id() + ".material = " + obj.matid() + "\n"
-                    "scene.objects." + obj.id() + ".useplynormals = 0\n"
+                    "scene.objects." + obj.id() + ".useplynormals = " + (obj.useplynormals()? '1' : '0' ) + "\n"
                 );
             bAdd = true;
         }else{
@@ -638,7 +656,7 @@ ExtraObjectManager::importObjects(type_xml_node &node,ObjectNode &objNode,Import
         if( !objNode.m_filepath.empty() && !boost::iends_with(objNode.m_filepath,".ctm") )
         {//拥有非ctm的文件节点。尝试将其做为groupfile加入ctx.
 //          std::cerr << "importer.GetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE) = " << importer.GetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE) <<std::endl;
-//          importer.SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE,80.f);
+            importer.SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE,DocSetting::smoothAngle());
             importer.SetIOHandler(AiIOSystem::create());
 
             type_xml_attr *pOptimize = node.first_attribute("optimize");
@@ -962,7 +980,7 @@ ExtraObjectManager::importObjects(const std::string& path,ObjectNode &obj,Import
         importer.SetIOHandler(AiIOSystem::create());
 
 //        std::cerr << "importer.GetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE) = " << importer.GetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE) <<std::endl;
-//        importer.SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE,80.f);
+        importer.SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE,DocSetting::smoothAngle());
 
         const aiScene* assimpScene = importer.ReadFile( path, GetDefaultAssimpFlags() );
         if(assimpScene && assimpScene->HasMeshes())

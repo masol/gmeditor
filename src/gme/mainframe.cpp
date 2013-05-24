@@ -32,6 +32,7 @@
 #include <boost/locale.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/bind.hpp>
+#include <boost/format.hpp>
 #include "propgrid.h"
 #include "data/xpmres.h"
 #include "glrenderview.h"
@@ -41,6 +42,7 @@
 #include "buildinfo.h"
 
 namespace gme{
+
 
 ///@todo move the follow function to customize log window when it implement.
 static void Log_Adapter(int level,const char* msgstr,const char* mask)
@@ -316,16 +318,20 @@ MainFrame::createMenubar()
 
         wxMenu *pLoadingMenu = new wxMenu();
 		pLoadingMenu->AppendCheckItem(cmd::GID_SET_ValidateDataStructure, gmeWXT("数据有效性校正(&A)"), gmeWXT("检查导入模型的索引、动画以及骨骼的关联有效性，如果无效，自动校正之。"));
-		pLoadingMenu->AppendCheckItem(cmd::GID_SET_GenSmoothNormals, gmeWXT("产生顶点曲线(&G)"), gmeWXT("自动计算基于顶点的法线，这将产生光滑感。"));
 		pLoadingMenu->AppendCheckItem(cmd::GID_SET_JoinIdenticalVertices, gmeWXT("合并相同顶点(&J)"), gmeWXT("自动合并具有相同坐标的顶点。"));
 		pLoadingMenu->AppendCheckItem(cmd::GID_SET_RemoveRedundantMaterials, gmeWXT("移除冗余材质(&R)"), gmeWXT("将冗余材质移除。"));
 		pLoadingMenu->AppendCheckItem(cmd::GID_SET_ImproveCacheLocality, gmeWXT("提升缓冲效率(&I)"), gmeWXT("校正模型以提升ACMR(average post-transform vertex cache miss ratio)。"));
 		pLoadingMenu->AppendCheckItem(cmd::GID_SET_FixInfacingNormals, gmeWXT("校正反转法线(&F)"), gmeWXT("根据包围盒方向尝试校正错误方向的法线。"));
 		pLoadingMenu->AppendCheckItem(cmd::GID_SET_FindDegenerates, gmeWXT("退化校正(&D)"), gmeWXT("由于点的移除，有些面会退化为点或者线，退化校正会把这些点和线移除。"));
 		pLoadingMenu->AppendCheckItem(cmd::GID_SET_FindInvalidData, gmeWXT("无效数据校正(&V)"), gmeWXT("检查是否有原点法线以及溢出数据，并自动校正这些数据。"));
-		pLoadingMenu->AppendCheckItem(cmd::GID_SET_FlipUVs, gmeWXT("UV反转(&U)"), gmeWXT("反转UV以适应导出器错误。"));
+		pLoadingMenu->AppendCheckItem(cmd::GID_SET_FlipUVs, gmeWXT("UV反转(&U)"), gmeWXT("反转UV以适应导出器数据。"));
 		pLoadingMenu->AppendCheckItem(cmd::GID_SET_OptimizeMeshes, gmeWXT("模型合并(&O)"), gmeWXT("尝试合并模型并保持绘制结果不变。"));
 		pLoadingMenu->AppendCheckItem(cmd::GID_SET_Debone, gmeWXT("骨骼解绑(&B)"), gmeWXT("尝试按照初始位置解绑骨骼，这允许我们渲染封套后的模型。"));
+		pLoadingMenu->AppendSeparator();
+        pLoadingMenu->AppendRadioItem(cmd::GID_SET_GenSmoothNormals, gmeWXT("产生顶点法线(&G)"), gmeWXT("如果模型中未包含法线，自动计算基于顶点的法线，这将产生光滑感。"));
+		pLoadingMenu->AppendRadioItem(cmd::GID_SET_IgnoreNormals, gmeWXT("忽略法线(&I)"), gmeWXT("忽略模型中包含的法线信息，在某些场合下，这将减少黑面出现的几率。"));
+		pLoadingMenu->AppendRadioItem(cmd::GID_SET_CommonNormals, gmeWXT("模型法线(&M)"), gmeWXT("只有模型中包含了法线信息，才读取法线，这将是否使用法线的控制权交给导出器决定。"));
+
 
         pSettingMenu->AppendSubMenu(pLoadingMenu,gmeWXT("加载设定"),gmeWXT("设定导入外部模型时对模型的自动处理。"));
 
@@ -523,6 +529,14 @@ MainFrame::onSetting(wxCommandEvent &event)
     case cmd::GID_SET_FORCEREFRESH:
         DocSetting::forceRefresh(!DocSetting::forceRefresh());
         break;
+    case cmd::GID_SET_IgnoreNormals:
+        DocSetting::ignoreNormals(true);
+        DocSetting::clearLoadingFlag(DocSetting::GenSmoothNormals);
+        break;
+    case cmd::GID_SET_CommonNormals:
+        DocSetting::ignoreNormals(false);
+        DocSetting::clearLoadingFlag(DocSetting::GenSmoothNormals);
+        break;
     default:
         {
             int loadingFlag = getLoadingFlagFromCmd(event.GetId());
@@ -533,6 +547,9 @@ MainFrame::onSetting(wxCommandEvent &event)
             {
                 DocSetting::setLoadingFlag(loadingFlag);
             }
+            ///如果设置了gen sommth normal,需要清理掉ignoreNormal属性。
+            if(DocSetting::hasLoadingFlag(DocSetting::GenSmoothNormals))
+                DocSetting::ignoreNormals(false);
         }
     }
 }
@@ -544,6 +561,22 @@ MainFrame::onUpdateSetting(wxUpdateUIEvent &event)
     {
     case cmd::GID_SET_FORCEREFRESH:
         event.Check(DocSetting::forceRefresh());
+        break;
+    case cmd::GID_SET_IgnoreNormals:
+        if(DocSetting::hasLoadingFlag(DocSetting::GenSmoothNormals) || !DocSetting::ignoreNormals() )
+        {
+            event.Check(false);
+        }else{
+            event.Check(true);
+        }
+        break;
+    case cmd::GID_SET_CommonNormals:
+        if(DocSetting::hasLoadingFlag(DocSetting::GenSmoothNormals) || DocSetting::ignoreNormals() )
+        {
+            event.Check(false);
+        }else{
+            event.Check(true);
+        }
         break;
     default:
         event.Check(DocSetting::hasLoadingFlag(getLoadingFlagFromCmd(event.GetId())));
@@ -610,13 +643,17 @@ MainFrame::onMenuFileImport(wxCommandEvent &event)
     ImportDialog    dialog(this);
     if(dialog.ShowModal() == wxID_OK)
 	{
-		gme::DocObj	obj;
-		gme::ObjectNode *pParent = NULL;
-		if(obj.getSelection().size())
-		{
-            pParent = obj.getRootObject().findObject(obj.getSelection().back(),NULL);
-		}
-        obj.importObject(dialog.GetPath(),pParent);
+        {
+            wxBusyCursor wait;
+		    gme::DocObj	obj;
+		    gme::ObjectNode *pParent = NULL;
+		    if(obj.getSelection().size())
+		    {
+                pParent = obj.getRootObject().findObject(obj.getSelection().back(),NULL);
+		    }
+            obj.importObject(dialog.GetPath(),pParent);
+        }
+        refreshMouseEvt();
 	}
 }
 
@@ -641,6 +678,12 @@ MainFrame::getImageFilepath(std::string &result)
     return bHasResult;
 }
 
+void
+MainFrame::refreshMouseEvt(void)
+{
+    m_renderView->refreshMouseEvt();
+}
+
 
 void
 MainFrame::onMenuFileOpen(wxCommandEvent &event)
@@ -648,9 +691,13 @@ MainFrame::onMenuFileOpen(wxCommandEvent &event)
 	OpenSceneDialog dialog(this);
 	if ( dialog.ShowModal() == wxID_OK )
 	{
-        gme::DocIO  dio;
-        m_filepath = dialog.GetPath();
-		dio.loadScene(m_filepath);
+        {
+            wxBusyCursor wait;
+            gme::DocIO  dio;
+            m_filepath = dialog.GetPath();
+		    dio.loadScene(m_filepath);
+        }
+        refreshMouseEvt();
 	}
 }
 
@@ -690,7 +737,14 @@ MainFrame::onMenuFileSave(wxCommandEvent &event)
 	}
 	if(!m_filepath.empty())
 	{
-	   dio.exportScene(m_filepath,false);
+       wxBusyCursor wait;
+       std::string  error = __("失败");
+	   if(dio.exportScene(m_filepath,false))
+       {
+           error = __("失败");
+       }
+       std::string content = boost::str(boost::format(__("保存文件'%s'%s")) % m_filepath % error);
+       Log_Adapter(Doc::LOG_STATUS,content.c_str(),NULL);
 	}
 }
 
@@ -710,6 +764,7 @@ MainFrame::onMenuFileQuit(wxCommandEvent &event)
 void
 MainFrame::onMenuEditDelete(wxCommandEvent &event)
 {
+    wxBusyCursor wait;
     DocObj   dobj;
     dobj.deleteAllSelection();
 }
@@ -782,6 +837,7 @@ MainFrame::onUpdateViewPane(wxUpdateUIEvent &event)
 void
 MainFrame::onRenderStart(wxCommandEvent &event)
 {
+    wxBusyCursor wait;
 	DocCtl dctl;
 	dctl.start();
 }
@@ -789,6 +845,7 @@ MainFrame::onRenderStart(wxCommandEvent &event)
 void
 MainFrame::onRenderStop(wxCommandEvent &event)
 {
+    wxBusyCursor wait;
 	DocCtl dctl;
 	dctl.stop();
 }
@@ -796,6 +853,7 @@ MainFrame::onRenderStop(wxCommandEvent &event)
 void
 MainFrame::onRenderPause(wxCommandEvent &event)
 {
+    wxBusyCursor wait;
 	DocCtl dctl;
 	dctl.pause();
 }

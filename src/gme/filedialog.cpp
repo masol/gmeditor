@@ -16,47 +16,42 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_GLRENDERVIEW_H
-#define  GME_GLRENDERVIEW_H
-
-#include <wx/wx.h>
-#include <boost/any.hpp>
+#include "config.h"
+#include <boost/algorithm/string.hpp>
+#include "filedialog.h"
 
 namespace gme{
 
-class GlRenderFrame;
-class GlRenderView : public wxScrolledWindow
+const char*     OpenImageDialog::sv_allsupportedExt = "*.bmp;*.cut;*.dds;*.exr;*.g3;*.gif;*.hdr;*.ico;*.iff;*.jbig;*.jng;*.jpg;*.jpeg;*.jpg2;*.j2k;*.koa;*.pcd;*.mng;*.pcx;*.pbm;*.pgm;*.ppm;*.pfm;*.png;*.pic;*.psd;*.raw;*.ras;*.sgi;*.tga;*.tif;*.wbmp;*.xbm;*.xpm";
+const char*     OpenSceneDialog::sv_allsupportedExt = "*.3ds;*.blend;*.dae;*.fbx;*.ifc;*.ase;*.dxf;*.hmp;*.md2;*.md3;*.md5;*.mdc;*.mdl;*.nff;*.ply;*.stl;*.x;*.obj;*.smd;*.lwo;*.lxo;*.lws;*.ter;*.ac3d;*.ms3d;*.cob;*.q3bsp;*.xgl;*.csm;*.bvh;*.b3d;*.ndo;*.xml;*.q3d;*.cfg;*.sps;*.slg;*.fbx";
+
+bool
+FileDialogBase::filenameWithExtension(const std::string &filename,const char* extSet)
 {
-public:
-    static  const char*    vm_opt_path;
-private:
-    typedef wxScrolledWindow    inherited;
-    GlRenderFrame       *m_glframe;
-    wxBoxSizer          *m_sizer;
-protected:
-    void onDocumentSizeChanged(int w,int h);
-    bool onEditModeChanged(const boost::any &nvar);
-    void updateViewmode(int viewModeCmds);
-    void setViewmode(int m);
-public:
-    void refreshMouseEvt(void);
-    GlRenderView(wxFrame* parent);
-    virtual ~GlRenderView();
-    void    setViewmodeFromCmd(int cmd);
-    ///@brief 指示给定的cmdid是否是当前的viewmode.
-    bool    isCurrentViewmodeFromCmd(int cmds);
+    std::vector< std::string >    suffixArray;
+    boost::split(suffixArray,extSet,boost::is_any_of(";"),boost::token_compress_on);
+    BOOST_FOREACH(const std::string &suf,suffixArray)
+    {
+        if(!suf.empty() && boost::iends_with(filename,&suf.c_str()[1]))
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
-    ///@brief 指示是否绘制选中对象。
-    bool    isViewSelection(void);
-    void    setViewSelection(bool bv);
+bool
+OpenImageDialog::isSupported(const std::string &filename)
+{
+    return filenameWithExtension(filename,sv_allsupportedExt);
+}
 
-    void    setEditmodeFromCmd(int mode);
-    int     getEditmodeCmd(void);
-protected:
-    int     getViewmodeFromCmd(int cmdid);
-//    DECLARE_EVENT_TABLE()
-};
+bool
+OpenSceneDialog::isSupported(const std::string &filename)
+{
+    return filenameWithExtension(filename,sv_allsupportedExt);
+}
 
-} //end namespace gme
 
-#endif //GME_GLRENDERVIEW_H
+
+}
