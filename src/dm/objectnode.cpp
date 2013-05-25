@@ -170,6 +170,7 @@ const char* constDef::envlight = "envlight";
 const char* constDef::sunlight = "sunlight";
 const char* constDef::lights = "lights";
 const char* constDef::film = "film";
+const char* constDef::alpha = "alpha";
 
 ObjectNode*
 ObjectNode::findObject(const std::string &id,ObjectNodePath *pPath)
@@ -333,6 +334,12 @@ ObjectNode::dump(type_xml_node &parent,dumpContext &ctx)
                 }else{
                     ctx.addObjMapper(ctxHashValue,write_file);
                 }
+            }
+
+            if(m_alpha < 1.0f)
+            {
+                std::string   alpha = boost::lexical_cast<std::string>(m_alpha);
+                pSelf->append_attribute(pDoc->allocate_attribute(constDef::alpha,allocate_string(pDoc,alpha)));
             }
 
             if(!write_file.empty())

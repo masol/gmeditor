@@ -63,6 +63,11 @@ private:
     bool                              m_fileFilmValid;
     ///@brief 指示了路径校正对象。
     boost::filesystem::gme_ext::fileFetcher m_fileFetcher;
+
+    ///access m_currentFile.
+    friend class DocIO;
+    ///@brief 保存了当前加载成功的文件路径。
+    std::string                       m_currentFile;
 public:
     typedef boost::function<void (int,int)>     type_imagesize_handler;
     typedef boost::function<void (void)>        type_state_handler;
@@ -83,6 +88,11 @@ public:
         SEL_ITEMSELFREMOVED, //指示某个ObjectNode自身被删除。
         SEL_MAX
     };
+
+    inline const std::string&   currentFile(void)const
+    {
+        return m_currentFile;
+    }
 
     inline void setFileFetcher(boost::filesystem::gme_ext::fileFetcher::type_fn_getfile fn)
     {

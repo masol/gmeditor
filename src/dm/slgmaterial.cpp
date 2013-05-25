@@ -1208,10 +1208,12 @@ ExtraMaterialManager::updateMaterial(SlgUtil::UpdateContext &ctx,const slg::Mate
                             ctx,pMaterial->GetKs(),curIdx+1));
                     }else if(curKey == constDef::uroughness)
                     {
-                        ctx.props.SetString(prefix + constDef::uroughness,texManager.updateTexture(
-                            ctx,pMaterial->GetNu(),curIdx+1));
+                        std::string texValue = texManager.updateTexture(ctx,pMaterial->GetNu(),curIdx+1);
+                        ctx.props.SetString(prefix + constDef::uroughness,texValue);
+                        ctx.props.SetString(prefix + constDef::vroughness,texValue);
                     }else if(curKey == constDef::vroughness)
-                    {
+                    {//now this is unreachable.
+                        BOOST_ASSERT(false);
                         ctx.props.SetString(prefix + constDef::vroughness,texManager.updateTexture(
                             ctx,pMaterial->GetNv(),curIdx+1));
                     }else if(curKey == constDef::ka)
@@ -1247,10 +1249,12 @@ ExtraMaterialManager::updateMaterial(SlgUtil::UpdateContext &ctx,const slg::Mate
                             ctx,pMaterial->GetK(),curIdx+1));
                     }else if(curKey == constDef::uroughness)
                     {
-                        ctx.props.SetString(prefix + constDef::uroughness,texManager.updateTexture(
-                            ctx,pMaterial->GetNu(),curIdx+1));
+                        std::string   texValue = texManager.updateTexture(ctx,pMaterial->GetNu(),curIdx+1);
+                        ctx.props.SetString(prefix + constDef::uroughness,texValue);
+                        ctx.props.SetString(prefix + constDef::vroughness,texValue);
                     }else if(curKey == constDef::vroughness)
                     {
+                        BOOST_ASSERT(false);
                         ctx.props.SetString(prefix + constDef::vroughness,texManager.updateTexture(
                             ctx,pMaterial->GetNv(),curIdx+1));
                     }else{

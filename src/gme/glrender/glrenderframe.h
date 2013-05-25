@@ -68,6 +68,7 @@ protected:
     long     m_lasty;
     int      m_edit_mode; //左钮编辑模式。
     bool     m_view_selection; //是否绘制选中对象。
+    bool     m_view_skydir; //是否绘制阳光的方向。
     ///@brief 记录了最后一次绘制的viewpoint.
     gme::DocImg::ViewPort m_lastViewPoint;
     inline float  getFactor(wxMouseEvent& event)
@@ -127,6 +128,14 @@ public:
     void    refreshMouseEvt(void);
     GlRenderFrame(wxWindow* parent,int* args,int vm);
     virtual ~GlRenderFrame();
+    inline bool    viewSkylightDir(void)const
+    {
+        return m_view_skydir;
+    }
+    inline void    viewSkylightDir(bool bv)
+    {
+        m_view_skydir = bv;
+    }
     inline bool    viewSelection(void)const
     {
         return m_view_selection;

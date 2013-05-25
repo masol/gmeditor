@@ -79,7 +79,9 @@ public:
     bool  disableEnv(void);
     bool  disableSun(void);
     bool  enableSun(void);
+    ///@deprecated 新方案采用从主编辑视图上修改阳光方向。本函数作废。
     bool  changeSunDir(const luxrays::Vector &dir);
+    bool  changeSunDir(float filmx,float filmy);
     bool  changeSunGain(const luxrays::Spectrum &g);
     bool  changeSunTurbidity(float t);
     bool  changeSunRelsize(float t);

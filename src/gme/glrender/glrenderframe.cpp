@@ -26,6 +26,7 @@
 #include "glrenderframe.h"
 #include "../cmdids.h"
 #include "../filedialog.h"
+#include "dm/docsetting.h"
 
 
 
@@ -93,6 +94,7 @@ GlRenderFrame::GlRenderFrame(wxWindow* parent,int *args,int vm) : inherited(pare
     m_needClearColor = true;
     m_rorateAroundTarget = false;
     m_view_selection = true;
+    m_view_skydir = false;
 
     m_v2dTranslate << 0.0f,0.0f;
     m_v2dScale << 1.0f,1.0f;
@@ -403,6 +405,11 @@ void GlRenderFrame::render(void)
         img.drawSelectedObject(m_lastViewPoint);
     }
 
+    if(m_view_skydir)
+    {
+        img.drawSkylightDir(m_lastViewPoint);
+    }
+
     //glFlush();
     SwapBuffers();
 }
@@ -532,6 +539,17 @@ void GlRenderFrame::doMouseEvent(wxMouseEvent& event)
             {
                 DocObj obj;
                 obj.select(filmx,filmy);
+            }
+        }
+        break;
+    case cmd::GID_MD_SETSUNLIGHT:
+        if(m_lastViewPoint.width > 0 && m_lastViewPoint.height > 0)
+        {//只在button up时检查。
+            float filmx,filmy;
+            if(getFilmXY(event.GetX(),event.GetY(),filmx,filmy))
+            {
+                DocSetting  setting;
+                setting.changeSunDir(filmx,filmy);
             }
         }
         break;

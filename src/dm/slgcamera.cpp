@@ -170,6 +170,50 @@ ExtraCameraManager::saveCurrentCamera(void)
     }
 }
 
+bool
+ExtraCameraManager::SphereIntersect(const luxrays::BSphere &sphere,const luxrays::Ray &ray,luxrays::Point &pt)
+{
+    // We solve this second-degree equation in t:
+    // distance(p+t*v,center)==radius
+    // If we define w = p-center
+    // we can write that as
+    // <w+t*v,w+t*v> == radius*radius
+    // <w,w> + 2.0f*t*<w,v> + t*t*<v,v> - radius*radius == 0
+    // <v,v>*t*t + 2.0f*<w,v>*t + <w,w>-radius*radius == 0
+    // A*t*t + B*t*t + C*t*t == 0
+    luxrays::Vector w = ray.o - sphere.center;
+    float A = luxrays::Dot(ray.d,ray.d);
+    float B = 2 *luxrays::Dot(w,ray.d);
+    float C = luxrays::Dot(w,w) - sphere.rad * sphere.rad;
+
+    float D = B*B-4.0f*A*C;
+    if(D < 0.0f)
+        return false;
+    float t = (-B - sqrt(D))/(2.0f*A);
+    pt = ray.o + ray.d * t;
+    return true;
+}
+
+float
+ExtraCameraManager::getCurrentRadius(slg::RenderSession *session,slg::PerspectiveCamera *camera)
+{
+    luxrays::Ray  eyeCenter,eyeSide;
+    float filmx = session->film->GetWidth();
+    float filmy = session->film->GetHeight();
+
+    float oldlr = camera->lensRadius;
+    camera->lensRadius = 0.0f;
+    camera->GenerateRay(filmx/2.0f,filmy/2.0f,&eyeCenter,0.001f,0.012f);
+    camera->GenerateRay(0,0,&eyeSide,0.001f,0.012f);
+    camera->lensRadius = oldlr;
+
+    float distance = (camera->orig - camera->target).Length();
+    ///@todo configurate the sphere radius.
+    float length = (((eyeCenter.o + eyeCenter.d * distance ) - (eyeSide.o + eyeSide.d * distance)).Length()) * 0.4 ;
+    return length;
+}
+
+
 
 void
 ExtraCameraManager::viewAll(const std::string &objid)

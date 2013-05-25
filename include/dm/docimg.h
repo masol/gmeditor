@@ -86,6 +86,9 @@ public:
         int   height;
     };
 
+    ///@brief 绘制阳光方向。
+    void    drawSkylightDir(ViewPort &vp);
+
     ///@brief 绘制选中的对象。
     void    drawSelectedObject(ViewPort &vp);
     enum{

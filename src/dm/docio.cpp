@@ -316,6 +316,8 @@ DocIO::initAndStartScene(slg::Scene *scene)
         Doc::SysLog(Doc::LOG_WARNING,__("找不到opencl环境，使用CPU渲染，这将会严重影响您的体验，请检查您的硬件环境以及驱动设置(可以使用GPU-Z来检查OPENCL环境是否就绪)。"));
         confgSS << "renderengine.type = PATHCPU" << std::endl;
     }
+    //see Pathoclthread.cpp#101
+    //confgSS << "opencl.kernelcache = VOLATILE" << std::endl; //
     confgSS << "opencl.gpu.workgroup.size = " << 64 << std::endl;
     confgSS << "path.maxdepth = " << 8 << std::endl;
     confgSS << "path.russianroulette.depth = " << 5 << std::endl;
@@ -411,23 +413,43 @@ DocIO::loadSpsScene(const std::string &path)
     return false;
 }
 
+const std::string&
+DocIO::getLastLoadedPath(void)
+{
+    return pDocData->currentFile();
+}
+
+void
+DocIO::setLastLoadedPath(const std::string &path)
+{
+    pDocData->m_currentFile = path;
+}
+
 
 
 bool
 DocIO::loadScene(const std::string &path)
 {
+    bool    bLoadOK = false;
     if(boost::iends_with(path,".cfg"))
     {
-        return loadSlgScene(path);
+        bLoadOK = loadSlgScene(path);
     }
     else if(boost::iends_with(path,".sps") || boost::iends_with(path,".slg"))
     {
-        return loadSpsScene(path);
+        bLoadOK = loadSpsScene(path);
     }else if(boost::iends_with(path,".ctm"))
     {//load open ctm format.
     }else{
-        return loadAssimpScene(path);
     //load assimp format.
+        bLoadOK = loadAssimpScene(path);
+    }
+
+    pDocData->m_currentFile.clear();
+    if(bLoadOK)
+    {
+        pDocData->m_currentFile = path;
+        return true;
     }
     return false;
 }

@@ -442,12 +442,12 @@ EnvLightPage::appendSunLight(wxPGProperty* pEnable,DocSetting &setting)
     this->RefreshProperty(pEnable);
     if(!scene->sunLight) //sunlight not enabled!
         return;
-
-    luxrays::Vector v = scene->sunLight->GetDir();
-    v = v / v.Length();
-    wxColour    color(255,255,255);
-    color.Set(v.x * 255.0f,v.y * 255.0f,v.z * 255.0f);
-    this->AppendIn(pEnable,new wxColourProperty(gmeWXT("方向"),"sundir",color));
+///  @biref 方向在主视图上直观调整。
+//    luxrays::Vector v = scene->sunLight->GetDir();
+//    v = v / v.Length();
+//    wxColour    color(255,255,255);
+//    color.Set(v.x * 255.0f,v.y * 255.0f,v.z * 255.0f);
+//    this->AppendIn(pEnable,new wxColourProperty(gmeWXT("方向"),"sundir",color));
     //turbidity
     this->AppendIn(pEnable,new wxFloatProperty(gmeWXT("turbidity"),"sunturb",scene->sunLight->GetTubidity()));
     //relsize

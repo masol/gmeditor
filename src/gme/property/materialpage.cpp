@@ -80,7 +80,7 @@ MaterialPage::buildTextureChoice(wxPGChoices &soc)
     soc.Add( gmeWXT("scale"),DocMat::SCALE_TEX);
     soc.Add( gmeWXT("fresnelapproxn"),DocMat::FRESNEL_APPROX_N);
     soc.Add( gmeWXT("fresnelapproxk"),DocMat::FRESNEL_APPROX_K);
-    soc.Add( gmeWXT("mix"),DocMat::MIX_TEX);
+    soc.Add( gmeWXT("mixTex"),DocMat::MIX_TEX);
     soc.Add( gmeWXT("add"),DocMat::ADD_TEX);
     soc.Add( gmeWXT("checkerboard2d"),DocMat::CHECKERBOARD2D);
     soc.Add( gmeWXT("checkerboard3d"),DocMat::CHECKERBOARD3D);
@@ -113,6 +113,9 @@ MaterialPage::getNameFromTagName(const std::string &tag)
     }else if(boost::iequals(tag,constDef::kr))
     {
         return __("反射系数");
+    }else if(boost::iequals(tag,constDef::uroughness))
+    {
+        return __("粗糙度");
     }
     return tag;
 }
@@ -452,17 +455,17 @@ MaterialPage::addMaterialContent(wxPGProperty &matType,type_xml_node *pSelf,int 
     {
     }else if(type == DocMat::MATTETRANSLUCENT)
     {
-        addTexture(matType,pSelf,constDef::kr);
-        addTexture(matType,pSelf,constDef::kt);
+        addTexture(matType,pSelf,constDef::kr,0,"固有色");
+        addTexture(matType,pSelf,constDef::kt,0,"表面色");
     }else if(type == DocMat::GLOSSY2)
     {
         addTexture(matType,pSelf,constDef::kd);
         addTexture(matType,pSelf,constDef::ks,0,"清漆颜色");
         addTexture(matType,pSelf,constDef::index,0,"清漆折射率");
         addTexture(matType,pSelf,constDef::uroughness);
-        addTexture(matType,pSelf,constDef::vroughness);
-        addTexture(matType,pSelf,constDef::ka,0,"清漆吸收色");
-        addTexture(matType,pSelf,constDef::d,0,"清漆厚度");
+        //addTexture(matType,pSelf,constDef::vroughness);
+        //addTexture(matType,pSelf,constDef::ka,0,"清漆吸收色");
+        //addTexture(matType,pSelf,constDef::d,0,"清漆厚度");
         bool multibounce = false;
         type_xml_attr   *pAttr = pSelf->first_attribute("multibounce");
         if(pAttr && (boost::iequals(pAttr->value(),"true")))
@@ -474,8 +477,8 @@ MaterialPage::addMaterialContent(wxPGProperty &matType,type_xml_node *pSelf,int 
     }else if(type == DocMat::METAL2)
     {
         addTexture(matType,pSelf,constDef::uroughness);
-        addTexture(matType,pSelf,constDef::vroughness);
-        addTexture(matType,pSelf,constDef::n,0,"绝对折射率");
+        //addTexture(matType,pSelf,constDef::vroughness);
+        addTexture(matType,pSelf,constDef::n,0,"折射率");
         addTexture(matType,pSelf,constDef::k,0,"吸收系数");
     }else
     {
@@ -542,6 +545,8 @@ MaterialPage::buildPage(const std::string &objid)
         {
             std::string content = boost::str(boost::format(__("对象‘%s'的材质定义:") )% pNode->name());
             wxPGProperty* pCate = this->Append(new wxPropertyCategory(wxString(content.c_str(),gme_wx_utf8_conv),"material.catogory"));
+            //this->AppendIn(pCate,new wxFloatProperty(gmeWXT("透明度"),"alpha",pNode->alpha()));
+
             addMaterial(*pCate,pXmlMat,"");
         }
     }

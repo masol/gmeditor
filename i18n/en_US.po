@@ -20,730 +20,1307 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmeditor\n"
 "Report-Msgid-Bugs-To: masol.li@gmail.com\n"
-"POT-Creation-Date: 2013-05-10 00:30+0800\n"
-"PO-Revision-Date: 2013-05-11 16:55+0800\n"
-"Last-Translator: Masol Lee <masol.li@gamil.com>\n"
-"Language-Team: Masol Lee <masol.li@gmail.com>\n"
+"POT-Creation-Date: 2013-05-22 19:55+0800\n"
+"PO-Revision-Date: 2013-05-23 03:19+0800\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 1.5.5\n"
+"X-Poedit-KeywordsList: gmeWXT\n"
+"X-Poedit-Basepath: D:\\source\\glue\\gmeditor\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-SearchPath-0: D:\\source\\glue\\gmeditor\n"
+"X-Poedit-SearchPath-1: D:\\source\\glue\\gmeditor\\src\\gme\n"
 
-#: src\gme\mainframe.cpp:139
+#: D:\source\glue\gmeditor/src/gme/gmestatus.cpp:119
+#: D:\source\glue\gmeditor\src\gme/gmestatus.cpp:119
+msgid "设置次数终止"
+msgstr "Set The Number Of Times To Stop"
+
+#: D:\source\glue\gmeditor/src/gme/gmestatus.cpp:120
+#: D:\source\glue\gmeditor\src\gme/gmestatus.cpp:120
+msgid "设置时间终止"
+msgstr "Set The Time To Stop"
+
+#: D:\source\glue\gmeditor/src/gme/gmestatus.cpp:121
+#: D:\source\glue\gmeditor\src\gme/gmestatus.cpp:121
+msgid "设置覆盖率终止"
+msgstr "Set The Coverage To Stop"
+
+#: D:\source\glue\gmeditor/src/gme/gmestatus.cpp:122
+#: D:\source\glue\gmeditor\src\gme/gmestatus.cpp:122
+msgid "永久渲染"
+msgstr "Permanent Rendering"
+
+#: D:\source\glue\gmeditor/src/gme/gmestatus.cpp:124
+#: D:\source\glue\gmeditor\src\gme/gmestatus.cpp:124
+msgid "本地效率"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/gmestatus.cpp:125
+#: D:\source\glue\gmeditor\src\gme/gmestatus.cpp:125
+msgid "贡献效率"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/gmestatus.cpp:126
+#: D:\source\glue\gmeditor\src\gme/gmestatus.cpp:126
+msgid "总效率"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:164
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:164
 msgid "模型一览"
 msgstr "Object Viewer"
 
-#: src\gme\mainframe.cpp:140
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:165
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:165
 msgid "系统日志"
 msgstr "System Log"
 
-#: src\gme\mainframe.cpp:151
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:176
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:176
 msgid "属性设置"
 msgstr "Properties"
 
-#: src\gme\mainframe.cpp:176
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:237
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:237
 msgid "Open"
 msgstr "Open(&O)"
 
-#: src\gme\mainframe.cpp:176
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:237
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:237
 msgid "打开已有场景"
 msgstr "Open An Existing Scene"
 
-#: src\gme\mainframe.cpp:178
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:239
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:239
 msgid "保存(&S)"
 msgstr "Save(&S)"
 
-#: src\gme\mainframe.cpp:178
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:239
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:239
 msgid "保存现有场景"
 msgstr "Save Current Scene"
 
-#: src\gme\mainframe.cpp:179
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:240
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:240
 msgid "保存图片(&S)"
 msgstr "Save Image(&S)"
 
-#: src\gme\mainframe.cpp:179
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:240
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:240
 msgid "保存当前渲染结果"
 msgstr "Save Current Rendering Result"
 
-#: src\gme\mainframe.cpp:180
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:241
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:241
 msgid "导出(&E)"
 msgstr "Export(&E)"
 
-#: src\gme\mainframe.cpp:180
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:241
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:241
 msgid "导出现有场景"
 msgstr "Export Existing Scene"
 
-#: src\gme\mainframe.cpp:182
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:243
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:243
 msgid "退出(&X)"
 msgstr "Exit(&X)"
 
-#: src\gme\mainframe.cpp:182
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:243
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:243
 msgid "退出gmeditor"
 msgstr "Exit gmeditor"
 
-#: src\gme\mainframe.cpp:184
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:245
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:245
 msgid "文件(&F)"
 msgstr "File(&F)"
 
-#: src\gme\mainframe.cpp:189
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:250
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:250
 msgid "导入(&I)"
 msgstr "Import(&I)"
 
-#: src\gme\mainframe.cpp:189
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:250
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:250
 msgid "从文件中导入模型到当前场景"
 msgstr "Import Models To Current Scene From Files"
 
-#: src\gme\mainframe.cpp:190
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:251
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:251
 msgid "删除(&D)"
 msgstr "Delete(&D)"
 
-#: src\gme\mainframe.cpp:190
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:251
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:251
 msgid "删除选中模型"
 msgstr "Delete Selected Model"
 
-#: src\gme\mainframe.cpp:193 src\gme\mainframe.cpp:286
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:254
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:389
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:254
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:389
 msgid "开始渲染"
 msgstr "Start Rendering"
 
-#: src\gme\mainframe.cpp:193
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:254
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:254
 msgid "开始渲染当前场景"
 msgstr "Start Rendering Current Scene"
 
-#: src\gme\mainframe.cpp:194 src\gme\mainframe.cpp:287
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:255
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:390
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:255
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:390
 msgid "结束渲染"
 msgstr "Stop Rendering"
 
-#: src\gme\mainframe.cpp:194
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:255
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:255
 msgid "结束当前场景的渲染"
 msgstr "Stop Rendering Current Scene"
 
-#: src\gme\mainframe.cpp:195 src\gme\mainframe.cpp:288
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:256
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:391
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:256
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:391
 msgid "暂停渲染"
 msgstr "Pause Rendering"
 
-#: src\gme\mainframe.cpp:195
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:256
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:256
 msgid "暂停渲染当前场景"
 msgstr "Pause Rendering Current Scene"
 
-#: src\gme\mainframe.cpp:199
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:261
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:261
 msgid "锁定(&L)"
 msgstr "Lock(&L)"
 
-#: src\gme\mainframe.cpp:199
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:262
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:262
 msgid "锁定窗口。"
 msgstr "Lock Window"
 
-#: src\gme\mainframe.cpp:200
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:263
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:263
 msgid "平移(&P)"
 msgstr "Translation(&P)"
 
-#: src\gme\mainframe.cpp:200
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:264
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:264
 msgid "平移控制。"
 msgstr "Translation Control"
 
-#: src\gme\mainframe.cpp:201
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:265
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:265
 msgid "旋转(&R)"
 msgstr "Rotation(&R)"
 
-#: src\gme\mainframe.cpp:201
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:266
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:266
 msgid "自身旋转。"
 msgstr "Self-rotation"
 
-#: src\gme\mainframe.cpp:202
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:267
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:267
 msgid "焦点旋转(&C)"
 msgstr "Rotate Round Focus Point(&C)"
 
-#: src\gme\mainframe.cpp:202
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:268
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:268
 msgid "绕摄像机焦点旋转。"
 msgstr "Rotate Round Camera Focus"
 
-#: src\gme\mainframe.cpp:203
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:269
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:269
 msgid "缩放(&Z)"
 msgstr "Zoom(&Z)"
 
-#: src\gme\mainframe.cpp:203
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:270
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:270
 msgid "缩放控制。"
 msgstr "Zoom Control"
 
-#: src\gme\mainframe.cpp:204
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:271
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:271
+msgid "选择(&S)"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:272
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:272
+msgid "点击选择模式。"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:273
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:273
 msgid "编辑模式(&M)"
 msgstr "Modify Mode(&M)"
 
-#: src\gme\mainframe.cpp:204
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:273
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:273
 msgid "控制主窗口的编辑模式。"
 msgstr "Main Window Edit Mode Control"
 
-#: src\gme\mainframe.cpp:206
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:276
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:276
+msgid "自动对正(&A)"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:277
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:277
+msgid "选择物体时自动校正摄像机中心点."
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:279
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:279
 msgid "编辑(&E)"
 msgstr "Edit(&E)"
 
-#: src\gme\mainframe.cpp:211
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:284
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:284
 msgid "对象一览(&O)"
 msgstr "Object View(&O)"
 
-#: src\gme\mainframe.cpp:211
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:284
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:284
 msgid "显示/隐藏对象一览面板"
 msgstr "Display / Hide Object View"
 
-#: src\gme\mainframe.cpp:212
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:285
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:285
 msgid "属性设置(&P)"
 msgstr "Properties Setting"
 
-#: src\gme\mainframe.cpp:212
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:285
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:285
 msgid "显示/隐藏属性面板"
 msgstr "Display / Hide Properties Panel"
 
-#: src\gme\mainframe.cpp:213
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:286
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:286
 msgid "系统日志(&L)"
 msgstr "System Log(&L)"
 
-#: src\gme\mainframe.cpp:213
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:286
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:286
 msgid "显示/隐藏系统日志面板"
 msgstr "Display / Hide System Log"
 
-#: src\gme\mainframe.cpp:217
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:290
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:290
 msgid "校正文档(&A)"
 msgstr "Adjustment Document(&A)"
 
-#: src\gme\mainframe.cpp:217
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:290
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:290
 msgid "根据显示区域的大小自动设置渲染文档的尺寸。"
 msgstr "Adjustment document size with Display Area"
 
-#: src\gme\mainframe.cpp:218
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:291
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:291
 msgid "实际尺寸(&P)"
 msgstr "Actual Size(&P)"
 
-#: src\gme\mainframe.cpp:218
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:291
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:291
 msgid "按照文档的实际尺寸显示。"
 msgstr ""
 "Display with document size, if document large than view area,scrollbar is "
 "show."
 
-#: src\gme\mainframe.cpp:219
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:292
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:292
 msgid "全屏缩放(&P)"
 msgstr "Zoom(&P)"
 
-#: src\gme\mainframe.cpp:219
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:292
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:292
 msgid "自动缩放以充满全屏。"
 msgstr "Scaled to fill the full view area."
 
-#: src\gme\mainframe.cpp:220
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:293
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:293
 msgid "等比缩放(&P)"
 msgstr "Geometric Scaling(&P)"
 
-#: src\gme\mainframe.cpp:220
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:293
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:293
 msgid "自动缩放到全屏并保持文档的横纵必不变。"
 msgstr "Auto-Scaled To Fill The Full Screen and Keep Aspect Unchanged"
 
-#: src\gme\mainframe.cpp:221
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:294
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:294
 msgid "显示方式(&M)"
 msgstr "Display Mode(&M)"
 
-#: src\gme\mainframe.cpp:221
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:294
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:294
 msgid "控制主窗口如何匹配渲染图的尺寸。"
 msgstr "Tell The Main Window How To Match The Size Of Rendering Pics."
 
-#: src\gme\mainframe.cpp:225
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:295
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:295
+msgid "标识选中对象(&Z)"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:296
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:296
+msgid "在编辑视图中标识选中对象。"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:300
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:300
 msgid "Trace(&A)"
 msgstr "Trace(&A)"
 
-#: src\gme\mainframe.cpp:225
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:300
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:300
 msgid "设置日志级别到Trace"
 msgstr "Set Log Level to Trace"
 
-#: src\gme\mainframe.cpp:226
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:301
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:301
 msgid "Debug(&D)"
 msgstr "Debug(&D)"
 
-#: src\gme\mainframe.cpp:226
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:301
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:301
 msgid "设置日志级别到Debug"
 msgstr "Set Log Level to Debug"
 
-#: src\gme\mainframe.cpp:227
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:302
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:302
 msgid "Verbose(&V)"
 msgstr "Verbose(&V)"
 
-#: src\gme\mainframe.cpp:227
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:302
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:302
 msgid "设置日志级别到Verbose"
 msgstr "Set Log Level to Verbose"
 
-#: src\gme\mainframe.cpp:228
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:303
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:303
 msgid "Message(&M)"
 msgstr "Message(&M)"
 
-#: src\gme\mainframe.cpp:228
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:303
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:303
 msgid "设置日志级别到Message"
 msgstr "Set Log Level to Message"
 
-#: src\gme\mainframe.cpp:229
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:304
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:304
 msgid "Status(&S)"
 msgstr "Status(&S)"
 
-#: src\gme\mainframe.cpp:229
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:304
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:304
 msgid "设置日志级别到Status"
 msgstr "Set Log Level to Status"
 
-#: src\gme\mainframe.cpp:230
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:305
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:305
 msgid "Warning(&W)"
 msgstr "Warning(&W)"
 
-#: src\gme\mainframe.cpp:230
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:305
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:305
 msgid "设置日志级别到Warning"
 msgstr "Set Log Level to Warning"
 
-#: src\gme\mainframe.cpp:231
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:306
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:306
 msgid "Error(&E)"
 msgstr "Error(&E)"
 
-#: src\gme\mainframe.cpp:231
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:306
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:306
 msgid "设置日志级别到Error"
 msgstr "Set Log Level to Error"
 
-#: src\gme\mainframe.cpp:232
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:307
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:307
 msgid "SysError(&S)"
 msgstr "System Error(&S)"
 
-#: src\gme\mainframe.cpp:232
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:307
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:307
 msgid "设置日志级别到SysError"
 msgstr "Set Log Level to SysError"
 
-#: src\gme\mainframe.cpp:233
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:308
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:308
 msgid "FAtalError(&F)"
 msgstr "Fatal Error(&F)"
 
-#: src\gme\mainframe.cpp:233
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:308
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:308
 msgid "设置日志级别到FAtalError"
 msgstr "Set Log Level to FatalError"
 
-#: src\gme\mainframe.cpp:234
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:309
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:309
 msgid "日志级别(&L)"
 msgstr "Log Level(&L)"
 
-#: src\gme\mainframe.cpp:234
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:309
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:309
 msgid "设置系统显示的日志级别。"
 msgstr "Set Log Level Displayed by System"
 
-#: src\gme\mainframe.cpp:236
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:311
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:311
 msgid "视图(&V)"
 msgstr "View(&V)"
 
-#: src\gme\mainframe.cpp:241 src\gme\mainframe.cpp:301
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:316
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:316
+msgid "强制刷新"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:316
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:316
+msgid "每次编辑时强制刷新GPU缓冲。"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:320
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:320
+msgid "数据有效性校正(&A)"
+msgstr "Validate Data Structure(&A)"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:320
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:320
+msgid "检查导入模型的索引、动画以及骨骼的关联有效性，如果无效，自动校正之。"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:321
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:321
+msgid "合并相同顶点(&J)"
+msgstr "Join Identical Vertices(&J)"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:321
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:321
+msgid "自动合并具有相同坐标的顶点。"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:322
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:322
+msgid "移除冗余材质(&R)"
+msgstr "Remove Redundant Materials(&R)"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:322
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:322
+msgid "将冗余材质移除。"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:323
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:323
+msgid "提升缓冲效率(&I)"
+msgstr "Improve Cache Locality(&I)"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:323
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:323
+msgid "校正模型以提升ACMR(average post-transform vertex cache miss ratio)。"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:324
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:324
+msgid "校正反转法线(&F)"
+msgstr "Fix Infacing Normals(&F)"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:324
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:324
+msgid "根据包围盒方向尝试校正错误方向的法线。"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:325
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:325
+msgid "退化校正(&D)"
+msgstr "Find Degenerates(&D)"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:325
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:325
+msgid "由于点的移除，有些面会退化为点或者线，退化校正会把这些点和线移除。"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:326
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:326
+msgid "无效数据校正(&V)"
+msgstr "Find Invalid Data(&V)"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:326
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:326
+msgid "检查是否有原点法线以及溢出数据，并自动校正这些数据。"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:327
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:327
+msgid "UV反转(&U)"
+msgstr "Flip UVs(&U)"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:327
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:327
+msgid "反转UV以适应导出器数据。"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:328
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:328
+msgid "模型合并(&O)"
+msgstr "Reduce meshes(&O)"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:328
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:328
+msgid "尝试合并模型并保持绘制结果不变。"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:329
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:329
+msgid "骨骼解绑(&B)"
+msgstr "Debone(&B)"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:329
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:329
+msgid "尝试按照初始位置解绑骨骼，这允许我们渲染封套后的模型。"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:331
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:331
+msgid "产生顶点法线(&G)"
+msgstr "Gen Smooth Normals(&G)"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:331
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:331
+msgid "如果模型中未包含法线，自动计算基于顶点的法线，这将产生光滑感。"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:332
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:332
+msgid "忽略法线(&I)"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:332
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:332
+msgid "忽略模型中包含的法线信息，在某些场合下，这将减少黑面出现的几率。"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:333
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:333
+msgid "模型法线(&M)"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:333
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:333
+msgid ""
+"只有模型中包含了法线信息，才读取法线，这将是否使用法线的控制权交给导出器决"
+"定。"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:336
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:336
+msgid "加载设定"
+msgstr "Import Options"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:336
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:336
+msgid "设定导入外部模型时对模型的自动处理。"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:338
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:338
+msgid "设置(&S)"
+msgstr "Properties Setting"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:343
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:421
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:343
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:421
 msgid "关于(&A)"
 msgstr "About(&A)"
 
-#: src\gme\mainframe.cpp:241
-msgid "关于我们的信息"
-msgstr "About Us"
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:343
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:785
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:343
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:785
+msgid "关于飞鹿材质编辑器"
+msgstr ""
 
-#: src\gme\mainframe.cpp:243
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:346
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:346
 msgid "帮助(&H)"
 msgstr "Help(&H)"
 
-#: src\gme\mainframe.cpp:262 src\gme\mainframe.cpp:264
-#: src\gme\mainframe.cpp:265
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:365
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:367
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:368
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:365
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:367
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:368
 msgid "File"
 msgstr "File"
 
-#: src\gme\mainframe.cpp:262
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:365
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:365
 msgid "打开"
 msgstr "Open"
 
-#: src\gme\mainframe.cpp:264
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:367
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:367
 msgid "保存"
 msgstr "Save"
 
-#: src\gme\mainframe.cpp:265
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:368
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:368
 msgid "导出"
 msgstr "Export"
 
-#: src\gme\mainframe.cpp:269
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:372
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:372
 msgid "filetoolbar"
 msgstr "File Toolbar"
 
-#: src\gme\mainframe.cpp:269
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:372
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:372
 msgid "文件操作工具栏"
 msgstr "File Operations Toolbar"
 
-#: src\gme\mainframe.cpp:283 src\gme\mainframe.cpp:284
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:386
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:387
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:386
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:387
 msgid "Edit"
 msgstr "Edit"
 
-#: src\gme\mainframe.cpp:283
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:386
+#: D:\source\glue\gmeditor/src/gme/objectview.cpp:364
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:386
+#: D:\source\glue\gmeditor\src\gme/objectview.cpp:364
 msgid "导入"
 msgstr "Import"
 
-#: src\gme\mainframe.cpp:284
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:387
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:387
 msgid "删除"
 msgstr "Delete"
 
-#: src\gme\mainframe.cpp:286 src\gme\mainframe.cpp:287
-#: src\gme\mainframe.cpp:288
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:389
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:390
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:391
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:389
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:390
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:391
 msgid "RenderCtrl"
 msgstr "Render Control"
 
-#: src\gme\mainframe.cpp:291
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:394
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:394
 msgid "edittoolbar"
 msgstr "Edit Toolbar"
 
-#: src\gme\mainframe.cpp:291
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:394
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:394
 msgid "编辑场景工具栏"
 msgstr "Scene Editing Toolbar"
 
-#: src\gme\mainframe.cpp:301
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:402
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:402
+msgid "锁定"
+msgstr "Lock(&L)"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:402
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:402
+msgid "锁定说明"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:403
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:403
+msgid "平移"
+msgstr "Translation(&P)"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:403
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:403
+msgid "平移说明"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:404
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:404
+msgid "旋转"
+msgstr "Rotation(&R)"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:404
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:404
+msgid "旋转说明"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:405
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:405
+msgid "焦点旋转"
+msgstr "Rotate Round Focus Point(&C)"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:405
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:405
+msgid "焦点旋转说明"
+msgstr "Rotate Round Focus Point(&C)"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:406
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:406
+msgid "缩放"
+msgstr "Zoom(&Z)"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:406
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:406
+msgid "缩放说明"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:407
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:407
+msgid "选择"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:407
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:407
+msgid "选择说明"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:411
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:411
+msgid "编辑工具栏"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:411
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:411
+msgid "编辑"
+msgstr "Edit(&E)"
+
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:421
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:421
 msgid "Help"
 msgstr "Help"
 
-#: src\gme\mainframe.cpp:305
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:425
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:425
 msgid "helptoolbar"
 msgstr "Help Toolbar"
 
-#: src\gme\mainframe.cpp:305
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:425
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:425
 msgid "帮助工具栏"
 msgstr "Help Toolbar"
 
-#: src\gme\mainframe.cpp:318
+#: D:\source\glue\gmeditor/src/gme/mainframe.cpp:438
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:438
 msgid "就绪"
 msgstr "Ready"
 
-#: src\gme\mainframe.cpp:498
-msgid "这是一个ABOUT消息框"
-msgstr ""
-"Glue Material Editor (GMEditor) is a faked realtime 3D renderer based SLG, "
-"using GPU to accelerate the ray intersection process. You can change "
-"materials easily, and get you result fast…really fast."
-
-#: src\gme\mainframe.cpp:499
-msgid "About us"
-msgstr "About Us"
-
-#: src/gme/propgrid.cpp:78
-msgid "高动态图映射"
-msgstr "High Dynamic Graph Mapping"
-
-#: src/gme/propgrid.cpp:80
-msgid "材质属性"
-msgstr "Material Properties"
-
-#: src/gme/objectview.cpp:202
+#: D:\source\glue\gmeditor/src/gme/objectview.cpp:230
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:384
+#: D:\source\glue\gmeditor\src\gme/objectview.cpp:230
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:384
 msgid "名称"
 msgstr "Name"
 
-#: src/gme/gmestatus.cpp:114
-msgid "设置次数终止"
-msgstr "Set The Number Of Times To Stop"
+#: D:\source\glue\gmeditor/src/gme/objectview.cpp:365
+#: D:\source\glue\gmeditor\src\gme/objectview.cpp:365
+msgid "居中显示"
+msgstr ""
 
-#: src/gme/gmestatus.cpp:115
-msgid "设置时间终止"
-msgstr "Set The Time To Stop"
+#: D:\source\glue\gmeditor/src/gme/objectview.cpp:366
+#: D:\source\glue\gmeditor\src\gme/objectview.cpp:366
+msgid "设置焦点"
+msgstr ""
 
-#: src/gme/gmestatus.cpp:116
-msgid "设置覆盖率终止"
-msgstr "Set The Coverage To Stop"
+#: D:\source\glue\gmeditor/src/gme/propgrid.cpp:78
+#: D:\source\glue\gmeditor\src\gme/propgrid.cpp:78
+msgid "高动态图映射"
+msgstr "High Dynamic Graph Mapping"
 
-#: src/gme/gmestatus.cpp:117
-msgid "永久渲染"
-msgstr "Permanent Rendering"
+#: D:\source\glue\gmeditor/src/gme/propgrid.cpp:80
+#: D:\source\glue\gmeditor\src\gme/propgrid.cpp:80
+msgid "材质属性"
+msgstr "Material Properties"
 
-#: src/gme/property/envlightpage.cpp:277 src/gme/property/envlightpage.cpp:320
-msgid "方向"
-msgstr "Direction"
-
-#: src/gme/property/envlightpage.cpp:279 src/gme/property/envlightpage.cpp:326
-msgid "turbidity"
-msgstr "Turbidity"
-
-#: src/gme/property/envlightpage.cpp:281
-msgid "relsize"
-msgstr "Relsize"
-
-#: src/gme/property/envlightpage.cpp:285 src/gme/property/envlightpage.cpp:305
-#: src/gme/property/envlightpage.cpp:324 src/gme/property/materialpage.cpp:197
-msgid "增益"
-msgstr "Gain"
-
-#: src/gme/property/envlightpage.cpp:301 src/gme/property/materialpage.cpp:189
-msgid "文件"
-msgstr "File"
-
-#: src/gme/property/envlightpage.cpp:307 src/gme/property/materialpage.cpp:152
-msgid "uDelta"
-msgstr "uDelta"
-
-#: src/gme/property/envlightpage.cpp:308 src/gme/property/materialpage.cpp:153
-msgid "vDelta"
-msgstr "vDelta"
-
-#: src/gme/property/envlightpage.cpp:345
-msgid "HDR环境"
-msgstr "HDR Environment"
-
-#: src/gme/property/envlightpage.cpp:346 src/gme/property/envlightpage.cpp:362
-msgid "阳光"
-msgstr "Sunlight"
-
-#: src/gme/property/envlightpage.cpp:347 src/gme/property/materialpage.cpp:328
-msgid "disable"
-msgstr "Disable"
-
-#: src/gme/property/envlightpage.cpp:349
+#: D:\source\glue\gmeditor/src/gme/propgrid.cpp:81
+#: D:\source\glue\gmeditor/src/gme/property/envlightpage.cpp:532
+#: D:\source\glue\gmeditor\src\gme/propgrid.cpp:81
+#: D:\source\glue\gmeditor\src\gme/property/envlightpage.cpp:532
 msgid "环境光"
 msgstr "Ambient Light"
 
-#: src/gme/property/envlightpage.cpp:356
+#: D:\source\glue\gmeditor/src/gme/property/envlightpage.cpp:450
+#: D:\source\glue\gmeditor/src/gme/property/envlightpage.cpp:504
+#: D:\source\glue\gmeditor\src\gme/property/envlightpage.cpp:450
+#: D:\source\glue\gmeditor\src\gme/property/envlightpage.cpp:504
+msgid "方向"
+msgstr "Direction"
+
+#: D:\source\glue\gmeditor/src/gme/property/envlightpage.cpp:452
+#: D:\source\glue\gmeditor/src/gme/property/envlightpage.cpp:509
+#: D:\source\glue\gmeditor\src\gme/property/envlightpage.cpp:452
+#: D:\source\glue\gmeditor\src\gme/property/envlightpage.cpp:509
+msgid "turbidity"
+msgstr "Turbidity"
+
+#: D:\source\glue\gmeditor/src/gme/property/envlightpage.cpp:454
+#: D:\source\glue\gmeditor\src\gme/property/envlightpage.cpp:454
+msgid "relsize"
+msgstr "Relsize"
+
+#: D:\source\glue\gmeditor/src/gme/property/envlightpage.cpp:464
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:198
+#: D:\source\glue\gmeditor\src\gme/property/envlightpage.cpp:464
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:198
+msgid "增益"
+msgstr "Gain"
+
+#: D:\source\glue\gmeditor/src/gme/property/envlightpage.cpp:466
+#: D:\source\glue\gmeditor\src\gme/property/envlightpage.cpp:466
+msgid "红"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/property/envlightpage.cpp:467
+#: D:\source\glue\gmeditor\src\gme/property/envlightpage.cpp:467
+msgid "绿"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/property/envlightpage.cpp:468
+#: D:\source\glue\gmeditor\src\gme/property/envlightpage.cpp:468
+msgid "蓝"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/property/envlightpage.cpp:486
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:190
+#: D:\source\glue\gmeditor\src\gme/property/envlightpage.cpp:486
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:190
+msgid "文件"
+msgstr "File"
+
+#: D:\source\glue\gmeditor/src/gme/property/envlightpage.cpp:491
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:152
+#: D:\source\glue\gmeditor\src\gme/property/envlightpage.cpp:491
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:152
+msgid "uDelta"
+msgstr "uDelta"
+
+#: D:\source\glue\gmeditor/src/gme/property/envlightpage.cpp:492
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:153
+#: D:\source\glue\gmeditor\src\gme/property/envlightpage.cpp:492
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:153
+msgid "vDelta"
+msgstr "vDelta"
+
+#: D:\source\glue\gmeditor/src/gme/property/envlightpage.cpp:528
+#: D:\source\glue\gmeditor\src\gme/property/envlightpage.cpp:528
+msgid "HDR环境"
+msgstr "HDR Environment"
+
+#: D:\source\glue\gmeditor/src/gme/property/envlightpage.cpp:529
+#: D:\source\glue\gmeditor/src/gme/property/envlightpage.cpp:545
+#: D:\source\glue\gmeditor\src\gme/property/envlightpage.cpp:529
+#: D:\source\glue\gmeditor\src\gme/property/envlightpage.cpp:545
+msgid "阳光"
+msgstr "Sunlight"
+
+#: D:\source\glue\gmeditor/src/gme/property/envlightpage.cpp:530
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:329
+#: D:\source\glue\gmeditor\src\gme/property/envlightpage.cpp:530
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:329
+msgid "disable"
+msgstr "Disable"
+
+#: D:\source\glue\gmeditor/src/gme/property/envlightpage.cpp:539
+#: D:\source\glue\gmeditor\src\gme/property/envlightpage.cpp:539
 msgid "类型"
 msgstr "Type"
 
-#: src/gme/property/envlightpage.cpp:364
+#: D:\source\glue\gmeditor/src/gme/property/envlightpage.cpp:547
+#: D:\source\glue\gmeditor\src\gme/property/envlightpage.cpp:547
 msgid "开启"
 msgstr "Turn On"
 
-#: src/gme/property/hdrpage.cpp:40
+#: D:\source\glue\gmeditor/src/gme/property/hdrpage.cpp:40
+#: D:\source\glue\gmeditor\src\gme/property/hdrpage.cpp:40
 msgid "linear"
 msgstr "Linear"
 
-#: src/gme/property/hdrpage.cpp:41
+#: D:\source\glue\gmeditor/src/gme/property/hdrpage.cpp:41
+#: D:\source\glue\gmeditor\src\gme/property/hdrpage.cpp:41
 msgid "reinhard02"
 msgstr "Reinhard02"
 
-#: src/gme/property/hdrpage.cpp:42
+#: D:\source\glue\gmeditor/src/gme/property/hdrpage.cpp:42
+#: D:\source\glue\gmeditor\src\gme/property/hdrpage.cpp:42
 msgid "图像映射"
 msgstr "ToneMapping"
 
-#: src/gme/property/hdrpage.cpp:42
+#: D:\source\glue\gmeditor/src/gme/property/hdrpage.cpp:42
+#: D:\source\glue\gmeditor\src\gme/property/hdrpage.cpp:42
 msgid "film.tonemap"
 msgstr "Film.tonemap"
 
-#: src/gme/property/materialpage.cpp:77
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:77
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:77
 msgid "constfloat1"
 msgstr "constfloat1"
 
-#: src/gme/property/materialpage.cpp:78
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:78
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:78
 msgid "constfloat3"
 msgstr "constfloat3"
 
-#: src/gme/property/materialpage.cpp:79
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:79
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:79
 msgid "imagemap"
 msgstr "Imagemap"
 
-#: src/gme/property/materialpage.cpp:80 src/gme/property/materialpage.cpp:254
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:80
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:255
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:80
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:255
 msgid "scale"
 msgstr "Scale"
 
-#: src/gme/property/materialpage.cpp:81
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:81
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:81
 msgid "fresnelapproxn"
 msgstr "Fresnelapproxn"
 
-#: src/gme/property/materialpage.cpp:82
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:82
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:82
 msgid "fresnelapproxk"
 msgstr "Fresnelapproxk"
 
-#: src/gme/property/materialpage.cpp:83 src/gme/property/materialpage.cpp:372
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:83
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:373
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:83
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:373
 msgid "mix"
 msgstr "Mix"
 
-#: src/gme/property/materialpage.cpp:84
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:84
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:84
 msgid "add"
 msgstr "Add"
 
-#: src/gme/property/materialpage.cpp:85
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:85
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:85
 msgid "checkerboard2d"
 msgstr "Checkerboard2d"
 
-#: src/gme/property/materialpage.cpp:86
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:86
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:86
 msgid "checkerboard3d"
 msgstr "Checkerboard3d"
 
-#: src/gme/property/materialpage.cpp:87
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:87
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:87
 msgid "fbm"
 msgstr "fbm"
 
-#: src/gme/property/materialpage.cpp:88
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:88
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:88
 msgid "marble"
 msgstr "marble"
 
-#: src/gme/property/materialpage.cpp:89
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:89
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:89
 msgid "dots"
 msgstr "dots"
 
-#: src/gme/property/materialpage.cpp:90
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:90
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:90
 msgid "brick"
 msgstr "brick"
 
-#: src/gme/property/materialpage.cpp:91
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:91
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:91
 msgid "windy"
 msgstr "windy"
 
-#: src/gme/property/materialpage.cpp:92
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:92
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:92
 msgid "wrinkled"
 msgstr "wrinkled"
 
-#: src/gme/property/materialpage.cpp:93
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:93
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:93
 msgid "uv"
 msgstr "uv"
 
-#: src/gme/property/materialpage.cpp:150
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:150
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:150
 msgid "uScale"
 msgstr "uScale"
 
-#: src/gme/property/materialpage.cpp:151
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:151
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:151
 msgid "vScale"
 msgstr "vScale"
 
-#: src/gme/property/materialpage.cpp:173
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:173
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:173
 msgid "颜色"
 msgstr "Colour"
 
-#: src/gme/property/materialpage.cpp:178
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:178
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:178
 msgid "值"
 msgstr "Value"
 
-#: src/gme/property/materialpage.cpp:206
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:207
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:207
 msgid "伽马"
 msgstr "Gamma"
 
-#: src/gme/property/materialpage.cpp:243 src/gme/property/materialpage.cpp:252
-#: src/gme/property/materialpage.cpp:306
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:244
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:253
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:307
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:244
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:253
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:307
 msgid "octaves"
 msgstr "octaves"
 
-#: src/gme/property/materialpage.cpp:244 src/gme/property/materialpage.cpp:253
-#: src/gme/property/materialpage.cpp:307
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:245
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:254
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:308
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:245
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:254
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:308
 msgid "roughness"
 msgstr "roughness"
 
-#: src/gme/property/materialpage.cpp:255
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:256
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:256
 msgid "variation"
 msgstr "variation"
 
-#: src/gme/property/materialpage.cpp:269
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:270
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:270
 msgid "flemish"
 msgstr "flemish"
 
-#: src/gme/property/materialpage.cpp:270
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:271
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:271
 msgid "running"
 msgstr "running"
 
-#: src/gme/property/materialpage.cpp:271
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:272
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:272
 msgid "english"
 msgstr "english"
 
-#: src/gme/property/materialpage.cpp:272
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:273
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:273
 msgid "herringbone"
 msgstr "herringbone"
 
-#: src/gme/property/materialpage.cpp:273
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:274
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:274
 msgid "basket"
 msgstr "basket"
 
-#: src/gme/property/materialpage.cpp:274
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:275
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:275
 msgid "chain link"
 msgstr "chain link"
 
-#: src/gme/property/materialpage.cpp:279
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:280
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:280
 msgid "brickbond"
 msgstr "brickbond"
 
-#: src/gme/property/materialpage.cpp:282
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:283
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:283
 msgid "brickwidth"
 msgstr "brickwidth"
 
-#: src/gme/property/materialpage.cpp:285
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:286
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:286
 msgid "brickheight"
 msgstr "brickheight"
 
-#: src/gme/property/materialpage.cpp:288
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:289
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:289
 msgid "brickdepth"
 msgstr "brickdepth"
 
-#: src/gme/property/materialpage.cpp:291
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:292
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:292
 msgid "mortarsize"
 msgstr "mortarsize"
 
-#: src/gme/property/materialpage.cpp:294
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:295
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:295
 msgid "brickrun"
 msgstr "brickrun"
 
-#: src/gme/property/materialpage.cpp:297
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:298
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:298
 msgid "brickbevel"
 msgstr "brickbevel"
 
-#: src/gme/property/materialpage.cpp:330
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:331
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:331
 msgid "ies"
 msgstr "ies"
 
-#: src/gme/property/materialpage.cpp:367
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:368
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:368
 msgid "matte"
 msgstr "matte"
 
-#: src/gme/property/materialpage.cpp:368
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:369
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:369
 msgid "mirror"
 msgstr "mirror"
 
-#: src/gme/property/materialpage.cpp:369
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:370
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:370
 msgid "glass"
 msgstr "glass"
 
-#: src/gme/property/materialpage.cpp:370
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:371
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:371
 msgid "metal"
 msgstr "metal"
 
-#: src/gme/property/materialpage.cpp:371
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:372
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:372
 msgid "archglass"
 msgstr "archglass"
 
-#: src/gme/property/materialpage.cpp:373
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:374
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:374
 msgid "null"
 msgstr "null"
 
-#: src/gme/property/materialpage.cpp:374
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:375
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:375
 msgid "mattetranslucent"
 msgstr "mattetranslucent"
 
-#: src/gme/property/materialpage.cpp:375
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:376
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:376
 msgid "glossy2"
 msgstr "glossy2"
 
-#: src/gme/property/materialpage.cpp:376
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:377
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:377
 msgid "metal2"
 msgstr "metal2"
 
-#: src/gme/property/materialpage.cpp:471
+#: D:\source\glue\gmeditor/src/gme/property/materialpage.cpp:472
+#: D:\source\glue\gmeditor\src\gme/property/materialpage.cpp:472
 msgid "多重反射"
 msgstr "Multiple Reflections"
 
-#: src/gme/property/materialpage.cpp:103
-msgid "法线贴图"
-msgstr "Normal"
-
-#: src/gme/property/materialpage.cpp:106
-msgid "凹凸贴图"
-msgstr "Bump"
-
-#: src/gme/property/materialpage.cpp:109
-msgid "光照贴图"
-msgstr "Emission"
-
-#: src/gme/property/materialpage.cpp:112
-msgid "固有色"
-msgstr "Diffuse"
-
-#: src/gme/property/materialpage.cpp:115
-msgid "反射系数"
-msgstr "Reflection"
-
-msgid "对象‘%s'的材质定义:"
-msgstr "material of ‘%s':"
-
-#: src/dm/docio.cpp:316
-msgid ""
-"找不到opencl环境，使用CPU渲染，这将会严重影响您的体验，请检查您的硬件环境以及"
-"驱动设置(可以使用GPU-Z来检查OPENCL环境是否就绪)。"
+#: D:\source\glue\gmeditor/src/gme/filedialog.h:64
+#: D:\source\glue\gmeditor/src/gme/filedialog.h:95
+#: D:\source\glue\gmeditor/src/gme/filedialog.h:119
+#: D:\source\glue\gmeditor\src\gme/filedialog.h:64
+#: D:\source\glue\gmeditor\src\gme/filedialog.h:95
+#: D:\source\glue\gmeditor\src\gme/filedialog.h:119
+msgid "选择打开文件"
 msgstr ""
-"Cannot find OpenCL environment. Start to use the CPU rendering, which will "
-"seriously affect your experience. Please check your hardware environment and "
-"driver settings (you can use GPU-Z to check whether OPENCL environment is "
-"ready)."
 
-#: src/dm/cachefilm.cpp:67
-msgid "invalid format"
-msgstr "invalid format"
+#: D:\source\glue\gmeditor/src/gme/filedialog.h:76
+#: D:\source\glue\gmeditor\src\gme/filedialog.h:76
+msgid "图片保存为"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/filedialog.h:77
+#: D:\source\glue\gmeditor\src\gme/filedialog.h:77
+msgid ""
+"支持文件|*.bmp;*.cut;*.dds;*.exr;*.g3;*.gif;*.hdr;*.ico;*.iff;*.jbig;*.jng;*."
+"jpg;*.jpeg;*.jpg2;*.j2k;*.koa;*.pcd;*.mng;*.pcx;*.pbm;*.pgm;*.ppm;*.pfm;*."
+"png;*.pic;*.psd;*.raw;*.ras;*.sgi;*.tga;*.tif;*.wbmp;*.xbm;*.xpm|BMP文件(*."
+"bmp)|*.bmp|EXR文件(*.exr)|*.exr|GIF文件(*.gif)|*.gif|HDR文件(*.hdr)|*.hdr|ICO"
+"文件(*.ico)|*.ico|JBIG文件(*.jbig)|*.jbig|JNG文件(*.jng)|*.jng|JPEG文件(*."
+"jpeg)|*.jpeg|JPEG-2000文件(*.jpg2)|*.jpg2|JPEG-2000 codestream文件(*.j2k)|*."
+"j2k|PBM文件(*.pbm)|*.pbm|PGM文件(*.pgm)|*.pgm|PPM文件(*.ppm)|*.ppm|PFM文件(*."
+"pfm)|*.pfm|PNG文件(*.png)|*.png|TARGA文件(*.targa)|*.targa|TIFF文件(*.tiff)|"
+"*.tiff|WBMP文件(*.wbmp)|*.wbmp|XPM文件(*.xpm)|*.xpm|所有文件(*.*)|*.*"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/filedialog.h:107
+#: D:\source\glue\gmeditor\src\gme/filedialog.h:107
+msgid "选择导出文件"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/filedialog.h:108
+#: D:\source\glue\gmeditor\src\gme/filedialog.h:108
+msgid "SPS文件(*.slg;*.sps)|*.slg;*.sps|所有文件(*.*)|*.*"
+msgstr ""
+
+#: D:\source\glue\gmeditor/src/gme/filedialog.h:120
+#: D:\source\glue\gmeditor\src\gme/filedialog.h:120
+msgid ""
+"支持文件|*.3ds;*.blend;*.dae;*.fbx;*.ifc;*.ase;*.dxf;*.hmp;*.md2;*.md3;*.md5;"
+"*.mdc;*.mdl;*.nff;*.ply;*.stl;*.x;*.obj;*.smd;*.lwo;*.lxo;*.lws;*.ter;*.ac3d;"
+"*.ms3d;*.cob;*.q3bsp;*.xgl;*.csm;*.bvh;*.b3d;*.ndo;*.xml;*.q3d|3D MAX模型文件"
+"(*.3ds)|*.3ds|Blender文件(*.blend)|*.blend|Collada文件(*.dae)|*.dae|Kaydara数"
+"据交换文件(*.fbx)|*.fbx|IFC-STEP文件(*.ifc)|*.ifc|ASII场景导出文件(*.ase)|*."
+"ase|图形交换文件(*.dxf)|*.dxf|地形实体文件(*.hmp)|*.hmp|Quake 2模型文件(*."
+"md2)|*.md2|Quake 3模型文件(*.md3)|*.md3|校验和文件(*.md5)|*.md5|MDC文件(*."
+"mdc)|*.mdc|3DGS模型实体文件(*.mdl)|*.mdl|场景描述文件(*.nff)|*.nff|PLY文件(*."
+"ply)|*.ply|STL文件(*.stl)|*.stl|Amapi模型文件(*.x)|*.x|OBJ文件(*.obj)|*.obj|"
+"源引擎SDK模型文件(*.smd)|*.smd|LightWave物体文件(*.lwo)|*.lwo|modo 302图形文"
+"件(*.lxo)|*.lxo|LightWave场景文件(*.lws)|*.lws|TER文件(*.ter)|*.ter|3D格式数"
+"据文件(*.ac3d)|*.ac3d|MilkShape模型文件(*.ms3d)|*.ms3d|Caligari trueSpace 3D"
+"物体文件(*.cob)|*.cob|Q3BSP文件(*.q3bsp)|*.q3bsp|XGL 3D CAD模型文件(*.xgl)|*."
+"xgl|Character Studio标识文件(*.csm)|*.csm|Biovision层次动画文件(*.bvh)|*.bvh|"
+"Blitz3D/Max/Plus 贴图及网格文件(*.b3d)|*.b3d|Nendo文件(*.ndo)|*.ndo|Ogre XML"
+"文件(*.xml)|*.xml|Quickdraw 3D文件(*.q3d)|*.q3d|CTM文件(*.ctm)|*.ctm|所有文件"
+"(*.*)|*.*"
+msgstr ""
+
+#~ msgid "关于我们的信息"
+#~ msgstr "About Us"
+
+#~ msgid "这是一个ABOUT消息框"
+#~ msgstr ""
+#~ "Glue Material Editor (GMEditor) is a faked realtime 3D renderer based "
+#~ "SLG, using GPU to accelerate the ray intersection process. You can change "
+#~ "materials easily, and get you result fast…really fast."
+
+#~ msgid "About us"
+#~ msgstr "About Us"
+
+#~ msgid "法线贴图"
+#~ msgstr "Normal"
+
+#~ msgid "凹凸贴图"
+#~ msgstr "Bump"
+
+#~ msgid "光照贴图"
+#~ msgstr "Emission"
+
+#~ msgid "固有色"
+#~ msgstr "Diffuse"
+
+msgid "表面色"
+msgstr "Subsurface"
+
+msgid "texture"
+msgstr "texture"
+
+#~ msgid "反射系数"
+#~ msgstr "Reflection"
+
+#~ msgid "对象‘%s'的材质定义:"
+#~ msgstr "material of ‘%s':"
+
+#~ msgid ""
+#~ "找不到opencl环境，使用CPU渲染，这将会严重影响您的体验，请检查您的硬件环境"
+#~ "以及驱动设置(可以使用GPU-Z来检查OPENCL环境是否就绪)。"
+#~ msgstr ""
+#~ "Cannot find OpenCL environment. Start to use the CPU rendering, which "
+#~ "will seriously affect your experience. Please check your hardware "
+#~ "environment and driver settings (you can use GPU-Z to check whether "
+#~ "OPENCL environment is ready)."
+
+#~ msgid "invalid format"
+#~ msgstr "invalid format"

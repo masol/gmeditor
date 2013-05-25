@@ -50,6 +50,10 @@ public:
     bool    isViewSelection(void);
     void    setViewSelection(bool bv);
 
+    ///@brief 指示是否显示阳光方向。
+    bool    isViewSkylightDir(void);
+    void    setViewSkylightDir(bool bv);
+
     void    setEditmodeFromCmd(int mode);
     int     getEditmodeCmd(void);
 protected:

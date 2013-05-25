@@ -339,6 +339,8 @@ ExtraObjectManager::importCTMObj(const std::string& path,ObjectNode &obj,ImportC
         memcpy(pTri,indices,sizeof(luxrays::Triangle) * triCount);
         luxrays::UV *uv = NULL;
         luxrays::Normal *normal = NULL;
+        luxrays::Spectrum *cols = NULL;
+        float   *alpha = NULL;
         if(uvarray)
         {
             uv = new luxrays::UV[vertCount];
@@ -352,8 +354,19 @@ ExtraObjectManager::importCTMObj(const std::string& path,ObjectNode &obj,ImportC
 
         obj.useplynormals(normal != NULL);
 
+        if(obj.alpha() < 1.0f)
+        {
+            alpha = new float[vertCount];
+            //cols = new luxrays::Spectrum[vertCount];
+            for(unsigned int i = 0; i < vertCount; i++)
+            {
+                alpha[i] = obj.alpha();
+                //cols[i].r = cols[i].g = cols[i].b = 0.0f;
+            }
+        }
+
         //define object.
-        std::string  meshIdentify = DefineObject(ctx.scene(),(const long)vertCount, (const long)triCount,pPoint, pTri, normal, uv, NULL,NULL, obj.useplynormals() );
+        std::string  meshIdentify = DefineObject(ctx.scene(),(const long)vertCount, (const long)triCount,pPoint, pTri, normal, uv, cols,alpha, obj.useplynormals() );
 
         // Add the object to the scene
         ctx.scene()->AddObject(obj.id(), meshIdentify,
@@ -447,6 +460,7 @@ ExtraObjectManager::importAiMesh(const aiScene *assimpScene,aiMesh* pMesh,Object
         memcpy(pPoint,pMesh->mVertices,sizeof(luxrays::Point) * pMesh->mNumVertices);
         luxrays::Triangle   *pTri = new luxrays::Triangle[pMesh->mNumFaces];
         luxrays::UV *uv = NULL;
+        float  *alpha = NULL;
         //@fixme: support normal.
         luxrays::Normal *normal = NULL;
 
@@ -490,10 +504,19 @@ ExtraObjectManager::importAiMesh(const aiScene *assimpScene,aiMesh* pMesh,Object
                 memcpy(normal,pMesh->mNormals,sizeof(luxrays::Normal) * pMesh->mNumVertices);
             }
 
+            if(obj.alpha() < 1.0f)
+            {
+                alpha = new float[pMesh->mNumVertices];
+                for(unsigned int i = 0; i < pMesh->mNumFaces; i++)
+                {
+                    alpha[i] = obj.alpha();
+                }
+            }
+
             obj.useplynormals(normal != NULL);
 
 
-            std::string     meshIdentify = DefineObject(ctx.scene(),pMesh->mNumVertices, realFace,pPoint, pTri, normal, uv, NULL,NULL,obj.useplynormals());
+            std::string     meshIdentify = DefineObject(ctx.scene(),pMesh->mNumVertices, realFace,pPoint, pTri, normal, uv, NULL,alpha,obj.useplynormals());
 
             ///@fixme : 这里加入matrix导入.
             // Add the object to the scene
@@ -646,6 +669,9 @@ ExtraObjectManager::importObjects(type_xml_node &node,ObjectNode &objNode,Import
             else if(boost::iequals("matid",pAttr->name()))
             {
                 objNode.m_matid = pAttr->value();
+            }else if(boost::iequals(constDef::alpha,pAttr->name()))
+            {
+                objNode.m_alpha = boost::lexical_cast<float>(pAttr->value());
             }
 			pAttr = pAttr->next_attribute();
 		}

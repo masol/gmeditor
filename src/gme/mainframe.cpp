@@ -133,6 +133,11 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 
 	EVT_MENU(cmd::GID_VIEWSELECTION,MainFrame::onViewSelection)
 	EVT_UPDATE_UI(cmd::GID_VIEWSELECTION,MainFrame::onUpdateViewSelection)
+	EVT_MENU(cmd::GID_VIEWSKYLIGHTDIR,MainFrame::onViewSkylightDir)
+	EVT_UPDATE_UI(cmd::GID_VIEWSKYLIGHTDIR,MainFrame::onUpdateViewSkylightDir)
+	EVT_MENU(cmd::GID_CLEAR_LOG,MainFrame::onClearLog)
+	EVT_UPDATE_UI(cmd::GID_CLEAR_LOG,MainFrame::onUpdateClearLog)
+
 
 	EVT_CLOSE(MainFrame::onClose)
 END_EVENT_TABLE()
@@ -198,6 +203,9 @@ MainFrame::appendShortCutString(int cmdid,wxString &shortCut)
     case cmd::GID_MD_LOCK:
         shortCut.append("\tCtrl+L");
         break;
+    case wxID_SAVE:
+        shortCut.append("\tCtrl+S");
+        break;
     case cmd::GID_MD_PANE:
         shortCut.append("\tCtrl+P");
         break;
@@ -219,6 +227,12 @@ MainFrame::appendShortCutString(int cmdid,wxString &shortCut)
     case cmd::GID_VIEWSELECTION:
         shortCut.append("\tCtrl+V");
         break;
+    case cmd::GID_VIEWSKYLIGHTDIR:
+        shortCut.append("\tCtrl+I");
+        break;
+    case cmd::GID_MD_SETSUNLIGHT:
+        shortCut.append("\tCtrl+W");
+        break;
     default:
         break;
     }
@@ -236,7 +250,9 @@ MainFrame::createMenubar()
         wxMenu *pFileMenu = new wxMenu();
         pFileMenu->Append(wxID_OPEN, gmeWXT("Open"), gmeWXT("打开已有场景"));
         pFileMenu->AppendSeparator();
-        pFileMenu->Append(wxID_SAVE, gmeWXT("保存(&S)"), gmeWXT("保存现有场景"));
+
+        name = gmeWXT("保存(&S)");
+        pFileMenu->Append(wxID_SAVE, appendShortCutString(wxID_SAVE,name), gmeWXT("保存现有场景"));
         pFileMenu->Append(cmd::GID_SAVE_IMAGE, gmeWXT("保存图片(&S)"), gmeWXT("保存当前渲染结果"));
         pFileMenu->Append(cmd::GID_EXPORT, gmeWXT("导出(&E)"), gmeWXT("导出现有场景"));
         pFileMenu->AppendSeparator();
@@ -270,6 +286,9 @@ MainFrame::createMenubar()
 		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_ZOOM, appendShortCutString(cmd::GID_MD_ZOOM,name), gmeWXT("缩放控制。"));
 		name = gmeWXT("选择(&S)");
 		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_SELECT, appendShortCutString(cmd::GID_MD_SELECT,name), gmeWXT("点击选择模式。"));
+		name = gmeWXT("阳光方向(&S)");
+		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_SETSUNLIGHT, appendShortCutString(cmd::GID_MD_SETSUNLIGHT,name), gmeWXT("进入阳光方向编辑模式。"));
+
         pEditMenu->AppendSubMenu(pEditmodeMenu,gmeWXT("编辑模式(&M)"),gmeWXT("控制主窗口的编辑模式。"));
 
 		pEditMenu->AppendSeparator();
@@ -294,6 +313,8 @@ MainFrame::createMenubar()
         pViewMenu->AppendSubMenu(pViewModeMenu,gmeWXT("显示方式(&M)"),gmeWXT("控制主窗口如何匹配渲染图的尺寸。"));
         name = gmeWXT("标识选中对象(&Z)");
 		pViewMenu->AppendCheckItem(cmd::GID_VIEWSELECTION, appendShortCutString(cmd::GID_VIEWSELECTION,name), gmeWXT("在编辑视图中标识选中对象。"));
+        name = gmeWXT("显示阳光方向(&L)");
+		pViewMenu->AppendCheckItem(cmd::GID_VIEWSKYLIGHTDIR, appendShortCutString(cmd::GID_VIEWSKYLIGHTDIR,name), gmeWXT("在编辑视图中居中显示阳光方向。"));
 
 		pViewMenu->AppendSeparator();
         wxMenu *pLogLevel = new wxMenu();
@@ -307,6 +328,7 @@ MainFrame::createMenubar()
 		pLogLevel->AppendRadioItem(cmd::GID_LOG_SYSERROR, gmeWXT("SysError(&S)"), gmeWXT("设置日志级别到SysError"));
 		pLogLevel->AppendRadioItem(cmd::GID_LOG_FATALERROR, gmeWXT("FAtalError(&F)"), gmeWXT("设置日志级别到FAtalError"));
 		pViewMenu->AppendSubMenu(pLogLevel,gmeWXT("日志级别(&L)"),gmeWXT("设置系统显示的日志级别。"));
+        pViewMenu->Append(cmd::GID_CLEAR_LOG,gmeWXT("清空日志(&C)"),gmeWXT("清空当前日志的内容。"));
 
 		pMenuBar->Append(pViewMenu, gmeWXT("视图(&V)"));
 	}
@@ -405,6 +427,7 @@ MainFrame::createToolbar()
 		pViewTbr->AddTool(cmd::GID_MD_ROTATE_AROUND_FOCUS,gmeWXT("焦点旋转"),wxBitmap(xpm::help),gmeWXT("焦点旋转说明"),wxITEM_RADIO);
 		pViewTbr->AddTool(cmd::GID_MD_ZOOM,gmeWXT("缩放"),wxBitmap(xpm::help),gmeWXT("缩放说明"),wxITEM_RADIO);
 		pViewTbr->AddTool(cmd::GID_MD_SELECT,gmeWXT("选择"),wxBitmap(xpm::help),gmeWXT("选择说明"),wxITEM_RADIO);
+		pViewTbr->AddTool(cmd::GID_MD_SETSUNLIGHT,gmeWXT("阳光方向"),wxBitmap(xpm::help),gmeWXT("阳光方向说明"),wxITEM_RADIO);
 
 		pViewTbr->Realize();
 
@@ -694,8 +717,7 @@ MainFrame::onMenuFileOpen(wxCommandEvent &event)
         {
             wxBusyCursor wait;
             gme::DocIO  dio;
-            m_filepath = dialog.GetPath();
-		    dio.loadScene(m_filepath);
+		    dio.loadScene(dialog.GetPath());
         }
         refreshMouseEvt();
 	}
@@ -725,25 +747,27 @@ void
 MainFrame::onMenuFileSave(wxCommandEvent &event)
 {
 	gme::DocIO  dio;
-	if(m_filepath.empty() || !boost::iends_with(m_filepath,".sps"))
+    std::string filepath = dio.getLastLoadedPath();
+	if(filepath.empty() || !boost::iends_with(filepath,".sps"))
 	{
         SaveSceneDialog dialog(this);
-        m_filepath.clear();
+        filepath.clear();
         if ( dialog.ShowModal() == wxID_OK )
         {
-            m_filepath = dialog.GetPath();
+            filepath = dialog.GetPath();
         }
 
 	}
-	if(!m_filepath.empty())
+	if(!filepath.empty())
 	{
        wxBusyCursor wait;
-       std::string  error = __("失败");
-	   if(dio.exportScene(m_filepath,false))
+       std::string  error = __("失败。");
+	   if(dio.exportScene(filepath,false))
        {
-           error = __("失败");
+           dio.setLastLoadedPath(filepath);
+           error = __("成功。");
        }
-       std::string content = boost::str(boost::format(__("保存文件'%s'%s")) % m_filepath % error);
+       std::string content = boost::str(boost::format(__("保存文件'%s'%s")) % filepath % error);
        Log_Adapter(Doc::LOG_STATUS,content.c_str(),NULL);
 	}
 }
@@ -797,6 +821,31 @@ void
 MainFrame::onUpdateViewSelection(wxUpdateUIEvent &event)
 {
     event.Check(m_renderView->isViewSelection());
+}
+
+void
+MainFrame::onViewSkylightDir(wxCommandEvent &event)
+{
+    (void)event;
+    m_renderView->setViewSkylightDir(!m_renderView->isViewSkylightDir());
+}
+
+void
+MainFrame::onUpdateViewSkylightDir(wxUpdateUIEvent &event)
+{
+    event.Check(m_renderView->isViewSkylightDir());
+}
+
+void
+MainFrame::onClearLog(wxCommandEvent &event)
+{
+    this->m_logWindow->Clear();
+}
+
+void
+MainFrame::onUpdateClearLog(wxUpdateUIEvent &event)
+{
+    event.Enable(!m_logWindow->IsEmpty());
 }
 
 void

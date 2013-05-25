@@ -50,18 +50,18 @@ protected:
 	/** Processes menu File|Import */
 	void onMenuFileImport(wxCommandEvent &event);
     void onUpdateMenuFileImport(wxUpdateUIEvent& event);
-    
+
     /** Processes menu File|Save */
 	void onMenuFileSave(wxCommandEvent &event);
   	void onUpdateMenuFileSave(wxUpdateUIEvent& event);
-    
+
 	void onMenuFileSaveImage(wxCommandEvent &event);
   	void onUpdateMenuFileSaveImage(wxUpdateUIEvent& event);
 
 	/** Processes menu File|Export */
 	void onMenuFileExport(wxCommandEvent &event);
   	void onUpdateonMenuFileExport(wxUpdateUIEvent& event);
-    
+
 	/** Processes menu File|Quit */
 	void onMenuFileQuit(wxCommandEvent &event);
 
@@ -73,6 +73,12 @@ protected:
 
 	void onViewSelection(wxCommandEvent &event);
     void onUpdateViewSelection(wxUpdateUIEvent &event);
+
+	void onViewSkylightDir(wxCommandEvent &event);
+    void onUpdateViewSkylightDir(wxUpdateUIEvent &event);
+
+	void onClearLog(wxCommandEvent &event);
+    void onUpdateClearLog(wxUpdateUIEvent &event);
 
 	void onAutoTarget(wxCommandEvent &event);
     void onUpdateAutoTarget(wxUpdateUIEvent &event);
@@ -96,7 +102,7 @@ protected:
 	void onUpdateRenderStart(wxUpdateUIEvent& event);
 	void onUpdateRenderStop(wxUpdateUIEvent& event);
 	void onUpdateRenderPause(wxUpdateUIEvent& event);
-    
+
 
     void onEditmodeChanged(wxCommandEvent &event);
     void onUpdateEditmode(wxUpdateUIEvent &event);
@@ -120,7 +126,6 @@ private:
 	PropFrame       *m_propFrame;
 	///@todo customize log window.
 	wxTextCtrl      *m_logWindow;
-	std::string      m_filepath;
     void    createMenubar();
     ///@brief append shortcut and return it.
     wxString&   appendShortCutString(int cmdid,wxString &shortCut);

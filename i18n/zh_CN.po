@@ -510,11 +510,11 @@ msgstr "film.tonemap"
 
 #: src/gme/property/materialpage.cpp:77
 msgid "constfloat1"
-msgstr "灰度数值"
+msgstr "灰度值"
 
 #: src/gme/property/materialpage.cpp:78
 msgid "constfloat3"
-msgstr "RGB数值"
+msgstr "颜色值"
 
 #: src/gme/property/materialpage.cpp:79
 msgid "imagemap"
@@ -522,55 +522,59 @@ msgstr "贴图文件"
 
 #: src/gme/property/materialpage.cpp:80 src/gme/property/materialpage.cpp:254
 msgid "scale"
-msgstr "scale"
+msgstr "贴图缩放"
 
 #: src/gme/property/materialpage.cpp:81
 msgid "fresnelapproxn"
-msgstr "fresnelapproxn"
+msgstr "颜色映射折射率"
 
 #: src/gme/property/materialpage.cpp:82
 msgid "fresnelapproxk"
-msgstr "fresnelapproxk"
+msgstr "颜色映射吸收率"
 
-#: src/gme/property/materialpage.cpp:83 src/gme/property/materialpage.cpp:372
+#: src/gme/property/materialpage.cpp:372
 msgid "mix"
 msgstr "混合材质"
 
+#： src/gme/property/materialpage.cpp:83 
+msgid "mixTex"
+msgstr "混合贴图"
+
 #: src/gme/property/materialpage.cpp:84
 msgid "add"
-msgstr "add"
+msgstr "贴图相加"
 
 #: src/gme/property/materialpage.cpp:85
 msgid "checkerboard2d"
-msgstr "checkerboard2d"
+msgstr "2D棋盘格"
 
 #: src/gme/property/materialpage.cpp:86
 msgid "checkerboard3d"
-msgstr "checkerboard3d"
+msgstr "3D棋盘格"
 
 #: src/gme/property/materialpage.cpp:87
 msgid "fbm"
-msgstr "fbm"
+msgstr "布朗分形"
 
 #: src/gme/property/materialpage.cpp:88
 msgid "marble"
-msgstr "marble"
+msgstr "大理石"
 
 #: src/gme/property/materialpage.cpp:89
 msgid "dots"
-msgstr "dots"
+msgstr "圆点图"
 
 #: src/gme/property/materialpage.cpp:90
 msgid "brick"
-msgstr "brick"
+msgstr "砖块"
 
 #: src/gme/property/materialpage.cpp:91
 msgid "windy"
-msgstr "windy"
+msgstr "风浪"
 
 #: src/gme/property/materialpage.cpp:92
 msgid "wrinkled"
-msgstr "wrinkled"
+msgstr "湍流"
 
 #: src/gme/property/materialpage.cpp:93
 msgid "uv"
@@ -599,16 +603,16 @@ msgstr "伽马"
 #: src/gme/property/materialpage.cpp:243 src/gme/property/materialpage.cpp:252
 #: src/gme/property/materialpage.cpp:306
 msgid "octaves"
-msgstr "octaves"
+msgstr "噪点频率范围"
 
 #: src/gme/property/materialpage.cpp:244 src/gme/property/materialpage.cpp:253
 #: src/gme/property/materialpage.cpp:307
 msgid "roughness"
-msgstr "roughness"
+msgstr "噪点数量"
 
 #: src/gme/property/materialpage.cpp:255
 msgid "variation"
-msgstr "variation"
+msgstr "层间偏移"
 
 #: src/gme/property/materialpage.cpp:269
 msgid "flemish"
@@ -684,23 +688,23 @@ msgstr "金属"
 
 #: src/gme/property/materialpage.cpp:371
 msgid "archglass"
-msgstr "archglass"
+msgstr "建筑玻璃"
 
 #: src/gme/property/materialpage.cpp:373
 msgid "null"
-msgstr "null"
+msgstr "透明材质"
 
 #: src/gme/property/materialpage.cpp:374
 msgid "mattetranslucent"
-msgstr "mattetranslucent"
+msgstr "子表面材质"
 
 #: src/gme/property/materialpage.cpp:375
 msgid "glossy2"
-msgstr "glossy2"
+msgstr "镀膜材质"
 
 #: src/gme/property/materialpage.cpp:376
 msgid "metal2"
-msgstr "metal2"
+msgstr "复折射率材质"
 
 #: src/gme/property/materialpage.cpp:471
 msgid "多重反射"
@@ -721,6 +725,12 @@ msgstr "自发光"
 #: src/gme/property/materialpage.cpp:112
 msgid "固有色"
 msgstr "固有色"
+
+msgid "表面色"
+msgstr "表面色"
+
+msgid "texture"
+msgstr "贴图"
 
 #: src/gme/property/materialpage.cpp:115
 msgid "反射系数"

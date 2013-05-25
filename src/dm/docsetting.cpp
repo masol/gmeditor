@@ -198,6 +198,7 @@ DocSetting::changeSunGain(const luxrays::Spectrum &g)
     {
         SlgUtil::Editor editor(session);
         session->renderConfig->scene->sunLight->SetGain(g);
+        session->renderConfig->scene->sunLight->Preprocess();
         editor.addAction(slg::SUNLIGHT_EDIT);
         return true;
     }
@@ -214,6 +215,38 @@ DocSetting::changeSunDir(const luxrays::Vector &dir)
         session->renderConfig->scene->sunLight->SetDir(dir);
         editor.addAction(slg::SUNLIGHT_EDIT);
         return true;
+    }
+    return false;
+}
+
+bool
+DocSetting::changeSunDir(float filmx,float filmy)
+{
+	slg::RenderSession* session = pDocData->getSession();
+    if(session && session->renderConfig->scene->sunLight)
+    {
+        slg::PerspectiveCamera *camera = session->renderConfig->scene->camera;
+        float radius = ExtraCameraManager::getCurrentRadius(session,camera);
+
+        luxrays::Ray  eyeRay;
+        float oldlr = camera->lensRadius;
+        camera->lensRadius = 0.0f;
+        camera->GenerateRay(filmx,filmy,&eyeRay,0.001f,0.012f);
+        camera->lensRadius = oldlr;
+
+        luxrays::BSphere    sphere;
+        sphere.center = camera->target;
+        sphere.rad = radius;
+
+        luxrays::Point  pt;
+        if(ExtraCameraManager::SphereIntersect(sphere,eyeRay,pt))
+        {
+            SlgUtil::Editor editor(session);
+            luxrays::Vector dir = camera->target - pt;
+            session->renderConfig->scene->sunLight->SetDir(dir);
+            editor.addAction(slg::SUNLIGHT_EDIT);
+            return true;
+        }
     }
     return false;
 }

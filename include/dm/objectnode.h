@@ -168,9 +168,14 @@ protected:
     std::string             m_matid;
     std::vector<ObjectNode> m_children;
     bool                    m_useplynormals;
-    /** @brief 指示m_filepath中所包含的模型是否是一个
+    /** @brief 指示m_filepath中所包含的模型是否是一个组文件，包含了多个模型。
     **/
     bool                    m_bGroupfile;
+    /** @brief 指示了模型的透明度。
+     * @todo 将透明度使用贴图来控制，而不是模型顶点。这需要改进slg的实现。
+    **/
+    float                   m_alpha;
+
     /** @brief m_transformation is difference from slg. this is a hierarchy.
     **/
     Eigen::Matrix4f         m_transformation;
@@ -183,6 +188,7 @@ protected:
         m_children = ref.m_children;
         m_useplynormals = ref.m_useplynormals;
         m_transformation = ref.m_transformation;
+        m_alpha = ref.m_alpha;
     }
     ///@brief notify some child removed.
     void    onChildRemoved(const std::string &childid);
@@ -280,6 +286,10 @@ public:
 	inline  void    name(const std::string &n){
 	    m_name = n;
 	}
+    inline  float   alpha(void)const
+    {
+        return m_alpha;
+    }
 	inline  const std::string&  filepath(void){
 	    return m_filepath;
     }
@@ -293,6 +303,7 @@ public:
     ObjectNode()
     {
         m_useplynormals = false;
+        m_alpha = 1.0f;
         //创建者需要自行维护nil.
 //        m_id = boost::uuids::nil_generator()();
 //        m_matid = boost::uuids::nil_generator()();

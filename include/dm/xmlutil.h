@@ -81,6 +81,7 @@ namespace gme
 		static  const char* envlight;
 		static  const char* sunlight;
         static  const char* film;
+        static  const char* alpha;
     };
 
     //inline const char* getFilepathFromDocument(const type_xml_node &node)

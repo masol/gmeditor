@@ -33,6 +33,56 @@
 
 namespace gme{
 
+class PrepareDrawEnv
+{
+public:
+    PrepareDrawEnv(DocImg::ViewPort &vp,slg::RenderSession *session)
+    {
+        // switch to projection matrix
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        // reset projection matrix
+        glLoadIdentity();
+
+        glViewport(vp.x,vp.y,vp.width,vp.height);
+
+        u_int width = session->film->GetWidth();
+        u_int height = session->film->GetHeight();
+
+        double aspect = (double)width/ (double)height ;
+
+        slg::PerspectiveCamera *camera = session->renderConfig->scene->camera;
+        //adjustment fovy.
+        double fovy = camera->fieldOfView;
+        if(aspect > 1.0f)
+            fovy = fovy / aspect;
+        //float aspectradius = (aspect < 1.0f ? 1.0f : aspect);
+        ///@todo coordinate covert.need to know detail about slg coordinate.
+        gluPerspective( fovy, aspect , camera->clipHither, camera->clipYon);
+        // switch to modelview matrix
+        glMatrixMode(GL_MODELVIEW);
+        // save current modelview matrix
+        glPushMatrix();
+        // reset modelview matrix
+        glLoadIdentity();
+        //setup camera.
+        gluLookAt(camera->orig.x,camera->orig.y,camera->orig.z,\
+            camera->target.x,camera->target.y,camera->target.z,\
+            camera->up.x,camera->up.y,camera->up.z);
+
+        glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+    }
+
+    ~PrepareDrawEnv()
+    {
+        // restore modelview matrix
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+        // restore projection matrix
+        glPopMatrix();
+    }
+};
+
 bool
 DocImg::getSize(int &w,int &h)
 {
@@ -195,53 +245,77 @@ DocImg::saveImage(const std::string &fullpath)
 }
 
 void
+DocImg::drawSkylightDir(ViewPort &vp)
+{
+    if(!pDocData->m_session.get() || !pDocData->m_session->renderConfig->scene || !pDocData->getSession()->renderConfig->scene->sunLight)
+        return;
+    slg::SunLight *sunLight = pDocData->getSession()->renderConfig->scene->sunLight;
+    slg::PerspectiveCamera *camera = pDocData->getSession()->renderConfig->scene->camera;
+
+    PrepareDrawEnv  drawEnv(vp,pDocData->getSession());
+
+    float length = ExtraCameraManager::getCurrentRadius(pDocData->getSession(),camera);
+
+    glEnable( GL_LINE_SMOOTH );
+    //glLineWidth( 1.0f );
+
+    ///@todo configure sphere color.
+    glColor3f(0.5f,0.25f,0.0f);
+
+    glPushMatrix();
+    glTranslatef(camera->target.x, camera->target.y, camera->target.z);
+    GLUquadricObj* Sphere = gluNewQuadric();
+    gluSphere(Sphere,length,10,10);
+    gluDeleteQuadric(Sphere);
+
+    //x coordinate
+    glBegin( GL_LINES );
+    glColor3f( 1.0f, 0.0f, 0.0f );
+    glVertex3f( 0.0f, 0.0f, 0.0f );
+    glVertex3f( length, 0.0f, 0.0f );
+    glEnd();
+    //y coordinate
+    glBegin( GL_LINES );
+    glColor3f( 0.0f, 1.0f, 0.0f );
+    glVertex3f( 0.0f, 0.0f, 0.0f );
+    glVertex3f( 0.0f, length, 0.0f );
+    glEnd();
+    //z coordinate
+    glBegin( GL_LINES );
+    glColor3f( 0.0f, 0.0f, 1.0f );
+    glVertex3f( 0.0f, 0.0f, 0.0f );
+    glVertex3f( 0.0f, 0.0f, length );
+    glEnd();
+
+    glPopMatrix();
+
+    luxrays::Point drawEnd = (camera->target - sunLight->GetDir() * length );
+
+    glBegin( GL_LINES );
+    glColor3f( 0.855f, 0.44f, 0.839f );
+    glVertex3f( camera->target.x, camera->target.y, camera->target.z );
+    glVertex3f( drawEnd.x, drawEnd.y, drawEnd.z );
+    glEnd();
+}
+
+
+void
 DocImg::drawSelectedObject(ViewPort &vp)
 {
     if(!pDocData->m_session.get() || !pDocData->m_session->renderConfig->scene)
         return;
-    slg::Scene *scene = pDocData->m_session->renderConfig->scene;
     std::vector<std::string>&   selection = pDocData->getSelection();
     if(selection.size() == 0)
         return;
 
-    // switch to projection matrix
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    // reset projection matrix
-    glLoadIdentity();
-
-//    std::cerr << "vp.x = " << vp.x << ",vp.y=" << vp.y << ",vp.width=" << vp.width << ",vp.height = " << vp.height << std::endl;
-    glViewport(vp.x,vp.y,vp.width,vp.height);
-
-    u_int width = pDocData->m_session->film->GetWidth();
-    u_int height = pDocData->m_session->film->GetHeight();
-
-    double aspect = (double)width/ (double)height ;
-
-    //adjustment fovy.
-    double fovy = scene->camera->fieldOfView;
-    if(aspect > 1.0f)
-        fovy = fovy / aspect;
-    //float aspectradius = (aspect < 1.0f ? 1.0f : aspect);
-    ///@todo coordinate covert.need to know detail about slg coordinate.
-    gluPerspective( fovy, aspect , scene->camera->clipHither, scene->camera->clipYon);
-    // switch to modelview matrix
-    glMatrixMode(GL_MODELVIEW);
-    // save current modelview matrix
-    glPushMatrix();
-    // reset modelview matrix
-    glLoadIdentity();
-    //setup camera.
-    gluLookAt(scene->camera->orig.x,scene->camera->orig.y,scene->camera->orig.z,\
-        scene->camera->target.x,scene->camera->target.y,scene->camera->target.z,\
-        scene->camera->up.x,scene->camera->up.y,scene->camera->up.z);
+    PrepareDrawEnv  drawEnv(vp,pDocData->getSession());
 
     //set selection color.
     ///@todo configure this.
     glColor3f(1.0f,1.0f,1.0f);
+
     //ensure mode. do not need restore. @fixme: move it to init?
     glEnableClientState(GL_VERTEX_ARRAY);
-    glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
 
     BOOST_FOREACH(const std::string &oid,selection)
     {
@@ -259,12 +333,6 @@ DocImg::drawSelectedObject(ViewPort &vp)
             pSelf->draw(matrix);
         }
     }
-    // restore modelview matrix
-    glPopMatrix();
-    glMatrixMode(GL_PROJECTION);
-    // restore projection matrix
-    glPopMatrix();
-
 }
 
 

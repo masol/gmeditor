@@ -62,6 +62,8 @@ public:
     int dumpAll(type_xml_node &parent);
     void importAiCamera(aiCamera *pCam);
 public:
+    ///@brief 获取当前视角下，最佳的居中园球半径。
+    static float getCurrentRadius(slg::RenderSession *session,slg::PerspectiveCamera *camera);
     ///@brief viewall object.
     static void viewAll(const std::string &objid);
     static void saveTo(slg::RenderSession *session,Camera &cam);
@@ -75,6 +77,8 @@ public:
     {
         targetRotate(camera,angle,camera->GetY());
     }
+    ///@brief 没有找到slg中的sphere相交计算，先放在这里。只计算了最近交点。
+    static  bool    SphereIntersect(const luxrays::BSphere &sphere,const luxrays::Ray &ray,luxrays::Point &pt);
 private:
     static  void    GetObjectBBox(luxrays::BBox &box,ObjectNode *pNode);
 };

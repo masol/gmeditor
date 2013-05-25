@@ -55,6 +55,8 @@ protected:
     void    initAndStartScene(slg::Scene *scene);
 public:
     bool    loadScene(const std::string &path);
+    const std::string& getLastLoadedPath(void);
+    void    setLastLoadedPath(const std::string &path);
     bool    exportScene(const std::string &path,bool bExportResource = true);
 
     void    onSceneLoaded(type_state_handler handler);

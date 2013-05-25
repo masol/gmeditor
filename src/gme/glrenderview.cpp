@@ -193,6 +193,19 @@ GlRenderView::setViewSelection(bool bv)
     this->m_glframe->viewSelection(bv);
 }
 
+bool
+GlRenderView::isViewSkylightDir(void)
+{
+    return this->m_glframe->viewSkylightDir();
+}
+
+void
+GlRenderView::setViewSkylightDir(bool bv)
+{
+    this->m_glframe->viewSkylightDir(bv);
+}
+
+
 
 
 }//end namespace gme
