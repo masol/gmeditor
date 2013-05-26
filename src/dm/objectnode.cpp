@@ -171,6 +171,18 @@ const char* constDef::sunlight = "sunlight";
 const char* constDef::lights = "lights";
 const char* constDef::film = "film";
 const char* constDef::alpha = "alpha";
+const char* constDef::setting = "setting";
+const char* constDef::width = "width";
+const char* constDef::height = "height";
+const char* constDef::gamma = "gamma";
+const char* constDef::filter = "filter";
+const char* constDef::renderengine = "renderengine";
+const char* constDef::tonemapping = "tonemapping";
+const char* constDef::scale = "scale";
+const char* constDef::prescale = "prescale";
+const char* constDef::postscale = "postscale";
+const char* constDef::burn = "burn";
+
 
 ObjectNode*
 ObjectNode::findObject(const std::string &id,ObjectNodePath *pPath)

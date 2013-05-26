@@ -42,6 +42,17 @@ private:
     std::string     m_docBasePath;
     const aiScene*  m_assimpScene;
     bool            m_loadFilm;
+    //DocIO将读取下面的参数。
+    friend class DocIO;
+    //ExtraSettingManager将设置下面参数。
+    friend class ExtraSettingManager;
+    //下面的参数是系统设置参数。从配置文件中读取之后，等待后续使用。
+    slg::ToneMapParams  *m_pTonemapParams;
+    std::string          m_film_filter_type;
+    std::string          m_width;
+    std::string          m_height;
+    std::string          m_film_gamma;
+    std::string          m_renderengine_type;
 public:
     inline const aiScene*  getAiScene(void)const
     {
@@ -63,11 +74,18 @@ public:
     }
     ImportContext(slg::Scene* s,const std::string &srcFile)
     {
+        m_pTonemapParams = NULL;
+
         m_scene = s;
         m_editAction = 0;
         m_assimpScene = NULL;
         m_loadFilm = false;
         m_docBasePath = boost::filesystem::canonical(srcFile).parent_path().string();
+    }
+    ~ImportContext(void)
+    {
+        if(m_pTonemapParams)
+            delete m_pTonemapParams;
     }
     inline void addAction(const slg::EditAction a)
     {

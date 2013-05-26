@@ -29,6 +29,7 @@ class MainView;
 class ObjectView;
 class PropFrame;
 class GlRenderView;
+class CameraView;
 
 class MainFrame : public wxFrame {
     typedef  wxFrame   inherited;
@@ -80,6 +81,9 @@ protected:
 	void onClearLog(wxCommandEvent &event);
     void onUpdateClearLog(wxUpdateUIEvent &event);
 
+	void onNewCamFromCurrent(wxCommandEvent &event);
+    void onUpdateNewCamFromCurrent(wxUpdateUIEvent &event);
+
 	void onAutoTarget(wxCommandEvent &event);
     void onUpdateAutoTarget(wxUpdateUIEvent &event);
 
@@ -124,6 +128,7 @@ private:
     ObjectView      *m_objectView;
     GlRenderView    *m_renderView;
 	PropFrame       *m_propFrame;
+	CameraView      *m_camView;
 	///@todo customize log window.
 	wxTextCtrl      *m_logWindow;
     void    createMenubar();

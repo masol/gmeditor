@@ -226,12 +226,20 @@ DocIO::loadSlgScene(const std::string &path)
 }
 
 void
-DocIO::initAndStartScene(slg::Scene *scene)
+DocIO::initAndStartScene(slg::Scene *scene,ImportContext *pctx)
 {
+    const ImportContext &ctx = *pctx;
     Camera *pLoadedCam = pDocData->camManager.getSelected();
 
     float width,height;
-    gme::LocalSetting::Film::getSize(width,height);
+    if( !ctx.m_width.empty() && !ctx.m_height.empty() )
+    {
+        width = boost::lexical_cast<float>(ctx.m_width);
+        height = boost::lexical_cast<float>(ctx.m_height);
+    }else{
+        gme::LocalSetting::Film::getSize(width,height);
+    }
+
     if(pLoadedCam && pLoadedCam->isValid())
     {//camera already loaded.
         initCamera(scene,*pLoadedCam);
@@ -315,7 +323,39 @@ DocIO::initAndStartScene(slg::Scene *scene)
     {//no opencl found. rollback to cpu mode.
         Doc::SysLog(Doc::LOG_WARNING,__("找不到opencl环境，使用CPU渲染，这将会严重影响您的体验，请检查您的硬件环境以及驱动设置(可以使用GPU-Z来检查OPENCL环境是否就绪)。"));
         confgSS << "renderengine.type = PATHCPU" << std::endl;
+    }else if(!ctx.m_renderengine_type.empty())
+    {//
+        confgSS << "renderengine.type = " << ctx.m_renderengine_type << std::endl;
     }
+
+    if(!ctx.m_film_filter_type.empty())
+    {
+        confgSS << "film.filter.type = " << ctx.m_film_filter_type << std::endl;
+    }
+    if(!ctx.m_film_gamma.empty())
+    {
+        confgSS << "film.gamma = " << ctx.m_film_gamma << std::endl;
+    }
+
+    if(ctx.m_pTonemapParams)
+    {
+        if(ctx.m_pTonemapParams->GetType() == slg::TONEMAP_LINEAR)
+        {
+            slg::LinearToneMapParams *plinear = static_cast<slg::LinearToneMapParams*>(ctx.m_pTonemapParams);
+            confgSS << "film.tonemap.type = 0" << std::endl;
+            confgSS << "film.tonemap.linear.scale = " << plinear->scale << std::endl;
+        }else if(ctx.m_pTonemapParams->GetType() == slg::TONEMAP_REINHARD02){
+            slg::Reinhard02ToneMapParams *pReinhard = static_cast<slg::Reinhard02ToneMapParams*>(ctx.m_pTonemapParams);
+            confgSS << "film.tonemap.type = 1" << std::endl;
+            confgSS << "film.tonemap.reinhard02.prescale = " << pReinhard->preScale << std::endl;
+            confgSS << "film.tonemap.reinhard02.postscale = " << pReinhard->postScale << std::endl;
+            confgSS << "film.tonemap.reinhard02.burn = " << pReinhard->burn << std::endl;
+        }else{
+            //no this type!
+            BOOST_ASSERT(false);
+        }
+    }
+
     //see Pathoclthread.cpp#101
     //confgSS << "opencl.kernelcache = VOLATILE" << std::endl; //
     confgSS << "opencl.gpu.workgroup.size = " << 64 << std::endl;
@@ -364,7 +404,7 @@ DocIO::loadAssimpScene(const std::string &path)
                 pDocData->forceExport = true;
             }
 
-            initAndStartScene(scene);
+            initAndStartScene(scene,&ctx);
             return true;
         }else{
             delete scene;
@@ -398,7 +438,7 @@ DocIO::loadSpsScene(const std::string &path)
 
         if(count > 0)
         {//如果加载数量大于0才继续。
-            initAndStartScene(scene);
+            initAndStartScene(scene,&ctx);
             return true;
         }else{
             Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("从文件'%s'中未能加载任何场景。")) % path ) );
@@ -509,8 +549,16 @@ DocIO::exportSpoloScene(const std::string &pathstring,bool bExportRes)
             {
                 type_xml_node   *pLights = xmldoc.allocate_node(NS_RAPIDXML::node_element,constDef::lights);
                 xmldoc.append_node(pLights);
-                ExtraSettingManager::dump(*pLights,ctx);
+                ExtraSettingManager::dumpLights(*pLights,ctx);
             }
+
+            //dump setting.
+            {
+                type_xml_node   *pSetting = xmldoc.allocate_node(NS_RAPIDXML::node_element,constDef::setting);
+                xmldoc.append_node(pSetting);
+                ExtraSettingManager::dumpSettings(*pSetting,ctx);
+            }
+
 
             //dump camera.
             {

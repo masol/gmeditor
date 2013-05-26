@@ -30,6 +30,7 @@ class Scene;
 namespace gme{
 
 class ObjectNode;
+class ImportContext;
 
 class DocIO : public DocScopeLocker
 {
@@ -52,7 +53,7 @@ protected:
     **/
     bool    loadAssimpScene(const std::string &path);
     ///@brief after scene loaded, init and create scene.
-    void    initAndStartScene(slg::Scene *scene);
+    void    initAndStartScene(slg::Scene *scene,ImportContext *pctx);
 public:
     bool    loadScene(const std::string &path);
     const std::string& getLastLoadedPath(void);

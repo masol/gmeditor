@@ -19,15 +19,195 @@
 #include "config.h"
 #include "utils/pathext.h"
 #include "dm/doc.h"
+#include "dm/setting.h"
 #include "slgsetting.h"
 #include "docprivate.h"
 #include <boost/format.hpp>
+#include <boost/lexical_cast.hpp>
 
 
 namespace gme{
 
+std::string
+ExtraSettingManager::nameFromFiltertype(int filter)
+{
+    switch(filter)
+    {
+    case slg::FILTER_NONE:
+        return "NONE";
+    case slg::FILTER_BOX:
+        return "BOX";
+    case slg::FILTER_GAUSSIAN:
+        return "GAUSSIAN";
+    case slg::FILTER_MITCHELL:
+        return "MITCHELL";
+    case slg::FILTER_MITCHELL_SS:
+        return "MITCHELL_SS";
+    }
+    throw std::runtime_error("Unknown filter type");
+}
+
+std::string
+ExtraSettingManager::nameFromRenderengine(int enginetype)
+{
+    switch(enginetype)
+    {
+    case slg::PATHOCL:
+        return "PATHOCL";
+    case slg::LIGHTCPU:
+        return "LIGHTCPU";
+    case slg::PATHCPU:
+        return "PATHCPU";
+    case slg::BIDIRCPU:
+        return "BIDIRCPU";
+    case slg::BIDIRHYBRID:
+        return "BIDIRHYBRID";
+    case slg::CBIDIRHYBRID:
+        return "CBIDIRHYBRID";
+    case slg::BIDIRVMCPU:
+        return "BIDIRVMCPU";
+    case slg::RTPATHOCL:
+        return "RTPATHOCL";
+    case slg::FILESAVER:
+        return "FILESAVER";
+    }
+    throw std::runtime_error("Unknown render engine type");
+}
+
+
 void
-ExtraSettingManager::dump(type_xml_node &parent,dumpContext &ctx)
+ExtraSettingManager::dumpSettings(type_xml_node &parent,dumpContext &ctx)
+{
+    type_xml_doc *pDoc = parent.document();
+    BOOST_ASSERT_MSG(pDoc != NULL,"invalid node,must from doc");
+
+    slg::RenderSession *session = Doc::instance().pDocData->m_session.get();
+
+    {//dump film.
+        slg::Film   *film = session->film;
+        type_xml_node *pSelf = pDoc->allocate_node(NS_RAPIDXML::node_element,allocate_string(pDoc,constDef::film));
+        parent.append_node(pSelf);
+
+        //width
+        pSelf->append_attribute(allocate_attribute(pDoc,constDef::width,boost::lexical_cast<std::string>(film->GetWidth())));
+        //height
+        pSelf->append_attribute(allocate_attribute(pDoc,constDef::height,boost::lexical_cast<std::string>(film->GetHeight())));
+        //gamma
+        pSelf->append_attribute(allocate_attribute(pDoc,constDef::height,boost::lexical_cast<std::string>(film->GetGamma())));
+        //filter type.
+        pSelf->append_attribute(allocate_attribute(pDoc,constDef::filter,nameFromFiltertype(film->GetFilterType())));
+
+        const slg::ToneMapParams *pParams = film->GetToneMapParams();
+        if(pParams)
+        {
+            type_xml_node *pTonemap = pDoc->allocate_node(NS_RAPIDXML::node_element,allocate_string(pDoc,constDef::tonemapping));
+            pSelf->append_node(pTonemap);
+            switch(pParams->GetType())
+            {
+            case slg::TONEMAP_LINEAR:
+                {
+                    const slg::LinearToneMapParams *pRealParams = static_cast<const slg::LinearToneMapParams*>(pParams);
+                    pTonemap->append_attribute(allocate_attribute(pDoc,constDef::type,"linear"));
+                    pTonemap->append_attribute(allocate_attribute(pDoc,constDef::scale,boost::lexical_cast<std::string>(pRealParams->scale)));
+                }
+                break;
+            case slg::TONEMAP_NONE:
+                pTonemap->append_attribute(allocate_attribute(pDoc,constDef::type,"none"));
+                break;
+            case slg::TONEMAP_REINHARD02:
+                {
+                    const slg::Reinhard02ToneMapParams *pRealParams = static_cast<const slg::Reinhard02ToneMapParams*>(pParams);
+                    pTonemap->append_attribute(allocate_attribute(pDoc,constDef::type,"reinhard02"));
+                    pTonemap->append_attribute(allocate_attribute(pDoc,constDef::prescale,boost::lexical_cast<std::string>(pRealParams->preScale)));
+                    pTonemap->append_attribute(allocate_attribute(pDoc,constDef::postscale,boost::lexical_cast<std::string>(pRealParams->postScale)));
+                    pTonemap->append_attribute(allocate_attribute(pDoc,constDef::burn,boost::lexical_cast<std::string>(pRealParams->burn)));
+                }
+                break;
+            }
+            
+        }
+    }
+
+    if(clHardwareInfo::instance().getPlatforms().size() == 0)
+    {//dump render engine.
+        type_xml_node *pEngine = pDoc->allocate_node(NS_RAPIDXML::node_element,allocate_string(pDoc,constDef::renderengine));
+        parent.append_node(pEngine);
+        //type
+        pEngine->append_attribute(allocate_attribute(pDoc,constDef::type,nameFromRenderengine(session->renderEngine->GetEngineType())));
+    }
+}
+
+static inline
+void
+assignFromXmlAttr(type_xml_node *pNode,const char* attr_name,std::string &target)
+{
+    type_xml_attr *pAttribute = pNode->first_attribute(attr_name);
+    if(pAttribute)
+    {
+        target = pAttribute->value();
+    }
+}
+
+void
+ExtraSettingManager::loadSettings(ImportContext &ctx,type_xml_node &parents)
+{
+    {
+        type_xml_node *pfilm = parents.first_node(constDef::film);
+        if(pfilm)
+        {
+            assignFromXmlAttr(pfilm,constDef::filter,ctx.m_film_filter_type);
+            assignFromXmlAttr(pfilm,constDef::width,ctx.m_width);
+            assignFromXmlAttr(pfilm,constDef::height,ctx.m_height);
+            assignFromXmlAttr(pfilm,constDef::gamma,ctx.m_film_gamma);
+        }
+        type_xml_node *pTonemapping = pfilm->first_node(constDef::tonemapping);
+        if(pTonemapping)
+        {
+            type_xml_attr *pType = pTonemapping->first_attribute(constDef::type);
+            if(pType && boost::equals(pType->value(),"reinhard02"))
+            {
+                slg::Reinhard02ToneMapParams *pReinhard02 = new slg::Reinhard02ToneMapParams();
+                std::string value;
+                assignFromXmlAttr(pTonemapping,constDef::prescale,value);
+                if(!value.empty())
+                    pReinhard02->preScale = boost::lexical_cast<float>(value);
+                
+                value.clear();
+                assignFromXmlAttr(pTonemapping,constDef::postscale,value);
+                if(!value.empty())
+                    pReinhard02->postScale = boost::lexical_cast<float>(value);
+
+                value.clear();
+                assignFromXmlAttr(pTonemapping,constDef::burn,value);
+                if(!value.empty())
+                    pReinhard02->burn = boost::lexical_cast<float>(value);
+
+                ctx.m_pTonemapParams = pReinhard02;
+            }else{
+                slg::LinearToneMapParams    *pLinear = new slg::LinearToneMapParams();
+
+                std::string value;
+                assignFromXmlAttr(pTonemapping,constDef::scale,value);
+                if(!value.empty())
+                    pLinear->scale = boost::lexical_cast<float>(value);
+
+                ctx.m_pTonemapParams = pLinear;
+            }
+        }
+    }
+
+    {
+        type_xml_node *pRenderEngine = parents.first_node(constDef::renderengine);
+        if(pRenderEngine)
+        {
+            assignFromXmlAttr(pRenderEngine,constDef::type,ctx.m_renderengine_type);
+        }
+    }
+
+}
+
+void
+ExtraSettingManager::dumpLights(type_xml_node &parent,dumpContext &ctx)
 {
     type_xml_doc *pDoc = parent.document();
     BOOST_ASSERT_MSG(pDoc != NULL,"invalid node,must from doc");

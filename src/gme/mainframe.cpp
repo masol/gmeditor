@@ -38,6 +38,7 @@
 #include "glrenderview.h"
 #include "filedialog.h"
 #include "gmestatus.h"
+#include "cameraview.h"
 
 #include "buildinfo.h"
 
@@ -137,6 +138,9 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_UPDATE_UI(cmd::GID_VIEWSKYLIGHTDIR,MainFrame::onUpdateViewSkylightDir)
 	EVT_MENU(cmd::GID_CLEAR_LOG,MainFrame::onClearLog)
 	EVT_UPDATE_UI(cmd::GID_CLEAR_LOG,MainFrame::onUpdateClearLog)
+	EVT_MENU(cmd::GID_CAM_NEWFROMCURRENT,MainFrame::onNewCamFromCurrent)
+	EVT_UPDATE_UI(cmd::GID_CAM_NEWFROMCURRENT,MainFrame::onUpdateNewCamFromCurrent)
+
 
 
 	EVT_CLOSE(MainFrame::onClose)
@@ -163,9 +167,10 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
                   wxNO_BORDER | wxTE_MULTILINE | wxTE_READONLY);
 	wxLog::SetActiveTarget(new wxLogTextCtrl(m_logWindow));
     m_objectView = new ObjectView(this,wxID_ANY,wxDefaultPosition,wxSize(200,450));
-
+    m_camView = new CameraView(this,wxID_ANY,wxDefaultPosition,wxSize(200,450));
     // add the panes to the manager
 	wxMBConvUTF8	conv;
+    m_mgr.AddPane(m_camView, wxLEFT, gmeWXT("摄像机列表"));
     m_mgr.AddPane(m_objectView, wxLEFT, gmeWXT("模型一览"));
     m_mgr.AddPane(m_logWindow, wxBOTTOM, gmeWXT("系统日志"));
 
@@ -290,10 +295,11 @@ MainFrame::createMenubar()
 		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_SETSUNLIGHT, appendShortCutString(cmd::GID_MD_SETSUNLIGHT,name), gmeWXT("进入阳光方向编辑模式。"));
 
         pEditMenu->AppendSubMenu(pEditmodeMenu,gmeWXT("编辑模式(&M)"),gmeWXT("控制主窗口的编辑模式。"));
-
-		pEditMenu->AppendSeparator();
 		name = gmeWXT("自动对正(&A)");
 		pEditMenu->AppendCheckItem(cmd::GID_AUTO_TARGET,appendShortCutString(cmd::GID_AUTO_TARGET,name),gmeWXT("选择物体时自动校正摄像机中心点."));
+
+		pEditMenu->AppendSeparator();
+        pEditMenu->Append(cmd::GID_CAM_NEWFROMCURRENT,gmeWXT("保存当前视角(&M)"),gmeWXT("为当前视角新建一个摄像机位。"));
 
         pMenuBar->Append(pEditMenu, gmeWXT("编辑(&E)"));
     }
@@ -302,6 +308,7 @@ MainFrame::createMenubar()
 		wxMenu *pViewMenu = new wxMenu();
 		pViewMenu->AppendCheckItem(cmd::GID_PANE_OBJECTVIEW, gmeWXT("对象一览(&O)"), gmeWXT("显示/隐藏对象一览面板"));
 		pViewMenu->AppendCheckItem(cmd::GID_PANE_PROPVIEW, gmeWXT("属性设置(&P)"), gmeWXT("显示/隐藏属性面板"));
+        pViewMenu->AppendCheckItem(cmd::GID_PANE_CAMVIEW, gmeWXT("摄像机列表(&C)"), gmeWXT("显示/隐藏摄像机列表面板"));
 		pViewMenu->AppendCheckItem(cmd::GID_PANE_SYSLOG, gmeWXT("系统日志(&L)"), gmeWXT("显示/隐藏系统日志面板"));
 
 		pViewMenu->AppendSeparator();
@@ -636,6 +643,9 @@ MainFrame::getPaneFromCmdID(int cmdid)
     case cmd::GID_PANE_SYSLOG:
         pWindow = m_logWindow;
         break;
+    case cmd::GID_PANE_CAMVIEW:
+        pWindow = m_camView;
+        break;
     default:
         BOOST_ASSERT_MSG(false,"unreachable code");
     }
@@ -847,6 +857,20 @@ MainFrame::onUpdateClearLog(wxUpdateUIEvent &event)
 {
     event.Enable(!m_logWindow->IsEmpty());
 }
+
+void
+MainFrame::onNewCamFromCurrent(wxCommandEvent &event)
+{
+    this->m_camView->newCamFromCurrent();
+}
+
+void
+MainFrame::onUpdateNewCamFromCurrent(wxUpdateUIEvent &event)
+{
+	DocCtl dctl;
+    event.Enable(dctl.isRuning());
+}
+
 
 void
 MainFrame::onAutoTarget(wxCommandEvent &event)

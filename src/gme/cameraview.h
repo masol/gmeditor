@@ -16,41 +16,40 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_DM_SLGSETTING_H
-#define  GME_DM_SLGSETTING_H
+#ifndef  GME_CAMERAVIEW_H
+#define  GME_CAMERAVIEW_H
 
-#include "slg/slg.h"
-#include "slg/rendersession.h"
-#include "slgutils.h"
-#include "importctx.h"
+#include <wx/wx.h>
+#include <wx/listctrl.h>
 
+namespace gme
+{
 
-namespace gme{
-
-class ExtraSettingManager{
-public:
-    static void dumpLights(type_xml_node &parent,dumpContext &ctx);
-    static void dumpSettings(type_xml_node &parent,dumpContext &ctx);
-    static void loadSettings(ImportContext &ctx,type_xml_node &parents);
-    static void createLights(ImportContext &ctx,type_xml_node &parents);
-    static const std::string&  getImageMapPath(const slg::ImageMapCache &imcache,const slg::ImageMap *im);
-    ///@brief 指示场景中是否有超过两个(含2个)灯光。
-    static bool hasTwoOrMoreLighter(slg::Scene *scene);
-    ///@brief 返回场景中的光源总数。
-    static int getLighterNumber(slg::Scene *scene);
+class CameraView : public wxListCtrl
+{
 private:
-    static std::string  nameFromFiltertype(int filter);
-    static std::string  nameFromRenderengine(int enginetype);
-    static bool isDefault_turbidity(float tur)
-    {
-        return (tur == 2.2f);
-    }
-    static bool isDefault_relSize(float rel)
-    {
-        return (rel == 1.0f);
-    }
+    typedef wxListCtrl inherited;
+    long    m_menuCmdTarget;
+protected:
+
+    void OnSelectionChanged(wxListEvent& event);
+    void OnEndLabelEdit(wxListEvent& event);
+    void OnContextMenu(wxContextMenuEvent& event);
+    void onMenuNewFromCurrent(wxCommandEvent &event);
+    void onMenuDelete(wxCommandEvent& event);
+    void refresh(void);
+private:
+	void  onDocumentOpend(void);
+	void  onDocumentClosed(void);
+public:
+    CameraView(wxWindow* parent, wxWindowID id,const wxPoint& pos, const wxSize& size);
+    ~CameraView();
+    void    newCamFromCurrent(void);
+private:
+    wxDECLARE_EVENT_TABLE();
 };
 
 }
 
-#endif //GME_DM_SLGSETTING_H
+
+#endif //GME_CAMERAVIEW_H

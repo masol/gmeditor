@@ -65,6 +65,7 @@ set(GME_SRCS
 	gmestatus.cpp
 	main.cpp
 	filedialog.cpp
+	cameraview.cpp
 	data/xpmres.cpp
    )
 

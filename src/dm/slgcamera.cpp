@@ -198,8 +198,8 @@ float
 ExtraCameraManager::getCurrentRadius(slg::RenderSession *session,slg::PerspectiveCamera *camera)
 {
     luxrays::Ray  eyeCenter,eyeSide;
-    float filmx = session->film->GetWidth();
-    float filmy = session->film->GetHeight();
+    float filmx = (float)session->film->GetWidth();
+    float filmy = (float)session->film->GetHeight();
 
     float oldlr = camera->lensRadius;
     camera->lensRadius = 0.0f;
@@ -209,7 +209,7 @@ ExtraCameraManager::getCurrentRadius(slg::RenderSession *session,slg::Perspectiv
 
     float distance = (camera->orig - camera->target).Length();
     ///@todo configurate the sphere radius.
-    float length = (((eyeCenter.o + eyeCenter.d * distance ) - (eyeSide.o + eyeSide.d * distance)).Length()) * 0.4 ;
+    float length = (((eyeCenter.o + eyeCenter.d * distance ) - (eyeSide.o + eyeSide.d * distance)).Length()) * 0.4f ;
     return length;
 }
 

@@ -252,22 +252,6 @@ bool
 ExtraObjectManager::importCTMObj(const std::string& path,ObjectNode &obj,ImportContext &ctx)
 {
     bool   bAdd = false;
-    //首先检查模型是否已经被加载过了:
-    if(!obj.id().empty())
-    {
-        luxrays::ExtMesh *pMesh = NULL;
-        try{
-            pMesh = ctx.scene()->meshDefs.GetExtMesh(obj.id());
-        }catch(std::runtime_error &e)
-        {
-            (void)e;
-        }
-        if(pMesh)
-        {
-            Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("从文件'%s'中加载id为'%s'的模型,但是本id已经被定义过，忽略本次加载请求。"))%path %obj.id() ) );
-            return false;
-        }
-    }
     boost::filesystem::ifstream stream(path,std::ios::in | std::ios::binary);
     if(!stream)
     {
@@ -705,62 +689,82 @@ ExtraObjectManager::importObjects(type_xml_node &node,ObjectNode &objNode,Import
 		bool  loadOk = false;
 		if(pMatNode)
 		{
-            type_xml_attr*  pIdAttr = pMatNode->first_attribute(constDef::id);
-            if(pIdAttr)
-            {//设置matid.
-                objNode.m_matid = pIdAttr->value();
-            }
-            Doc::instance().pDocData->matManager.createMaterial(ctx,objNode.m_matid,*pMatNode);
+			bool	bIgnoreLoading = false;
+			//首先检查模型是否已经被加载过了:
+			if(!objNode.id().empty())
+			{
+				luxrays::ExtMesh *pMesh = NULL;
+				try{
+					pMesh = ctx.scene()->meshDefs.GetExtMesh(objNode.id());
+				}catch(std::runtime_error &e)
+				{
+					(void)e;
+				}
+				if(pMesh)
+				{
+					Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("从文件'%s'中加载id为'%s'的模型,但是本id已经被定义过，忽略本次加载请求。"))%objNode.filepath() %objNode.id() ) );
+					bIgnoreLoading = true;
+				}
+			}
 
-            //如果从ctx中加载模型成功，则try_loadFromFile被设置为false.
-            bool    try_loadFromFile = true;;
-            if(ctx.getAiScene())
-            {
-                if(pIdAttr)
-                {//拥有ID.从aiScene中加载。
-                    aiMesh *pMesh = findMeshFromMaterialName(ctx.getAiScene(),ctx.getAiScene()->mRootNode,pIdAttr->value());
-                    if(pMesh)
-                    {
-                        if(!importAiMesh(ctx.getAiScene(),pMesh,objNode,ctx))
-                        {
-                            Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("加载材质id为'%s'的模型失败!"))%pIdAttr->value()) );
-                        }else{
-                            loadOk = true;
-                        }
-                        try_loadFromFile = false;
-                    }
-                }
-            }
+			if(!bIgnoreLoading)
+			{
+				type_xml_attr*  pIdAttr = pMatNode->first_attribute(constDef::id);
+				if(pIdAttr)
+				{//设置matid.
+					objNode.m_matid = pIdAttr->value();
+				}
+				Doc::instance().pDocData->matManager.createMaterial(ctx,objNode.m_matid,*pMatNode);
 
-            if(try_loadFromFile)
-            {
-                //开始加载内容。
-                if(objNode.m_filepath.length())
-                {
-                    //开始设置transform
-                    if(transform)
-                    {
-                    }
+				//如果从ctx中加载模型成功，则try_loadFromFile被设置为false.
+				bool    try_loadFromFile = true;;
+				if(ctx.getAiScene())
+				{
+					if(pIdAttr)
+					{//拥有ID.从aiScene中加载。
+						aiMesh *pMesh = findMeshFromMaterialName(ctx.getAiScene(),ctx.getAiScene()->mRootNode,pIdAttr->value());
+						if(pMesh)
+						{
+							if(!importAiMesh(ctx.getAiScene(),pMesh,objNode,ctx))
+							{
+								Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("加载材质id为'%s'的模型失败!"))%pIdAttr->value()) );
+							}else{
+								loadOk = true;
+							}
+							try_loadFromFile = false;
+						}
+					}
+				}
 
-                    ///@fixme : how to set transform?
-                    loadOk = importObjects(objNode.filepath(),objNode,ctx);
-                }else{
-                    if(objNode.filepath().empty())
-                    {
-                        if(pIdAttr)
-                        {
-                            Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("被合并的模型'%s'。这是由于您使用了相同材质而导致模型被自动合并。"))%objNode.name() )  );
-                        }else
-                        {
-                            Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("模型'%s'没有指定模型文件，也没有指定模型集合的标识。"))%objNode.name() )  );
-                        }
-                    }else
-                    {
-                        Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("从文件'%s'中加载模型'%s'失败。"))%objNode.filepath()%objNode.name() )  );
-                    }
-                }
-            }
+				if(try_loadFromFile)
+				{
+					//开始加载内容。
+					if(objNode.m_filepath.length())
+					{
+						//开始设置transform
+						if(transform)
+						{
+						}
 
+						///@fixme : how to set transform?
+						loadOk = importObjects(objNode.filepath(),objNode,ctx);
+					}else{
+						if(objNode.filepath().empty())
+						{
+							if(pIdAttr)
+							{
+								Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("被合并的模型'%s'。这是由于您使用了相同材质而导致模型被自动合并。"))%objNode.name() )  );
+							}else
+							{
+								Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("模型'%s'没有指定模型文件，也没有指定模型集合的标识。"))%objNode.name() )  );
+							}
+						}else
+						{
+							Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("从文件'%s'中加载模型'%s'失败。"))%objNode.filepath()%objNode.name() )  );
+						}
+					}
+				}
+			}
 		}
 
 		if(loadOk)
@@ -917,15 +921,26 @@ ExtraObjectManager::importSpScene(const std::string &path,ObjectNode &parentNode
             if(pScene)
             {
                 pObjects = pScene->first_node("objects");
-                type_xml_node *pCamera = pScene->first_node("cameras");
-                if(pCamera)
-                {//load camera database.
-                    Doc::instance().pDocData->camManager.findAndImportCamera(*pCamera);
+                {
+                    type_xml_node *pCamera = pScene->first_node("cameras");
+                    if(pCamera)
+                    {//load camera database.
+                        Doc::instance().pDocData->camManager.findAndImportCamera(*pCamera);
+                    }
                 }
-                type_xml_node *pLights = pScene->first_node(constDef::lights);
-                if(pLights)
-                {//load lights define.
-                    ExtraSettingManager::createLights(ctx,*pLights);
+                {
+                    type_xml_node *pLights = pScene->first_node(constDef::lights);
+                    if(pLights)
+                    {//load lights define.
+                        ExtraSettingManager::createLights(ctx,*pLights);
+                    }
+                }
+                {
+                    type_xml_node *pSetting = pScene->first_node(constDef::setting);
+                    if(pSetting)
+                    {//load settings.
+                        ExtraSettingManager::loadSettings(ctx,*pSetting);
+                    }
                 }
                 if(ctx.loadFilm())
                 {

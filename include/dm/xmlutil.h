@@ -82,6 +82,17 @@ namespace gme
 		static  const char* sunlight;
         static  const char* film;
         static  const char* alpha;
+        static  const char* setting;
+        static  const char* width;
+        static  const char* height;
+        static  const char* gamma;
+        static  const char* filter;
+        static  const char* renderengine;
+        static  const char* tonemapping;
+        static  const char* scale;
+        static  const char* prescale;
+        static  const char* postscale;
+        static  const char* burn;
     };
 
     //inline const char* getFilepathFromDocument(const type_xml_node &node)
