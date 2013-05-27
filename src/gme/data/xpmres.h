@@ -35,6 +35,8 @@ extern  type_xpm save;
 extern  type_xpm start;
 extern  type_xpm stop;
 
+extern  type_xpm translateCam;
+
 } //end namespace xpm
 } //end namepsace gme
 

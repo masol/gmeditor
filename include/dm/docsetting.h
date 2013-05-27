@@ -25,6 +25,8 @@
 #include "dm/docmat.h"
 #include "luxrays/luxrays.h"
 #include "luxrays/core/spectrum.h"
+#include "slg/film/film.h"
+#include "slg/film/tonemapping.h"
 
 namespace slg
 {
@@ -57,11 +59,14 @@ public:
     static   const  int Debone;
 public:
     //film 接口:
-	type_xml_node*   getToneMap(type_xml_node &parent);
+//	type_xml_node*   getToneMap(type_xml_node &parent);
+//	std::string   getToneMapTypeNameByName(int type);
+//	bool   getLinearScale(float &ls);
+//	bool   setLinearScale(float ls);
+    const slg::ToneMapParams*   getToneMapParams(void);
+    bool  setToneMapParams(const slg::ToneMapParams &param);
 
-	std::string   getToneMapTypeNameByName(int type);
-	bool   getLinearScale(float &ls);
-	bool   setLinearScale(float ls);
+
     //engine 接口:
     int    getEngineType(void);
     void   setEngineType(int type);

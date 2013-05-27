@@ -30,6 +30,8 @@
 #include "bitmap/start.xpm"
 #include "bitmap/stop.xpm"
 
+#include "bitmap/translateCam.xpm"
+
 
 
 namespace gme{
@@ -46,6 +48,8 @@ type_xpm pause = pause_xpm;
 type_xpm save = save_xpm;
 type_xpm start = start_xpm;
 type_xpm stop = stop_xpm;
+
+type_xpm translateCam = translateCam_xpm;
 
 } //end namespace xpm
 } //end namepsace gme

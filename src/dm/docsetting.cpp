@@ -376,100 +376,122 @@ DocSetting::changeHDRfile(const std::string &fullpath)
     return bSetOK;
 }
 
-
-
-// get toneMap properties
-type_xml_node*
-DocSetting::getToneMap(type_xml_node &parent)
+const slg::ToneMapParams*
+DocSetting::getToneMapParams(void)
 {
-	type_xml_doc *pDoc = parent.document();
-    BOOST_ASSERT_MSG(pDoc != NULL,"invalid node,must from doc");
-
-	slg::RenderSession* session = pDocData->getSession();
-    if(session && session->film)
+    if(pDocData->getSession() && pDocData->getSession()->film)
     {
-		slg::Film *film = session->film;
-        type_xml_node * pSelf = pDoc->allocate_node(NS_RAPIDXML::node_element,"tonemap");
-		parent.append_node(pSelf);
-
-		int type = film->GetToneMapParams()->GetType();
-		std::string typeName = getToneMapTypeNameByName(type);
-		pSelf->append_attribute(pDoc->allocate_attribute(constDef::type,allocate_string(pDoc,typeName)));
-		type_xml_node *pParams = pDoc->allocate_node(NS_RAPIDXML::node_element,allocate_string(pSelf->document(),typeName));
-		pSelf->append_node(pParams);
-		if(typeName == "linear")
-		{
-			slg::LinearToneMapParams *params = (slg::LinearToneMapParams *)film->GetToneMapParams()->Copy();
-			pParams->append_attribute(allocate_attribute_withkey(pDoc,"scale",boost::lexical_cast<std::string>( params->scale )));
-			delete params;
-		}
-		else if(typeName == "reinhard02")
-		{
-			slg::Reinhard02ToneMapParams *params = (slg::Reinhard02ToneMapParams *)film->GetToneMapParams()->Copy();
-			pParams->append_attribute(allocate_attribute_withkey(pDoc,"burn",boost::lexical_cast<std::string>( params->burn )));
-			pParams->append_attribute(allocate_attribute_withkey(pDoc,"postScale",boost::lexical_cast<std::string>( params->postScale )));
-			pParams->append_attribute(allocate_attribute_withkey(pDoc,"preScale",boost::lexical_cast<std::string>( params->preScale )));
-			delete params;
-		}
-		return pSelf;
-	}
-	return NULL;
-}
-
-std::string
-DocSetting::getToneMapTypeNameByName(int type)
-{
-	std::string typeName;
-	switch(type)
-	{
-	case slg::TONEMAP_NONE:
-		typeName = "none";
-		break;
-	case slg::TONEMAP_LINEAR:
-		typeName = "linear";
-		break;
-	case slg::TONEMAP_REINHARD02:
-		typeName = "reinhard02";
-		break;
-	default:
-		break;
-	}
-	return typeName;
+        return pDocData->getSession()->film->GetToneMapParams();
+    }
+    return NULL;
 }
 
 bool
-DocSetting::getLinearScale(float &ls)
+DocSetting::setToneMapParams(const slg::ToneMapParams &param)
 {
-	bool ret = false;
-	slg::RenderSession* session = pDocData->getSession();
-    if(session && session->film)
+    if(pDocData->getSession() && pDocData->getSession()->film)
     {
-		slg::Film *film = session->film;
-		if(film->GetToneMapParams()->GetType() == slg::TONEMAP_LINEAR)
-		{
-			slg::LinearToneMapParams *params = (slg::LinearToneMapParams *)film->GetToneMapParams()->Copy();
-			ls = params->scale;
-			delete params;
-			ret = true;
-		}
-	}
-    return ret;
-}
-
-bool
-DocSetting::setLinearScale(float ls)
-{
-	slg::RenderSession* session = pDocData->getSession();
-    if(session && session->film)
-    {
-		slg::Film *film = session->film;
-		slg::LinearToneMapParams *params = (slg::LinearToneMapParams *)film->GetToneMapParams()->Copy();
-		params->scale = ls;
-		film->SetToneMapParams(*params);
-		delete params;
-		return true;
-	}
+        pDocData->getSession()->film->SetToneMapParams(param);
+        return true;
+    }
     return false;
 }
+
+
+
+//
+//// get toneMap properties
+//type_xml_node*
+//DocSetting::getToneMap(type_xml_node &parent)
+//{
+//	type_xml_doc *pDoc = parent.document();
+//    BOOST_ASSERT_MSG(pDoc != NULL,"invalid node,must from doc");
+//
+//	slg::RenderSession* session = pDocData->getSession();
+//    if(session && session->film)
+//    {
+//		slg::Film *film = session->film;
+//        type_xml_node * pSelf = pDoc->allocate_node(NS_RAPIDXML::node_element,"tonemap");
+//		parent.append_node(pSelf);
+//
+//		int type = film->GetToneMapParams()->GetType();
+//		std::string typeName = getToneMapTypeNameByName(type);
+//		pSelf->append_attribute(pDoc->allocate_attribute(constDef::type,allocate_string(pDoc,typeName)));
+//		type_xml_node *pParams = pDoc->allocate_node(NS_RAPIDXML::node_element,allocate_string(pSelf->document(),typeName));
+//		pSelf->append_node(pParams);
+//		if(typeName == "linear")
+//		{
+//			slg::LinearToneMapParams *params = (slg::LinearToneMapParams *)film->GetToneMapParams()->Copy();
+//			pParams->append_attribute(allocate_attribute_withkey(pDoc,"scale",boost::lexical_cast<std::string>( params->scale )));
+//			delete params;
+//		}
+//		else if(typeName == "reinhard02")
+//		{
+//			slg::Reinhard02ToneMapParams *params = (slg::Reinhard02ToneMapParams *)film->GetToneMapParams()->Copy();
+//			pParams->append_attribute(allocate_attribute_withkey(pDoc,"burn",boost::lexical_cast<std::string>( params->burn )));
+//			pParams->append_attribute(allocate_attribute_withkey(pDoc,"postScale",boost::lexical_cast<std::string>( params->postScale )));
+//			pParams->append_attribute(allocate_attribute_withkey(pDoc,"preScale",boost::lexical_cast<std::string>( params->preScale )));
+//			delete params;
+//		}
+//		return pSelf;
+//	}
+//	return NULL;
+//}
+
+//std::string
+//DocSetting::getToneMapTypeNameByName(int type)
+//{
+//	std::string typeName;
+//	switch(type)
+//	{
+//	case slg::TONEMAP_NONE:
+//		typeName = "none";
+//		break;
+//	case slg::TONEMAP_LINEAR:
+//		typeName = "linear";
+//		break;
+//	case slg::TONEMAP_REINHARD02:
+//		typeName = "reinhard02";
+//		break;
+//	default:
+//		break;
+//	}
+//	return typeName;
+//}
+//
+//bool
+//DocSetting::getLinearScale(float &ls)
+//{
+//	bool ret = false;
+//	slg::RenderSession* session = pDocData->getSession();
+//    if(session && session->film)
+//    {
+//		slg::Film *film = session->film;
+//		if(film->GetToneMapParams()->GetType() == slg::TONEMAP_LINEAR)
+//		{
+//			slg::LinearToneMapParams *params = (slg::LinearToneMapParams *)film->GetToneMapParams()->Copy();
+//			ls = params->scale;
+//			delete params;
+//			ret = true;
+//		}
+//	}
+//    return ret;
+//}
+//
+//bool
+//DocSetting::setLinearScale(float ls)
+//{
+//	slg::RenderSession* session = pDocData->getSession();
+//    if(session && session->film)
+//    {
+//		slg::Film *film = session->film;
+//		slg::LinearToneMapParams *params = (slg::LinearToneMapParams *)film->GetToneMapParams()->Copy();
+//		params->scale = ls;
+//		film->SetToneMapParams(*params);
+//		delete params;
+//		return true;
+//	}
+//    return false;
+//}
 
 }

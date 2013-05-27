@@ -431,7 +431,7 @@ MainFrame::createToolbar()
 		pViewTbr->AddTool(cmd::GID_MD_LOCK,gmeWXT("锁定"),wxBitmap(xpm::help),gmeWXT("锁定说明"),wxITEM_RADIO);
 		pViewTbr->AddTool(cmd::GID_MD_PANE,gmeWXT("平移"),wxBitmap(xpm::help),gmeWXT("平移说明"),wxITEM_RADIO);
 		pViewTbr->AddTool(cmd::GID_MD_ROTATE,gmeWXT("旋转"),wxBitmap(xpm::help),gmeWXT("旋转说明"),wxITEM_RADIO);
-		pViewTbr->AddTool(cmd::GID_MD_ROTATE_AROUND_FOCUS,gmeWXT("焦点旋转"),wxBitmap(xpm::help),gmeWXT("焦点旋转说明"),wxITEM_RADIO);
+		pViewTbr->AddTool(cmd::GID_MD_ROTATE_AROUND_FOCUS,gmeWXT("焦点旋转"),wxBitmap(xpm::translateCam),gmeWXT("焦点旋转说明"),wxITEM_RADIO);
 		pViewTbr->AddTool(cmd::GID_MD_ZOOM,gmeWXT("缩放"),wxBitmap(xpm::help),gmeWXT("缩放说明"),wxITEM_RADIO);
 		pViewTbr->AddTool(cmd::GID_MD_SELECT,gmeWXT("选择"),wxBitmap(xpm::help),gmeWXT("选择说明"),wxITEM_RADIO);
 		pViewTbr->AddTool(cmd::GID_MD_SETSUNLIGHT,gmeWXT("阳光方向"),wxBitmap(xpm::help),gmeWXT("阳光方向说明"),wxITEM_RADIO);

@@ -22,6 +22,7 @@
 #include <wx/wx.h>
 #include <wx/propgrid/manager.h>
 #include "gmeproppage.h"
+#include "slg/film/tonemapping.h"
 
 namespace gme{
 
@@ -31,7 +32,14 @@ class HDRPage : public GmePropPage
 public:
     HDRPage();
     virtual ~HDRPage();
+private:
+    void clearPage(void);
+    void buildPage(void);
+    void refreshToneMapping(int typeValue,const slg::ToneMapParams *param,wxPGProperty *pToneMap);
 protected:
+    void onDocumentLoaded(void);
+    void onDocumentClosed(void);
+
     void OnPropertySelect( wxPropertyGridEvent& event );
     void OnPropertyChanging( wxPropertyGridEvent& event );
     void OnPropertyChange( wxPropertyGridEvent& event );
