@@ -397,6 +397,48 @@ DocSetting::setToneMapParams(const slg::ToneMapParams &param)
     return false;
 }
 
+int
+DocSetting::getFilmFilter(void)
+{
+    if(pDocData->getSession() && pDocData->getSession()->film)
+    {
+        return pDocData->getSession()->film->GetFilterType();
+    }
+    return -1;
+}
+
+bool
+DocSetting::setFilmFilter(int type)
+{
+    if(pDocData->getSession() && pDocData->getSession()->film)
+    {
+        slg::FilterType ft = (slg::FilterType)type;
+        pDocData->getSession()->film->SetFilterType(ft);
+        return true;
+    }
+    return false;
+}
+
+float
+DocSetting::getGamma(void)
+{
+    if(pDocData->getSession() && pDocData->getSession()->film)
+    {
+        return pDocData->getSession()->film->GetGamma();
+    }
+    return 2.2f;
+}
+
+bool
+DocSetting::setGamma(float g)
+{
+    if(pDocData->getSession() && pDocData->getSession()->film)
+    {
+        pDocData->getSession()->film->InitGammaTable(g);
+        return true;
+    }
+    return false;
+}
 
 
 //

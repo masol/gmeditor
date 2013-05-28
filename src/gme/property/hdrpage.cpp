@@ -30,6 +30,7 @@
 #include "dm/docio.h"
 #include "dm/docimg.h"
 #include "dm/docsetting.h"
+#include "dm/doccamera.h"
 
 BEGIN_EVENT_TABLE(gme::HDRPage, gme::HDRPage::inherit)
     EVT_PG_SELECTED( wxID_ANY, gme::HDRPage::OnPropertySelect )
@@ -93,6 +94,24 @@ HDRPage::refreshToneMapping(int typevlaue,const slg::ToneMapParams *param,wxPGPr
 }
 
 void
+HDRPage::buildCamera(wxPGProperty *pCamCate)
+{
+    //设置camera信息。
+    Camera      cam;
+    DocCamera   doccamera;
+    if(doccamera.saveTo(cam))
+    {
+        DECLARE_WXCONVERT;
+
+        this->AppendIn(pCamCate,new wxFloatProperty(gmeWXT("视野"),wxString("fov"),cam.fieldOfView) );
+        this->AppendIn(pCamCate,new wxFloatProperty(gmeWXT("焦距"),wxString("lensradius"),cam.lensRadius) );
+        this->AppendIn(pCamCate,new wxFloatProperty(gmeWXT("聚焦距离"),wxString("focaldistance"),cam.focalDistance) );
+        this->AppendIn(pCamCate,new wxFloatProperty(gmeWXT("近平面"),wxString("hither"),cam.clipHither) );
+        this->AppendIn(pCamCate,new wxFloatProperty(gmeWXT("远平面"),wxString("yon"),cam.clipYon) );
+    }
+}
+
+void
 HDRPage::buildPage(void)
 {
     DECLARE_WXCONVERT;
@@ -110,21 +129,39 @@ HDRPage::buildPage(void)
     {
         DocSetting  setting;
 
-        const slg::ToneMapParams *param = setting.getToneMapParams();
+        {
+            const slg::ToneMapParams *param = setting.getToneMapParams();
 
-        int typevlaue = slg::TONEMAP_NONE;
-        if(param)
-            typevlaue = param->GetType();
-        // Append is ideal way to add items to wxPropertyGrid.
-        wxPGChoices soc;
-        soc.Add( gmeWXT("线性映射"), slg::TONEMAP_LINEAR);
-        soc.Add( gmeWXT("压缩映射"), slg::TONEMAP_REINHARD02);
-        soc.Add( gmeWXT("无映射"), slg::TONEMAP_NONE);
-        wxPGProperty *pToneMap = this->AppendIn(pCate,new wxEnumProperty(gmeWXT("图像映射"),wxString("tonemap"), soc,typevlaue));
-        refreshToneMapping(typevlaue,param,pToneMap);
+            int typevlaue = slg::TONEMAP_NONE;
+            if(param)
+                typevlaue = param->GetType();
+            // Append is ideal way to add items to wxPropertyGrid.
+            wxPGChoices soc;
+            soc.Add( gmeWXT("线性映射"), slg::TONEMAP_LINEAR);
+            soc.Add( gmeWXT("压缩映射"), slg::TONEMAP_REINHARD02);
+            soc.Add( gmeWXT("无映射"), slg::TONEMAP_NONE);
+            wxPGProperty *pToneMap = this->AppendIn(pCate,new wxEnumProperty(gmeWXT("图像映射"),wxString("tonemap"), soc,typevlaue));
+            refreshToneMapping(typevlaue,param,pToneMap);
+        }
+
+        //设置gamma
+        this->AppendIn(pCate,new wxFloatProperty(gmeWXT(constDef::gamma),wxString(constDef::gamma),setting.getGamma() ) );
+
+        //设置filter.
+        {
+            wxPGChoices soc;
+            soc.Add( gmeWXT("无"), slg::FILTER_NONE);
+            soc.Add( gmeWXT("矩形过滤"), slg::FILTER_BOX);
+            soc.Add( gmeWXT("高斯过滤"), slg::FILTER_GAUSSIAN);
+            soc.Add( gmeWXT("米切尔过滤"), slg::FILTER_MITCHELL);
+            soc.Add( gmeWXT("改进型米切尔过滤"), slg::FILTER_MITCHELL_SS);
+            this->AppendIn(pCate,new wxEnumProperty(gmeWXT("反走样"),wxString(constDef::filter), soc,setting.getFilmFilter()));
+        }
+
     }
 
-	//RefreshProperty(pid);
+	wxPGProperty* pCamCate = this->Append(new wxPropertyCategory(gmeWXT("相机"),wxString(constDef::camera)));
+	buildCamera(pCamCate);
 }
 
 
@@ -139,8 +176,42 @@ HDRPage::HDRPage()
     DocIO   dio;
     dio.onSceneLoaded(boost::bind(&HDRPage::onDocumentLoaded,this));
     dio.onSceneClosed(boost::bind(&HDRPage::onDocumentClosed,this));
+
+    DocCamera   doccam;
+    doccam.onCameraSwitched(boost::bind(&HDRPage::onCameraSwitched,this));
 }
 
+void
+HDRPage::updateCameraField(const wxString &propid,float value)
+{
+    wxPGProperty  *pprop = this->GetProperty(propid);
+    if(pprop)
+    {
+        pprop->SetValue(value);
+    }
+}
+
+void
+HDRPage::updateCamera(void)
+{
+    DocCamera   doccamera;
+    int sel = doccamera.getSelected();
+    if(sel >= 0 && sel < (int)doccamera.size())
+    {//收到消息时，当前camera可能尚未更新。
+        Camera      &cam = doccamera.get(sel);
+        updateCameraField("fov",cam.fieldOfView);
+        updateCameraField("lensradius",cam.lensRadius);
+        updateCameraField("focaldistance",cam.focalDistance);
+        updateCameraField("hither",cam.clipHither);
+        updateCameraField("yon",cam.clipYon);
+    }
+}
+
+void
+HDRPage::onCameraSwitched(void)
+{
+    updateCamera();
+}
 
 HDRPage::~HDRPage()
 {
@@ -153,8 +224,8 @@ void HDRPage::OnPropertySelect( wxPropertyGridEvent& WXUNUSED(event) )
 
 void HDRPage::OnPropertyChange( wxPropertyGridEvent& event )
 {
-    wxPGProperty* p = event.GetProperty();
-    std::cerr << "HDRPage::OnPropertyChange('" << p->GetName().c_str() << "', to value '" << p->GetDisplayedString().c_str() << "')" << std::endl;
+//    wxPGProperty* p = event.GetProperty();
+//    std::cerr << "HDRPage::OnPropertyChange('" << p->GetName().c_str() << "', to value '" << p->GetDisplayedString().c_str() << "')" << std::endl;
 }
 
 void HDRPage::OnPropertyChanging( wxPropertyGridEvent& event )
@@ -183,6 +254,26 @@ void HDRPage::OnPropertyChanging( wxPropertyGridEvent& event )
             }
         }
         if(!bSet && event.CanVeto())
+        {
+            event.Veto();
+        }
+    }else if(boost::equals(id,constDef::gamma))
+    {
+        wxAny any_value = event.GetValue();
+        BOOST_ASSERT(any_value.CheckType<float>());
+        float gamma = any_value.As<float>();
+        DocSetting  setting;
+        if(!setting.setGamma(gamma) && event.CanVeto())
+        {
+            event.Veto();
+        }
+    }else if(boost::equals(id,constDef::filter))
+    {
+        wxAny any_value = event.GetValue();
+        BOOST_ASSERT(any_value.CheckType<int>());
+        int filter = any_value.As<int>();
+        DocSetting  setting;
+        if(!setting.setFilmFilter(filter) && event.CanVeto())
         {
             event.Veto();
         }
@@ -267,6 +358,47 @@ void HDRPage::OnPropertyChanging( wxPropertyGridEvent& event )
 
         slg::Reinhard02ToneMapParams  param(pOrig->preScale,pOrig->postScale,value);
         setting.setToneMapParams(param);
+    }else
+    {//设置camera.
+        Camera      cam;
+        DocCamera   doccam;
+        if(doccam.saveTo(cam))
+        {
+            wxAny any_value = event.GetValue();
+            BOOST_ASSERT(any_value.CheckType<float>());
+            float value = any_value.As<float>();
+
+            if(boost::equals(id,"fov"))
+            {
+                cam.fieldOfView = value;
+            }else if(boost::equals(id,"lensradius"))
+            {
+                cam.lensRadius = value;
+            }else if(boost::equals(id,"focaldistance"))
+            {
+                cam.focalDistance = value;
+            }else if(boost::equals(id,"hither"))
+            {
+                cam.clipHither = value;
+            }else if(boost::equals(id,"yon"))
+            {
+                cam.clipYon = value;
+            }else{
+                BOOST_ASSERT_MSG(false,"unknow id value");
+            }
+
+            if(doccam.restoreFrom(cam))
+            {
+                int sel = doccam.getSelected();
+                if(sel >= 0 && sel < (int)doccam.size())
+                {
+                    doccam.get(sel) = cam;
+                }
+            }else if(event.CanVeto())
+            {
+                event.Veto();
+            }
+        }
     }
 }
 

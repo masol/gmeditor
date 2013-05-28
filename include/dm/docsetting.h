@@ -65,6 +65,10 @@ public:
 //	bool   setLinearScale(float ls);
     const slg::ToneMapParams*   getToneMapParams(void);
     bool  setToneMapParams(const slg::ToneMapParams &param);
+    int getFilmFilter(void);
+    bool setFilmFilter(int type);
+    float getGamma(void);
+    bool setGamma(float g);
 
 
     //engine 接口:

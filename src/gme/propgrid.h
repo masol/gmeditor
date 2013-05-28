@@ -25,6 +25,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/unordered_map.hpp>
 
+
 namespace gme{
 
 class   GmePropPage;
@@ -36,6 +37,7 @@ public:
 
     wxPropertyGridManager   *m_pPropGridManager;
     GmePropPage             *m_pLastShownPage;
+
 private:
     /// @brief set the default propertyview size.
     void setDefaultFramePosition();
@@ -48,6 +50,7 @@ private:
 //    };
     /// @brief all all pages here.
     void initPages(void);
+
 protected:
     void OnPropertyGridPageChange( wxPropertyGridEvent& event );
     void OnSelectedObjectChanged(const std::string &oid,const std::string &matid)

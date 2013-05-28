@@ -16,40 +16,36 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_PROPERTY_HDRPAGE_H
-#define  GME_PROPERTY_HDRPAGE_H
+#ifndef GME_PREFERENCESDIALOG_H
+#define GME_PREFERENCESDIALOG_H
 
-#include <wx/wx.h>
-#include <wx/propgrid/manager.h>
-#include "gmeproppage.h"
-#include "slg/film/tonemapping.h"
+#include "wx/propdlg.h"
 
 namespace gme{
 
-class HDRPage : public GmePropPage
+class PreferencesDialog : wxPropertySheetDialog
 {
-    typedef GmePropPage inherit;
+DECLARE_CLASS(PreferencesDialog)
 public:
-    HDRPage();
-    virtual ~HDRPage();
+	PreferencesDialog(wxWindow *parent);
+	~PreferencesDialog(){};
+
 private:
-    void clearPage(void);
-    void buildPage(void);
-    void refreshToneMapping(int typeValue,const slg::ToneMapParams *param,wxPGProperty *pToneMap);
-    void buildCamera(wxPGProperty *pCamCate);
-    void updateCamera(void);
-    void updateCameraField(const wxString &propid,float value);
-protected:
-    void onDocumentLoaded(void);
-    void onDocumentClosed(void);
-    void onCameraSwitched(void);
-    void OnPropertySelect( wxPropertyGridEvent& event );
-    void OnPropertyChanging( wxPropertyGridEvent& event );
-    void OnPropertyChange( wxPropertyGridEvent& event );
+	bool Create(wxWindow *parent);
+	wxPanel* CreateLoadSettingPage(wxWindow* parent);
+    wxPanel* CreateTestPage(wxWindow* parent);
 private:
-    DECLARE_EVENT_TABLE()
+	enum{
+		ID_LOAD_ENABLE = 1,
+		ID_LOAD_TEST1,
+		ID_LOAD_TEST2,
+		ID_LIST_ENABLE,
+		ID_LIST_TEST1,
+		ID_LIST_TEST2
+	};
+DECLARE_EVENT_TABLE()
 };
 
 }
 
-#endif //GME_PROPERTY_HDRPAGE_H
+#endif // GME_PREFERENCESDIALOG_H

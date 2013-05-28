@@ -1,5 +1,5 @@
 /* XPM */
-static char * translateCam_xpm[] = {
+static const char * translateCam_xpm[] = {
 "16 15 64 1",
 " 	c None",
 ".	c #DADADA",

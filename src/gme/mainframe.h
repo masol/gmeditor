@@ -57,6 +57,7 @@ protected:
   	void onUpdateMenuFileSave(wxUpdateUIEvent& event);
 
 	void onMenuFileSaveImage(wxCommandEvent &event);
+	void onMenuPreferences(wxCommandEvent &event);
   	void onUpdateMenuFileSaveImage(wxUpdateUIEvent& event);
 
 	/** Processes menu File|Export */

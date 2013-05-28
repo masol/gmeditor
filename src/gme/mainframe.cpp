@@ -16,6 +16,10 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
+#ifdef __WXMSW__
+    #include <wx/msw/msvcrt.h>      // redefines the new() operator 
+#endif 
+
 #include "config.h"
 #include "mainframe.h"
 //#include "renderview.h"
@@ -38,6 +42,7 @@
 #include "glrenderview.h"
 #include "filedialog.h"
 #include "gmestatus.h"
+#include "dialog/preferencesdialog.h"
 #include "cameraview.h"
 
 #include "buildinfo.h"
@@ -102,6 +107,7 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_MENU(cmd::GID_EXPORT, MainFrame::onMenuFileExport)
 	EVT_UPDATE_UI(cmd::GID_EXPORT,MainFrame::onUpdateonMenuFileExport)
 	EVT_MENU(cmd::GID_IMPORT, MainFrame::onMenuFileImport)
+	EVT_MENU(cmd::GID_PREFERENCES, MainFrame::onMenuPreferences)
 	EVT_UPDATE_UI(cmd::GID_IMPORT,MainFrame::onUpdateMenuFileImport)
     EVT_MENU(cmd::GID_SAVE_IMAGE, MainFrame::onMenuFileSaveImage)
 	EVT_UPDATE_UI(cmd::GID_SAVE_IMAGE,MainFrame::onUpdateMenuFileSaveImage)
@@ -194,6 +200,7 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
 
 MainFrame::~MainFrame()
 {
+	m_mgr.UnInit();
     ///@todo 设置sv_getImageFilepath到一个恒定false的函数。
 }
 
@@ -260,6 +267,7 @@ MainFrame::createMenubar()
         pFileMenu->Append(wxID_SAVE, appendShortCutString(wxID_SAVE,name), gmeWXT("保存现有场景"));
         pFileMenu->Append(cmd::GID_SAVE_IMAGE, gmeWXT("保存图片(&S)"), gmeWXT("保存当前渲染结果"));
         pFileMenu->Append(cmd::GID_EXPORT, gmeWXT("导出(&E)"), gmeWXT("导出现有场景"));
+		pFileMenu->Append(cmd::GID_PREFERENCES, gmeWXT("参数设置(&P)"), gmeWXT("参数设置"));
         pFileMenu->AppendSeparator();
         pFileMenu->Append(wxID_EXIT, gmeWXT("退出(&X)"), gmeWXT("退出gmeditor"));
 
@@ -475,11 +483,16 @@ void
 MainFrame::onClose(wxCloseEvent& event)
 {
     // deinitialize the frame manager
+	/*
     m_mgr.UnInit();
 	Destroy();
     wxTheApp->ExitMainLoop();
     exit(0);
 	event.Skip(false);
+	*/
+	DocCtl dctl;
+	dctl.stop();
+	Destroy();
 }
 
 void
@@ -688,6 +701,13 @@ MainFrame::onMenuFileImport(wxCommandEvent &event)
         }
         refreshMouseEvt();
 	}
+}
+
+void
+MainFrame::onMenuPreferences(wxCommandEvent &event)
+{
+	// show preferences dialog
+	PreferencesDialog dialog(this);
 }
 
 void

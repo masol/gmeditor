@@ -108,6 +108,8 @@ typedef std::vector<Camera>     type_cam_vector;
 class DocCamera : public DocScopeLocker
 {
 public:
+    typedef boost::function<void (void)>     type_state_handler;
+public:
     bool    autoTarget(void);
     void    autoTarget(bool at);
     /** @brief rotating around target.distx and disty is in document coordinate.
@@ -136,6 +138,7 @@ public:
     **/
     bool    viewAll(const std::string &objID);
 public: //camera storage.
+    void    onCameraSwitched(type_state_handler handler);
     int     getSelected(void);
     bool    setSelected(int select);
     /** @return number of imported.

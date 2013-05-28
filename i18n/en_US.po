@@ -134,6 +134,14 @@ msgstr "Exit(&X)"
 msgid "退出gmeditor"
 msgstr "Exit gmeditor"
 
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:265
+msgid "参数设置(&P)"
+msgstr "Preferences(&P)"
+
+#: D:\source\glue\gmeditor\src\gme/mainframe.cpp:265
+msgid "参数设置"
+msgstr "Preferences"
+
 #: D:\source\glue\gmeditor/src/gme/mainframe.cpp:245
 #: D:\source\glue\gmeditor\src\gme/mainframe.cpp:245
 msgid "文件(&F)"

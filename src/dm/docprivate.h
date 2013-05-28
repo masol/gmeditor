@@ -78,6 +78,7 @@ public:
         STATE_CLOSE,
         STATE_PAUSE,
         STATE_AUTOFOCUS_CHANGED,
+        STATE_CAMSELSWITCHED, //指示当前激活摄像机被切换。
         STATE_MAX
     };
 

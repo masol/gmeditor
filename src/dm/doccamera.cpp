@@ -324,17 +324,26 @@ DocCamera::getSelected(void)
     return pDocData->camManager.getSelect();
 }
 
+void
+DocCamera::onCameraSwitched(type_state_handler handler)
+{
+    pDocData->state_Evt.addEventListen(DocPrivate::STATE_CAMSELSWITCHED,handler);
+}
+
+
 bool
 DocCamera::setSelected(int select)
 {
     if(select == -1)
     {
         pDocData->camManager.setSelect(select);
+        pDocData->fireStateChanged(DocPrivate::STATE_CAMSELSWITCHED);
         return true;
     }
     if(select >= 0 && select < (int)(pDocData->camManager.m_cam_vector.size()))
     {
         pDocData->camManager.setSelect(select);
+        pDocData->fireStateChanged(DocPrivate::STATE_CAMSELSWITCHED);
         return true;
     }
     return false;

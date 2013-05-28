@@ -31,7 +31,7 @@
 #include "../mainframe.h"
 #include "luxrays/utils/properties.h"
 #include "slg/sdl/texture.h"
-
+#include "../property/pgeditor.h"
 
 BEGIN_EVENT_TABLE(gme::MaterialPage, gme::MaterialPage::inherit)
     EVT_PG_SELECTED( wxID_ANY, gme::MaterialPage::OnPropertySelect )
@@ -178,7 +178,11 @@ MaterialPage::addTextureContent(wxPGProperty *pTexType,type_xml_node *pSelf,int 
     }else if(type == DocMat::CONST_FLOAT)
     {
         float   value = GetAttributeValue(pSelf,"value",0.5f);
-        wxFloatProperty *pTexValue = new wxFloatProperty(gmeWXT("值"),"value",value);
+        //wxFloatProperty *pTexValue = new wxFloatProperty(gmeWXT("值"),"value",value);
+		wxFloatProperty *pTexValue = new wxFloatProperty(gmeWXT("值"),"value",value);
+		//wxStringProperty *pTexValue = new wxStringProperty(gmeWXT("值"),"value", boost::lexical_cast<std::string>(value));
+		//wxPGEditor* pgEditor = wxPropertyGrid::DoRegisterEditorClass(new wxPGSliderEditor(255), "floatEditor");
+		pTexValue->SetEditor (wxPGSliderEditor::getInstance(pTexType->GetGrid()));
         this->AppendIn(pTexType,pTexValue);
     }else if(type == DocMat::IMAGEMAP)
     {
