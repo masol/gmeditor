@@ -626,6 +626,14 @@ MaterialPage::OnPropertyChanging( wxPropertyGridEvent& event )
         value =  event.GetValue().GetString().c_str();
     }
 
+    ///@fixme: why we can get a empty value?
+    if(value.empty())
+    {
+        if(event.CanVeto())
+            event.Veto();
+        return;
+    }
+
     std::cerr << "property value change to : " << value << std::endl;
 
     int result = mat.updateProperty(idArray,value,doc,MainFrame::getImageFilepathFunc());

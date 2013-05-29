@@ -33,6 +33,7 @@ public:
     bool    start();
     bool    stop();
     bool    pause();
+    bool    refresh();
 };
 
 }

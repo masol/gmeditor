@@ -28,7 +28,7 @@
 
 namespace gme{
 
-bool  SlgUtil::Editor::m_bForceRefresh = true;
+bool  SlgUtil::Editor::m_bForceRefresh = false;
 SlgUtil::Editor::~Editor()
 {
     if (m_session->editActions.Has(slg::MATERIALS_EDIT)) {

@@ -85,6 +85,10 @@ protected:
 	void onNewCamFromCurrent(wxCommandEvent &event);
     void onUpdateNewCamFromCurrent(wxUpdateUIEvent &event);
 
+	void onImmRefresh(wxCommandEvent &event);
+    void onUpdateImmRefresh(wxUpdateUIEvent &event);
+    
+
 	void onAutoTarget(wxCommandEvent &event);
     void onUpdateAutoTarget(wxUpdateUIEvent &event);
 

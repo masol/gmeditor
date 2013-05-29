@@ -364,6 +364,13 @@ void HDRPage::OnPropertyChanging( wxPropertyGridEvent& event )
         DocCamera   doccam;
         if(doccam.saveTo(cam))
         {
+            //获取当前camera的名字。
+            int sel = doccam.getSelected();
+            if(sel >= 0 && sel < doccam.size())
+            {
+                cam.name = doccam.get(sel).name;
+            }
+
             wxAny any_value = event.GetValue();
             BOOST_ASSERT(any_value.CheckType<float>());
             float value = any_value.As<float>();

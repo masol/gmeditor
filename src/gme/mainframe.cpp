@@ -146,8 +146,8 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_UPDATE_UI(cmd::GID_CLEAR_LOG,MainFrame::onUpdateClearLog)
 	EVT_MENU(cmd::GID_CAM_NEWFROMCURRENT,MainFrame::onNewCamFromCurrent)
 	EVT_UPDATE_UI(cmd::GID_CAM_NEWFROMCURRENT,MainFrame::onUpdateNewCamFromCurrent)
-
-
+	EVT_MENU(cmd::GID_IMM_REFRESH,MainFrame::onImmRefresh)
+	EVT_UPDATE_UI(cmd::GID_IMM_REFRESH,MainFrame::onUpdateImmRefresh)
 
 	EVT_CLOSE(MainFrame::onClose)
 END_EVENT_TABLE()
@@ -244,6 +244,9 @@ MainFrame::appendShortCutString(int cmdid,wxString &shortCut)
         break;
     case cmd::GID_MD_SETSUNLIGHT:
         shortCut.append("\tCtrl+W");
+        break;
+    case cmd::GID_IMM_REFRESH:
+        shortCut.append("\tF5");
         break;
     default:
         break;
@@ -351,6 +354,8 @@ MainFrame::createMenubar()
     {// setting
 		wxMenu *pSettingMenu = new wxMenu();
 		pSettingMenu->AppendCheckItem(cmd::GID_SET_FORCEREFRESH, gmeWXT("强制刷新"), gmeWXT("每次编辑时强制刷新GPU缓冲。"));
+        name = gmeWXT("立即刷新(&R)");
+		pSettingMenu->Append(cmd::GID_IMM_REFRESH, appendShortCutString(cmd::GID_IMM_REFRESH,name), gmeWXT("立即刷新GPU缓冲。"));
 		pSettingMenu->AppendSeparator();
 
         wxMenu *pLoadingMenu = new wxMenu();
@@ -883,6 +888,21 @@ MainFrame::onNewCamFromCurrent(wxCommandEvent &event)
 {
     this->m_camView->newCamFromCurrent();
 }
+
+void
+MainFrame::onImmRefresh(wxCommandEvent &event)
+{
+	DocCtl dctl;
+    dctl.refresh();
+}
+
+void
+MainFrame::onUpdateImmRefresh(wxUpdateUIEvent &event)
+{
+	DocCtl dctl;
+    event.Enable(dctl.isRuning());
+}
+
 
 void
 MainFrame::onUpdateNewCamFromCurrent(wxUpdateUIEvent &event)

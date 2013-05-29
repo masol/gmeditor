@@ -129,6 +129,7 @@ ExtraCameraManager::saveTo(slg::RenderSession *session,Camera &cam)
     cam.fieldOfView = slgCam->fieldOfView;
     cam.focalDistance = slgCam->focalDistance;
     cam.lensRadius = slgCam->lensRadius;
+    cam.name = "unamed";
 }
 
 

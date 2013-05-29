@@ -55,6 +55,19 @@ DocCtl::start()
 }
 
 bool
+DocCtl::refresh()
+{
+    if(pDocData->isRunning())
+    {
+        pDocData->getSession()->Stop();
+        pDocData->getSession()->Start();
+        return true;
+    }
+    return false;
+}
+
+
+bool
 DocCtl::stop()
 {
     if( pDocData->m_session && pDocData->isRunning() )
