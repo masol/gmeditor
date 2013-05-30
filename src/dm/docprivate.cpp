@@ -45,7 +45,15 @@ SlgUtil::Editor::~Editor()
         {
             Doc::instance().pDocData->cachefilm().invalidate();
         }
-        m_session->EndEdit();
+        try{
+            m_session->EndEdit();
+        }catch(std::exception e)
+        {
+            Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("更新场景时发生错误:'%s'，强制更新场景...")) % e.what() ) );
+            m_session->Stop();
+            m_session->Start();
+            Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("更新完毕。")) ) );
+        }
     }
 }
 

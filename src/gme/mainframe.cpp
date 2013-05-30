@@ -60,6 +60,21 @@ static void Log_Adapter(int level,const char* msgstr,const char* mask)
         msg = wxString(__("报告的日志中包含了非UTF-8编码的字符，这通常是由于文件采用了非UTF8编码引发的。请使用编码转化工具将其转为UTF8编码文件。其原始内容为:\n\t\t"),gme_wx_utf8_conv);
         msg.append(msgstr);
     }
+    if(level <= Doc::LOG_DEBUG)
+    {
+        if(boost::ifind_first(msgstr,"ERROR"))
+        {
+            level = Doc::LOG_WARNING;
+        }else if(mask)
+        {
+            ///example GME_SHOW_MASK: LuxRays;SDL;SLG
+            const char* show_mask = std::getenv("GME_SHOW_MASK");
+            if(boost::ifind_first(show_mask,mask))
+            {
+                level = Doc::LOG_STATUS;
+            }
+        }
+    }
     switch(level)
     {
     case Doc::LOG_TRACE:
@@ -892,6 +907,7 @@ MainFrame::onNewCamFromCurrent(wxCommandEvent &event)
 void
 MainFrame::onImmRefresh(wxCommandEvent &event)
 {
+    wxBusyCursor wait;
 	DocCtl dctl;
     dctl.refresh();
 }

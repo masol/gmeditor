@@ -66,6 +66,10 @@ protected:
     void OnPropertySelect( wxPropertyGridEvent& event );
     void OnPropertyChanging( wxPropertyGridEvent& event );
     void OnPropertyChange( wxPropertyGridEvent& event );
+#ifdef PROPERTY_HAS_DELETE_PROPERTY
+#else
+    void OnRefreshMaterialProp(wxCommandEvent &event);
+#endif
 
 	void  onDocumentItemSelected(const std::string &id);
 	void  onDocumentItemDeselected(const std::string &id);

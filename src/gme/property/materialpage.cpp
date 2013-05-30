@@ -31,12 +31,18 @@
 #include "../mainframe.h"
 #include "luxrays/utils/properties.h"
 #include "slg/sdl/texture.h"
-#include "../property/pgeditor.h"
+#include "pgeditor.h"
+#include "../cmdids.h"
+#include "../filedialog.h"
 
 BEGIN_EVENT_TABLE(gme::MaterialPage, gme::MaterialPage::inherit)
     EVT_PG_SELECTED( wxID_ANY, gme::MaterialPage::OnPropertySelect )
     EVT_PG_CHANGING( wxID_ANY, gme::MaterialPage::OnPropertyChanging )
     EVT_PG_CHANGED( wxID_ANY, gme::MaterialPage::OnPropertyChange )
+#ifdef PROPERTY_HAS_DELETE_PROPERTY
+#else
+    EVT_BUTTON (cmd::GID_REFRESH_MATPROP, MaterialPage::OnRefreshMaterialProp)
+#endif
 END_EVENT_TABLE()
 
 
@@ -65,6 +71,8 @@ void
 MaterialPage::clearPage(void)
 {
     //清空当前页面。
+    this->ClearModifiedStatus();
+    this->ClearSelection();
     this->Clear();
     m_currentObject.clear();
 }
@@ -182,7 +190,7 @@ MaterialPage::addTextureContent(wxPGProperty *pTexType,type_xml_node *pSelf,int 
 		wxFloatProperty *pTexValue = new wxFloatProperty(gmeWXT("值"),"value",value);
 		//wxStringProperty *pTexValue = new wxStringProperty(gmeWXT("值"),"value", boost::lexical_cast<std::string>(value));
 		//wxPGEditor* pgEditor = wxPropertyGrid::DoRegisterEditorClass(new wxPGSliderEditor(255), "floatEditor");
-		pTexValue->SetEditor (wxPGSliderEditor::getInstance(pTexType->GetGrid()));
+		//pTexValue->SetEditor (wxPGSliderEditor::getInstance(pTexType->GetGrid()));
         this->AppendIn(pTexType,pTexValue);
     }else if(type == DocMat::IMAGEMAP)
     {
@@ -594,6 +602,29 @@ void MaterialPage::OnPropertyChange( wxPropertyGridEvent& event )
 //    std::cerr << "MaterialPage::OnPropertyChange('" << p->GetName().c_str() << "', to value '" << p->GetDisplayedString().c_str() << "')" << std::endl;
 }
 
+#ifdef PROPERTY_HAS_DELETE_PROPERTY
+#else
+void
+MaterialPage::OnRefreshMaterialProp(wxCommandEvent &event)
+{
+    wxPGProperty* id = this->m_manager->GetGrid()->GetSelection();
+    if(id && this->m_manager->IsPropertyEnabled(id) )
+    {
+        this->m_manager->DisableProperty ( id );
+        wxCommandEvent evt(wxEVT_COMMAND_BUTTON_CLICKED, cmd::GID_REFRESH_MATPROP);
+        wxPostEvent(this,evt);
+    }else
+    {
+        std::string targetId = m_currentObject;
+        this->m_manager->DeletePendingEvents();
+        this->DeletePendingEvents();
+        clearPage();
+        buildPage(targetId);
+    }
+}
+#endif
+
+
 void
 MaterialPage::OnPropertyChanging( wxPropertyGridEvent& event )
 {
@@ -601,6 +632,8 @@ MaterialPage::OnPropertyChanging( wxPropertyGridEvent& event )
 
     wxPGProperty* p = event.GetProperty();
     std::vector< std::string >    idArray;
+
+    BOOST_ASSERT(idArray.size() > 0);
 
     std::string name(p->GetName().c_str());
     boost::split(idArray,name,boost::is_any_of("."),boost::token_compress_on);
@@ -634,19 +667,30 @@ MaterialPage::OnPropertyChanging( wxPropertyGridEvent& event )
         return;
     }
 
-    std::cerr << "property value change to : " << value << std::endl;
+    //std::cerr << "property value change to : " << value << std::endl;
+
+    if(boost::equals(idArray.back(),constDef::file))
+    {//检查以file结束，并检查其是一个被支持的图像格式。
+        if(!OpenImageDialog::isSupported(value))
+        {//图片不被支持，直接退出。
+            if(event.CanVeto())
+                event.Veto();
+            return;
+        }
+    }
+
 
     int result = mat.updateProperty(idArray,value,doc,MainFrame::getImageFilepathFunc());
     switch(result)
     {
     case DocMat::UPDATE_DENY:
-//        std::cerr << "veto property changed." << std::endl;
         if(event.CanVeto())
             event.Veto();
         break;
     case DocMat::UPDATE_ACCEPT:
-//        std::cerr << "property changed accepted." << std::endl;
         break;
+    ///@fixme: why delete property cause crash when idle sometimes?
+#ifdef PROPERTY_HAS_DELETE_PROPERTY
     case DocMat::UPDATE_REFRESH_MAT:
         {
             this->removeChild(p);
@@ -687,6 +731,16 @@ MaterialPage::OnPropertyChanging( wxPropertyGridEvent& event )
         }
 //        std::cerr << "texture property changed need refresh." << std::endl;
         break;
+#else
+    case DocMat::UPDATE_REFRESH_MAT:
+    case DocMat::UPDATE_REFRESH_TEX:
+        {
+            wxCommandEvent evt(wxEVT_COMMAND_BUTTON_CLICKED, cmd::GID_REFRESH_MATPROP);
+            wxPostEvent(this,evt);
+        }
+        event.Skip();
+        break;
+#endif
     default:
         BOOST_ASSERT_MSG(false,"unreachable code");
     }

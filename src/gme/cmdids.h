@@ -26,6 +26,10 @@ namespace cmd{
 enum{
     GID_BEGIN = wxID_HIGHEST+1,
     GID_REFRESH_OBJVIEW,
+#ifdef PROPERTY_HAS_DELETE_PROPERTY
+#else
+	GID_REFRESH_MATPROP,
+#endif
     GID_EXPORT,
     GID_IMPORT,
     GID_SAVE_IMAGE,

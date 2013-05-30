@@ -107,7 +107,7 @@ PropFrame::PropFrame(wxFrame *parent, wxWindowID id, const wxPoint& pos, const w
 #endif
 */
     // Register all editors (SpinCtrl etc.)
-    wxPropertyGridManager::RegisterAdditionalEditors();
+    //wxPropertyGridManager::RegisterAdditionalEditors();
 
     // Register our sample custom editors
 //    m_pSampleMultiButtonEditor =
