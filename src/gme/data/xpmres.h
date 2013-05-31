@@ -36,6 +36,10 @@ extern  type_xpm start;
 extern  type_xpm stop;
 
 extern  type_xpm translateCam;
+extern  type_xpm zoomCam;
+extern  type_xpm rotateCamAroundCenter;
+extern  type_xpm rotateCam;
+extern  type_xpm select;
 
 } //end namespace xpm
 } //end namepsace gme

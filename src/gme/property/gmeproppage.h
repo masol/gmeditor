@@ -33,6 +33,7 @@ protected:
     {
         return m_pageShown;
     }
+#ifdef PROPERTY_HAS_DELETE_PROPERTY
     inline  void    removeChild(wxPGProperty *parent)
     {
         unsigned int childCount = parent->GetChildCount();
@@ -42,6 +43,8 @@ protected:
         }
 //        this->RefreshProperty(parent);
     }
+#else
+#endif
 public:
     GmePropPage()
     {

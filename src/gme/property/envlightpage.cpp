@@ -31,11 +31,17 @@
 #include "luxrays/utils/properties.h"
 #include "slg/slg.h"
 #include "slg/sdl/scene.h"
+#include "../cmdids.h"
+#include "../filedialog.h"
 
 
 BEGIN_EVENT_TABLE(gme::EnvLightPage, gme::EnvLightPage::inherit)
     EVT_PG_CHANGING( wxID_ANY, gme::EnvLightPage::OnPropertyChanging )
     EVT_PG_CHANGED( wxID_ANY, gme::EnvLightPage::OnPropertyChange )
+#ifdef PROPERTY_HAS_DELETE_PROPERTY
+#else
+    EVT_BUTTON (cmd::GID_REFRESH_MATPROP, EnvLightPage::OnRefreshPage)
+#endif
 END_EVENT_TABLE()
 
 
@@ -53,29 +59,57 @@ EnvLightPage::OnEnvtypeChanged(wxPGProperty* p,unsigned int type)
         if(MainFrame::getImageFilepathFunc()(imagePath))
         {
             bChangeOk = setting.changeHDRfile(imagePath);
-            //refresh childs.
-            this->removeChild(p);
-            appendEnvLight(p,setting);
         }
     }else if(type == DISABLE_LIGHTER)
     {
         if(setting.disableEnv())
         {//refresh childs.
             bChangeOk = true;
-            this->removeChild(p);
-            appendEnvLight(p,setting);
         }
     }else{
         BOOST_ASSERT_MSG(type == slg::TYPE_IL_SKY,"new type of env light?");
         if(setting.changeSkyEnv())
         {//refresh childs.
             bChangeOk = true;
-            this->removeChild(p);
-            appendEnvLight(p,setting);
         }
+    }
+
+    if(bChangeOk)
+    {
+#ifdef PROPERTY_HAS_DELETE_PROPERTY
+        //refresh childs.
+        this->removeChild(p);
+        appendEnvLight(p,setting);
+#else
+        wxCommandEvent evt(wxEVT_COMMAND_BUTTON_CLICKED, cmd::GID_REFRESH_MATPROP);
+        wxPostEvent(this,evt);
+#endif
     }
     return bChangeOk;
 }
+
+#ifdef PROPERTY_HAS_DELETE_PROPERTY
+#else
+void
+EnvLightPage::OnRefreshPage(wxCommandEvent &event)
+{
+    wxPGProperty* id = this->m_manager->GetGrid()->GetSelection();
+    if(id && this->m_manager->IsPropertyEnabled(id) )
+    {
+        this->m_manager->DisableProperty ( id );
+        wxCommandEvent evt(wxEVT_COMMAND_BUTTON_CLICKED, cmd::GID_REFRESH_MATPROP);
+        wxPostEvent(this,evt);
+    }else
+    {
+        this->m_manager->DeletePendingEvents();
+        this->DeletePendingEvents();
+        clearPage();
+        buildPage();
+    }
+}
+#endif
+
+
 
 luxrays::Spectrum
 EnvLightPage::getSepctrum(bool bSync,const std::string &prefix,float gself,const char* ored,const char* ogreen,const char* oblue)
@@ -218,15 +252,24 @@ EnvLightPage::OnPropertyChanging( wxPropertyGridEvent& event )
         {
             event.Veto();
         }
-
-        std::cerr << "change type to " << event.GetValue().GetString().c_str() << std::endl;
+//        std::cerr << "change type to " << event.GetValue().GetString().c_str() << std::endl;
     }else if(boost::equals(id,"type.file"))
     {
-        DocSetting  setting;
         std::string     filepath(event.GetValue().GetString().c_str());
-        if(!setting.changeHDRfile(filepath) && event.CanVeto())
+        //检查以file结束，并检查其是一个被支持的图像格式。
+        if(!OpenImageDialog::isSupported(filepath))
+        {//图片不被支持，直接退出。
+            if(event.CanVeto())
+                event.Veto();
+            return;
+        }
+
         {
-            event.Veto();
+            DocSetting  setting;
+            if(!setting.changeHDRfile(filepath) && event.CanVeto())
+            {
+                event.Veto();
+            }
         }
     }else if(boost::equals(id,"type.udelta"))
     {
@@ -279,8 +322,13 @@ EnvLightPage::OnPropertyChanging( wxPropertyGridEvent& event )
 
         if(bSetOk)
         {
+#ifdef PROPERTY_HAS_DELETE_PROPERTY
             this->removeChild(p);
             this->appendSunLight(p,setting);
+#else
+            wxCommandEvent evt(wxEVT_COMMAND_BUTTON_CLICKED, cmd::GID_REFRESH_MATPROP);
+            wxPostEvent(this,evt);
+#endif
         }else if(event.CanVeto())
         {
             event.Veto();

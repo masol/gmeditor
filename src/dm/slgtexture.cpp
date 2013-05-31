@@ -1127,7 +1127,7 @@ ExtraTextureManager::createTexture(ImportContext &ctx,type_xml_node &self)
                         m_slgname2filepath_map[id] = fullpath;
                         result = defineAndUpdate(id,ctx.scene(),ss.str());
 
-                        ctx.addAction(slg::IMAGEMAPS_EDIT);
+//                        ctx.addAction(slg::IMAGEMAPS_EDIT);
 //                        ctx.addAction(slg::MATERIAL_TYPES_EDIT);
                     }else
                     {
@@ -1433,6 +1433,8 @@ ExtraTextureManager::createTexture(ImportContext &ctx,type_xml_node &self)
     {//fall back to greay.
         result = "0.75 0.75 0.75";
     }
+
+    ctx.addAction(slg::IMAGEMAPS_EDIT);
     return result;
 }
 
@@ -1486,9 +1488,10 @@ ExtraTextureManager::buildDefaultTexture(SlgUtil::UpdateContext &ctx,const slg::
                 return "";
             }
         }
-    case slg::SCALE_TEX:
     case slg::FRESNEL_APPROX_N:
     case slg::FRESNEL_APPROX_K:
+        ctx.editor.addAction(slg::MATERIAL_TYPES_EDIT);
+    case slg::SCALE_TEX:
     case slg::MIX_TEX:
     case slg::ADD_TEX:
     case slg::CHECKERBOARD2D:
@@ -1737,6 +1740,7 @@ struct  updateCompTexture
 std::string
 ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Texture *pTex,size_t curIdx)
 {
+    ctx.editor.addAction(slg::IMAGEMAPS_EDIT);
     if(curIdx == ctx.keyPath.size())
     {//最后一级。这里就必然是material type.
         int type = boost::lexical_cast<int>(ctx.value);
@@ -1773,7 +1777,7 @@ ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Textur
                 {
                     newProps.SetString(prefix + newId + ".file",ctx.value);
                     m_slgname2filepath_map[newId] = ctx.value;
-                    ctx.editor.addAction(slg::IMAGEMAPS_EDIT);
+//                    ctx.editor.addAction(slg::IMAGEMAPS_EDIT);
 //                    ctx.editor.addAction(slg::MATERIAL_TYPES_EDIT);
                     bNeedRefresh = true;
                 }else if(curKey == "gamma")
@@ -1825,6 +1829,7 @@ ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Textur
 
                 if(uct.checkUpdateChild(curKey,constDef::texture,pRealTex->GetTexture(),curIdx+1))
                 {
+                    ctx.editor.addAction(slg::MATERIAL_TYPES_EDIT);
                 }else{
                     BOOST_ASSERT_MSG(false,"unreachable code.");
                 }
@@ -1840,6 +1845,7 @@ ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Textur
 
                 if(uct.checkUpdateChild(curKey,constDef::texture,pRealTex->GetTexture(),curIdx+1))
                 {
+                    ctx.editor.addAction(slg::MATERIAL_TYPES_EDIT);
                 }else{
                     BOOST_ASSERT_MSG(false,"unreachable code.");
                 }

@@ -336,6 +336,7 @@ DocSetting::changeEnvGain(const luxrays::Spectrum &g)
         {
             editor.addAction(slg::INFINITELIGHT_EDIT);
         }else{
+            session->renderConfig->scene->envLight->Preprocess();
             editor.addAction(slg::SKYLIGHT_EDIT);
         }
         return true;

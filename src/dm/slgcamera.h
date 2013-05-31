@@ -46,7 +46,7 @@ public:
     }
     Camera* getSelected(void)
     {
-        if(m_current_select >= 0 && m_current_select < m_cam_vector.size())
+        if(m_current_select >= 0 && m_current_select < (int)m_cam_vector.size())
             return &m_cam_vector[m_current_select];
         return NULL;
     }

@@ -81,12 +81,12 @@ DocObj::importObject(const std::string &path,ObjectNode *pParent)
     }
 
     ///@fixme: shall we need restart session here?
-    if(bLoadSuc)
-    {
-        pDocData->m_session->Stop();
-        pDocData->m_session->Start();
-        pDocData->cachefilm().invalidate();
-    }
+//    if(bLoadSuc)
+//    {
+//        pDocData->m_session->Stop();
+//        pDocData->m_session->Start();
+//        pDocData->cachefilm().invalidate();
+//    }
 
 
     return bLoadSuc;

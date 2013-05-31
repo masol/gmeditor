@@ -16,46 +16,12 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "config.h"
-#include "xpmres.h"
+#ifndef GME_SERVER_SERVER_H
+#define GME_SERVER_SERVER_H
 
-#include "bitmap/cut.xpm"
-#include "bitmap/delete.xpm"
-#include "bitmap/export.xpm"
-#include "bitmap/help.xpm"
-#include "bitmap/import.xpm"
-#include "bitmap/open.xpm"
-#include "bitmap/pause.xpm"
-#include "bitmap/save.xpm"
-#include "bitmap/start.xpm"
-#include "bitmap/stop.xpm"
 
-#include "bitmap/translateCam.xpm"
-#include "bitmap/zoomCam.xpm"
-#include "bitmap/rotateCamAroundCenter.xpm"
-#include "bitmap/rotateCam.xpm"
-#include "bitmap/select.xpm"
 
-namespace gme{
 
-namespace xpm{
 
-type_xpm cut = cut_xpm;
-type_xpm _delete = delete_xpm;
-type_xpm _export = export_xpm;
-type_xpm help = help_xpm;
-type_xpm import = import_xpm;
-type_xpm open = open_xpm;
-type_xpm pause = pause_xpm;
-type_xpm save = save_xpm;
-type_xpm start = start_xpm;
-type_xpm stop = stop_xpm;
 
-type_xpm translateCam = translateCam_xpm;
-type_xpm zoomCam = zoomCam_xpm;
-type_xpm rotateCamAroundCenter = rotateCamAroundCenter_xpm;
-type_xpm rotateCam = rotateCam_xpm;
-type_xpm select = select_xpm;
-
-} //end namespace xpm
-} //end namepsace gme
+#endif //GME_SERVER_SERVER_H

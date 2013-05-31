@@ -633,10 +633,10 @@ MaterialPage::OnPropertyChanging( wxPropertyGridEvent& event )
     wxPGProperty* p = event.GetProperty();
     std::vector< std::string >    idArray;
 
-    BOOST_ASSERT(idArray.size() > 0);
-
     std::string name(p->GetName().c_str());
     boost::split(idArray,name,boost::is_any_of("."),boost::token_compress_on);
+
+    BOOST_ASSERT(idArray.size() > 0);
 
     DocMat  mat;
     type_xml_doc    doc;

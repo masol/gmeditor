@@ -17,8 +17,8 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #ifdef __WXMSW__
-    #include <wx/msw/msvcrt.h>      // redefines the new() operator 
-#endif 
+    #include <wx/msw/msvcrt.h>      // redefines the new() operator
+#endif
 
 #include "config.h"
 #include "mainframe.h"
@@ -49,6 +49,22 @@
 
 namespace gme{
 
+static bool IsTracePromoted(const char* mask)
+{
+    static  bool  bInit = false;
+    static  std::string   GME_SHOW_MASK;
+    if(!bInit)
+    {
+        bInit = true;
+        ///example GME_SHOW_MASK: LuxRays;SDL;SLG
+        const char *env_mask = std::getenv("GME_SHOW_MASK");
+        if(env_mask)
+            GME_SHOW_MASK = env_mask;
+    }
+    if(mask && !GME_SHOW_MASK.empty())
+        return boost::ifind_first(GME_SHOW_MASK,mask);
+    return false;
+}
 
 ///@todo move the follow function to customize log window when it implement.
 static void Log_Adapter(int level,const char* msgstr,const char* mask)
@@ -65,14 +81,9 @@ static void Log_Adapter(int level,const char* msgstr,const char* mask)
         if(boost::ifind_first(msgstr,"ERROR"))
         {
             level = Doc::LOG_WARNING;
-        }else if(mask)
+        }else if(IsTracePromoted(mask))
         {
-            ///example GME_SHOW_MASK: LuxRays;SDL;SLG
-            const char* show_mask = std::getenv("GME_SHOW_MASK");
-            if(boost::ifind_first(show_mask,mask))
-            {
-                level = Doc::LOG_STATUS;
-            }
+            level = Doc::LOG_STATUS;
         }
     }
     switch(level)
@@ -285,7 +296,6 @@ MainFrame::createMenubar()
         pFileMenu->Append(wxID_SAVE, appendShortCutString(wxID_SAVE,name), gmeWXT("保存现有场景"));
         pFileMenu->Append(cmd::GID_SAVE_IMAGE, gmeWXT("保存图片(&S)"), gmeWXT("保存当前渲染结果"));
         pFileMenu->Append(cmd::GID_EXPORT, gmeWXT("导出(&E)"), gmeWXT("导出现有场景"));
-		pFileMenu->Append(cmd::GID_PREFERENCES, gmeWXT("参数设置(&P)"), gmeWXT("参数设置"));
         pFileMenu->AppendSeparator();
         pFileMenu->Append(wxID_EXIT, gmeWXT("退出(&X)"), gmeWXT("退出gmeditor"));
 
@@ -326,6 +336,8 @@ MainFrame::createMenubar()
 
 		pEditMenu->AppendSeparator();
         pEditMenu->Append(cmd::GID_CAM_NEWFROMCURRENT,gmeWXT("保存当前视角(&M)"),gmeWXT("为当前视角新建一个摄像机位。"));
+        name = gmeWXT("立即刷新(&R)");
+		pEditMenu->Append(cmd::GID_IMM_REFRESH, appendShortCutString(cmd::GID_IMM_REFRESH,name), gmeWXT("立即刷新GPU缓冲。"));
 
         pMenuBar->Append(pEditMenu, gmeWXT("编辑(&E)"));
     }
@@ -369,8 +381,6 @@ MainFrame::createMenubar()
     {// setting
 		wxMenu *pSettingMenu = new wxMenu();
 		pSettingMenu->AppendCheckItem(cmd::GID_SET_FORCEREFRESH, gmeWXT("强制刷新"), gmeWXT("每次编辑时强制刷新GPU缓冲。"));
-        name = gmeWXT("立即刷新(&R)");
-		pSettingMenu->Append(cmd::GID_IMM_REFRESH, appendShortCutString(cmd::GID_IMM_REFRESH,name), gmeWXT("立即刷新GPU缓冲。"));
 		pSettingMenu->AppendSeparator();
 
         wxMenu *pLoadingMenu = new wxMenu();
@@ -391,6 +401,8 @@ MainFrame::createMenubar()
 
 
         pSettingMenu->AppendSubMenu(pLoadingMenu,gmeWXT("加载设定"),gmeWXT("设定导入外部模型时对模型的自动处理。"));
+		pSettingMenu->AppendSeparator();
+		pSettingMenu->Append(cmd::GID_PREFERENCES, gmeWXT("参数设置(&P)"), gmeWXT("参数设置"));
 
 		pMenuBar->Append(pSettingMenu, gmeWXT("设置(&S)"));
 	}
@@ -457,11 +469,11 @@ MainFrame::createToolbar()
                                                   wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW| wxAUI_TB_HORIZONTAL);
 
 		pViewTbr->AddTool(cmd::GID_MD_LOCK,gmeWXT("锁定"),wxBitmap(xpm::help),gmeWXT("锁定说明"),wxITEM_RADIO);
-		pViewTbr->AddTool(cmd::GID_MD_PANE,gmeWXT("平移"),wxBitmap(xpm::help),gmeWXT("平移说明"),wxITEM_RADIO);
-		pViewTbr->AddTool(cmd::GID_MD_ROTATE,gmeWXT("旋转"),wxBitmap(xpm::help),gmeWXT("旋转说明"),wxITEM_RADIO);
-		pViewTbr->AddTool(cmd::GID_MD_ROTATE_AROUND_FOCUS,gmeWXT("焦点旋转"),wxBitmap(xpm::translateCam),gmeWXT("焦点旋转说明"),wxITEM_RADIO);
-		pViewTbr->AddTool(cmd::GID_MD_ZOOM,gmeWXT("缩放"),wxBitmap(xpm::help),gmeWXT("缩放说明"),wxITEM_RADIO);
-		pViewTbr->AddTool(cmd::GID_MD_SELECT,gmeWXT("选择"),wxBitmap(xpm::help),gmeWXT("选择说明"),wxITEM_RADIO);
+		pViewTbr->AddTool(cmd::GID_MD_PANE,gmeWXT("平移"),wxBitmap(xpm::translateCam),gmeWXT("平移说明"),wxITEM_RADIO);
+		pViewTbr->AddTool(cmd::GID_MD_ROTATE,gmeWXT("旋转"),wxBitmap(xpm::rotateCam),gmeWXT("旋转说明"),wxITEM_RADIO);
+		pViewTbr->AddTool(cmd::GID_MD_ROTATE_AROUND_FOCUS,gmeWXT("焦点旋转"),wxBitmap(xpm::rotateCamAroundCenter),gmeWXT("焦点旋转说明"),wxITEM_RADIO);
+		pViewTbr->AddTool(cmd::GID_MD_ZOOM,gmeWXT("缩放"),wxBitmap(xpm::zoomCam),gmeWXT("缩放说明"),wxITEM_RADIO);
+		pViewTbr->AddTool(cmd::GID_MD_SELECT,gmeWXT("选择"),wxBitmap(xpm::select),gmeWXT("选择说明"),wxITEM_RADIO);
 		pViewTbr->AddTool(cmd::GID_MD_SETSUNLIGHT,gmeWXT("阳光方向"),wxBitmap(xpm::help),gmeWXT("阳光方向说明"),wxITEM_RADIO);
 
 		pViewTbr->Realize();

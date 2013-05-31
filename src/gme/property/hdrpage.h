@@ -40,6 +40,10 @@ private:
     void updateCamera(void);
     void updateCameraField(const wxString &propid,float value);
 protected:
+#ifdef PROPERTY_HAS_DELETE_PROPERTY
+#else
+    void OnRefreshPage(wxCommandEvent &event);
+#endif
     void onDocumentLoaded(void);
     void onDocumentClosed(void);
     void onCameraSwitched(void);

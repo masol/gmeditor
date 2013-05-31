@@ -29,6 +29,7 @@
 namespace gme{
 
 bool  SlgUtil::Editor::m_bForceRefresh = false;
+//static  bool    sv_hack_slg_last_is_material_type = false;
 SlgUtil::Editor::~Editor()
 {
     if (m_session->editActions.Has(slg::MATERIALS_EDIT)) {
@@ -46,6 +47,19 @@ SlgUtil::Editor::~Editor()
             Doc::instance().pDocData->cachefilm().invalidate();
         }
         try{
+            if(m_session->editActions.Has(slg::IMAGEMAPS_EDIT))
+            {
+                m_session->editActions.AddAction(slg::MATERIAL_TYPES_EDIT);
+            }
+//            if(m_session->editActions.Has(slg::MATERIAL_TYPES_EDIT))
+//            {
+//                sv_hack_slg_last_is_material_type = true;
+//            }
+//            if(sv_hack_slg_last_is_material_type && !m_session->editActions.Has(slg::MATERIAL_TYPES_EDIT))
+//            {//material_type_edit之后第一次修正，需要compile kernel.
+//                sv_hack_slg_last_is_material_type = false;
+//                m_session->editActions.AddAction(slg::MATERIAL_TYPES_EDIT);
+//            }
             m_session->EndEdit();
         }catch(std::exception e)
         {

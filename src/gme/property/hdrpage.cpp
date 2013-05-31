@@ -31,11 +31,17 @@
 #include "dm/docimg.h"
 #include "dm/docsetting.h"
 #include "dm/doccamera.h"
+#include "../cmdids.h"
+
 
 BEGIN_EVENT_TABLE(gme::HDRPage, gme::HDRPage::inherit)
     EVT_PG_SELECTED( wxID_ANY, gme::HDRPage::OnPropertySelect )
     EVT_PG_CHANGING( wxID_ANY, gme::HDRPage::OnPropertyChanging )
     EVT_PG_CHANGED( wxID_ANY, gme::HDRPage::OnPropertyChange )
+#ifdef PROPERTY_HAS_DELETE_PROPERTY
+#else
+    EVT_BUTTON (cmd::GID_REFRESH_MATPROP, gme::HDRPage::OnRefreshPage)
+#endif
 END_EVENT_TABLE()
 
 
@@ -224,9 +230,29 @@ void HDRPage::OnPropertySelect( wxPropertyGridEvent& WXUNUSED(event) )
 
 void HDRPage::OnPropertyChange( wxPropertyGridEvent& event )
 {
-//    wxPGProperty* p = event.GetProperty();
-//    std::cerr << "HDRPage::OnPropertyChange('" << p->GetName().c_str() << "', to value '" << p->GetDisplayedString().c_str() << "')" << std::endl;
 }
+
+#ifdef PROPERTY_HAS_DELETE_PROPERTY
+#else
+void
+HDRPage::OnRefreshPage(wxCommandEvent &event)
+{
+    wxPGProperty* id = this->m_manager->GetGrid()->GetSelection();
+    if(id && this->m_manager->IsPropertyEnabled(id) )
+    {
+        this->m_manager->DisableProperty ( id );
+        wxCommandEvent evt(wxEVT_COMMAND_BUTTON_CLICKED, cmd::GID_REFRESH_MATPROP);
+        wxPostEvent(this,evt);
+    }else
+    {
+        this->m_manager->DeletePendingEvents();
+        this->DeletePendingEvents();
+        clearPage();
+        buildPage();
+    }
+}
+#endif
+
 
 void HDRPage::OnPropertyChanging( wxPropertyGridEvent& event )
 {
@@ -283,7 +309,6 @@ void HDRPage::OnPropertyChanging( wxPropertyGridEvent& event )
         BOOST_ASSERT(any_value.CheckType<int>());
         int type = any_value.As<int>();
 
-        this->removeChild(p);
         DocSetting  setting;
         switch(type)
         {
@@ -308,8 +333,14 @@ void HDRPage::OnPropertyChanging( wxPropertyGridEvent& event )
         default:
             BOOST_ASSERT(false);
         }
+#ifdef PROPERTY_HAS_DELETE_PROPERTY
+        this->removeChild(p);
         refreshToneMapping(type,setting.getToneMapParams(),p);
         this->RefreshProperty(p);
+#else
+        wxCommandEvent evt(wxEVT_COMMAND_BUTTON_CLICKED, cmd::GID_REFRESH_MATPROP);
+        wxPostEvent(this,evt);
+#endif
     }else if(boost::equals(id,"tonemap.scale"))
     {
         wxAny any_value = event.GetValue();
@@ -366,7 +397,7 @@ void HDRPage::OnPropertyChanging( wxPropertyGridEvent& event )
         {
             //获取当前camera的名字。
             int sel = doccam.getSelected();
-            if(sel >= 0 && sel < doccam.size())
+            if(sel >= 0 && sel < (int)doccam.size())
             {
                 cam.name = doccam.get(sel).name;
             }

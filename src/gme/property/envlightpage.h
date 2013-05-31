@@ -48,6 +48,10 @@ private:
     void    updateGainProperty(bool bSync,const std::string &prefix,float gself,const char* ored,const char* ogreen,const char* oblue);
     void    changeGainValue(wxPropertyGridEvent& event,int type,luxrays::Spectrum &spectrum,const std::string &prefix,float gself,const char* ored,const char* ogreen,const char* oblue);
 protected:
+#ifdef PROPERTY_HAS_DELETE_PROPERTY
+#else
+    void OnRefreshPage(wxCommandEvent &event);
+#endif
     void OnPropertyChanging( wxPropertyGridEvent& event );
     void OnPropertyChange( wxPropertyGridEvent& event );
 

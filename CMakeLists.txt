@@ -151,6 +151,7 @@ endif(NOT WIN32)
 
 add_subdirectory(src/openctm)
 add_subdirectory(src/utils)
+add_subdirectory(src/server)
 add_subdirectory(src/dm)
 add_subdirectory(src/gme)
 
