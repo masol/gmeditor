@@ -80,6 +80,7 @@ set(GME_PROP_SRC
     property/materialpage.cpp
     property/envlightpage.cpp
 	property/pgeditor.cpp
+	property/imgfileeditor.cpp	
   )
 
 

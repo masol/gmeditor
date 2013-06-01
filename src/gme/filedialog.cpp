@@ -46,6 +46,15 @@ OpenImageDialog::isSupported(const std::string &filename)
     return filenameWithExtension(filename,sv_allsupportedExt);
 }
 
+wxString
+OpenImageDialog::getDefaultImageWildcard(void)
+{
+    DECLARE_WXCONVERT;
+    std::string content = boost::str(boost::format(__("支持文件|%s|BMP文件(*.bmp)|*.bmp|Dr. Halo CUT文件(*.cut)|*.cut|DDS文件(*.dds)|*.dds|EXR文件(*.exr)|*.exr|Raw Fax G3文件(*.g3)|*.g3|GIF文件(*.gif)|*.gif|HDR文件(*.hdr)|*.hdr|ICO文件(*.ico)|*.ico|IFF文件(*.iff)|*.iff|JBIG文件(*.jbig)|*.jbig|JNG文件(*.jng)|*.jng|JPEG文件(*.jpeg;*.jpg;*.j2k)|*.j2k;*.jpg;*.jpeg|KOALA文件(*.koa)|*.koa|Kodak PhotoCD文件(*.pcd)|*.pcd|MNG文件(*.mng)|*.mng|pcx文件(*.pcx)|*.pcx|PBM文件(*.pbm)|*.pbm|PGM文件(*.pgm)|*.pgm|PPM文件(*.ppm)|*.ppm|PFM文件(*.pfm)|*.pfm|PNG文件(*.png)|*.png|Macintosh PICT文件(*.pict)|*.pict|Photoshop PSD文件(*.psd)|*.psd|RAW camera文件(*.raw)|*.raw|Sun RAS文件(*.ras)|*.ras|SGI文件(*.sgi)|*.sgi|TARGA文件(*.tga)|*.tga|TIFF文件(*.tif;*.tiff)|*.tif;*.tiff|WBMP文件(*.wbmp)|*.wbmp|XBM文件(*.xbm)|*.xbm|XPM文件(*.xpm)|*.xpm|所有文件(*.*)|*.*") )% sv_allsupportedExt);
+    return wxString(content.c_str(),gme_wx_utf8_conv);
+}
+
+
 bool
 OpenSceneDialog::isSupported(const std::string &filename)
 {

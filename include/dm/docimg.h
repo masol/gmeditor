@@ -106,6 +106,9 @@ public:
     ///@brief save the image result.
     bool    saveImage(const std::string &fullpath);
 
+    ///@brief get a image data, so we can draw thumbnail.
+    bool    getImage(const std::string& filepath,int &w,int &h,const float*  &pixels);
+
     /**@brief for software render.
      *@deprecated : not support software render.
     **/

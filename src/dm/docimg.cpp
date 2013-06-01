@@ -382,5 +382,31 @@ DocImg::getData(ImageDataBase *pdata)
     return false;
 }
 
+bool
+DocImg::getImage(const std::string& filepath,int &w,int &h,const float* &pixels)
+{
+    bool bDataOk = false;
+    if(pDocData->getSession())
+    {
+        if(pDocData->getSession()->renderConfig->scene->imgMapCache.IsImageMapDefined(filepath))
+        {
+            try{
+                slg::ImageMap *im = pDocData->getSession()->renderConfig->scene->imgMapCache.GetImageMap(filepath,2.2f);
+                if(im)
+                {
+                    w = im->GetWidth();
+                    h = im->GetHeight();
+                    pixels = im->GetPixels();
+                    bDataOk = true;
+                }
+            }catch(std::exception &e)
+            {
+            }
+        }
+    }
+    return bDataOk;
+}
+
+
 
 } //end namespace gme.
