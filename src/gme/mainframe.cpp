@@ -769,6 +769,22 @@ MainFrame::refreshMouseEvt(void)
     m_renderView->refreshMouseEvt();
 }
 
+void
+MainFrame::setDocLocked(bool bLock)
+{
+    m_propFrame->setDocLocked(bLock);
+
+    if(bLock)
+    {
+        this->m_camView->Enable(false);
+        this->m_objectView->Enable(false);
+    }else{
+        this->m_camView->Enable(true);
+        this->m_objectView->Enable(true);
+    }
+
+}
+
 
 void
 MainFrame::onMenuFileOpen(wxCommandEvent &event)

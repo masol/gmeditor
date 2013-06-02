@@ -86,6 +86,10 @@ public:
         int   height;
     };
 
+    ///@brief get/set screen refresh interval in micro-second.
+    int     getScreenRefreshInterval(void);
+    void    setScreenRefreshInterval(int ms);
+
     ///@brief 绘制阳光方向。
     void    drawSkylightDir(ViewPort &vp);
 
@@ -101,7 +105,11 @@ public:
     bool    setSize(int w,int h);
     void    onImagesizeChanged(type_imagesize_handler handler);
 
+    ///@brief 获取渲染时间。
+    double  getRenderTime(void);
+
     ///@brief for glrender.
+    void            updateNative(void);
     const float*    getPixels(void);
     ///@brief save the image result.
     bool    saveImage(const std::string &fullpath);

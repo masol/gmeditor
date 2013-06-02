@@ -215,11 +215,15 @@ DocImg::getData(ImageDataScale *pdata,int w, int h,const float* pixels)
     return false;
 }
 
+void
+DocImg::updateNative(void)
+{
+    pDocData->cachefilm().updateNativeFilm();
+}
 
 const float*
 DocImg::getPixels(void)
 {
-    pDocData->cachefilm().updateNativeFilm();
     return pDocData->cachefilm().getPixels();
 }
 
@@ -243,6 +247,22 @@ DocImg::saveImage(const std::string &fullpath)
     }
     return false;
 }
+
+int
+DocImg::getScreenRefreshInterval(void)
+{
+    if(pDocData->getSession())
+        pDocData->getSession()->renderConfig->GetScreenRefreshInterval();
+    return 0;
+}
+
+void
+DocImg::setScreenRefreshInterval(int ms)
+{
+    if(pDocData->getSession())
+        pDocData->getSession()->renderConfig->SetScreenRefreshInterval(ms);
+}
+
 
 void
 DocImg::drawSkylightDir(ViewPort &vp)
@@ -335,6 +355,13 @@ DocImg::drawSelectedObject(ViewPort &vp)
     }
 }
 
+double
+DocImg::getRenderTime(void)
+{
+    if(pDocData->getSession())
+        return pDocData->getSession()->renderEngine->GetRenderingTime();
+    return 0.0f;
+}
 
 bool
 DocImg::getRenderInfo(int type,RenderInfo &ri)
@@ -401,6 +428,7 @@ DocImg::getImage(const std::string& filepath,int &w,int &h,const float* &pixels)
                 }
             }catch(std::exception &e)
             {
+                (void)e;
             }
         }
     }

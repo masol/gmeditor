@@ -42,6 +42,7 @@ public:
         return sv_getImageFilepath;
     }
     void refreshMouseEvt(void);
+    void setDocLocked(bool bLock);
 protected:
 	void onClose(wxCloseEvent& event);
 

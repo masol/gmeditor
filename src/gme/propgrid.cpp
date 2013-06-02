@@ -162,4 +162,16 @@ PropFrame::~PropFrame()
 {
 }
 
+void
+PropFrame::setDocLocked(bool bLock)
+{
+    if(bLock)
+    {
+        m_pPropGridManager->Enable(false);
+    }else{
+        m_pPropGridManager->Enable(true);
+    }
+}
+
+
 } //

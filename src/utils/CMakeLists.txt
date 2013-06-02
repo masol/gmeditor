@@ -29,6 +29,7 @@ set(UTILS_SRCS
     MD5.cpp
     i18n.cpp
 	sysinfo.cpp
+	gmexception.cpp
    )
 
 

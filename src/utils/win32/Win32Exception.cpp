@@ -16,54 +16,43 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef GME_PROPGRID_H
-#define GME_PROPGRID_H
 
-#include <wx/wx.h>
-#include <wx/aui/aui.h>
-#include <wx/propgrid/propgrid.h>
-#include <boost/shared_ptr.hpp>
-#include <boost/unordered_map.hpp>
+#include "config.h"
+#include <string>
+#include <Windows.h>
+#include "Win32Exception.h"
 
 
-namespace gme{
+Win32Exception::Win32Exception(EXCEPTION_POINTERS * info) {
+	_location = info->ExceptionRecord->ExceptionAddress;
+	_code = info->ExceptionRecord->ExceptionCode;
+	_info = info;
+	switch (_code) {
+		case EXCEPTION_ACCESS_VIOLATION:
+			_event = "Access violation";
+			break;
+		case EXCEPTION_FLT_DIVIDE_BY_ZERO:
+		case EXCEPTION_INT_DIVIDE_BY_ZERO:
+			_event = "Division by zero";
+			break;
+		default:
+			_event = "Unlisted exception";
+	}
+}
 
-class   GmePropPage;
-class PropFrame : public wxScrolledWindow
-{
-public:
-    PropFrame(wxFrame *parent, wxWindowID id, const wxPoint& pos, const wxSize& size , const long& style);
-    ~PropFrame();
+void Win32Exception::translate(unsigned code, EXCEPTION_POINTERS * info) {
+	// Windows guarantees that *(info->ExceptionRecord) is valid
+	switch (code) {
+		case EXCEPTION_ACCESS_VIOLATION:
+			throw Win32AccessViolation(info);
+			break;
+		default:
+			throw Win32Exception(info);
+	}
+}
 
-    void setDocLocked(bool bLock);
-private:
-    wxPropertyGridManager   *m_pPropGridManager;
-    GmePropPage             *m_pLastShownPage;
+Win32AccessViolation::Win32AccessViolation(EXCEPTION_POINTERS * info) : Win32Exception(info) {
+	_isWrite = info->ExceptionRecord->ExceptionInformation[0] == 1;
+	_badAddress = reinterpret_cast<ExceptionAddress>(info->ExceptionRecord->ExceptionInformation[1]);
+}
 
-    /// @brief set the default propertyview size.
-    void setDefaultFramePosition();
-
-//    enum{
-//        PGID_POSTPROCESS = 0,
-//        PGID_MATERIAL,
-//        PGID_ENVIRONMENT,
-//        PGID_MAX
-//    };
-    /// @brief all all pages here.
-    void initPages(void);
-
-protected:
-    void OnPropertyGridPageChange( wxPropertyGridEvent& event );
-    void OnSelectedObjectChanged(const std::string &oid,const std::string &matid)
-    {
-        ///@todo check visible here.
-        //bugy... need fix it!
-        //showMatProps(matid);
-    }
-private:
-    DECLARE_EVENT_TABLE()
-};
-
-} //end namespace gme
-
-#endif // GME_PROPGRID_H

@@ -26,6 +26,7 @@
 #include "glrenderframe.h"
 #include "../cmdids.h"
 #include "../filedialog.h"
+#include "../mainframe.h"
 #include "dm/docsetting.h"
 
 
@@ -104,11 +105,13 @@ GlRenderFrame::GlRenderFrame(wxWindow* parent,int *args,int vm) : inherited(pare
     ///@todo: connection from option.
     SetMinSize( wxSize(20, 20) );
     opt_RotateStep = 4.f;
-    m_micro_tick = boost::posix_time::microsec_clock::local_time();
+    m_last_updatefilm_tick = m_micro_tick = boost::posix_time::microsec_clock::local_time();
 
-    //0.1 second.
+    //0.2 second.
     opt_MinEditInterval = 200;
     opt_MinUpdateInterval = 200;
+    //3 second.
+    opt_MaxUpdateInterval = 3000;
     m_refreshTimer.Stop();
 
     {
@@ -228,6 +231,8 @@ GlRenderFrame::onSceneLoaded(void)
 {
     if(!this->m_refreshTimer.IsRunning())
         this->m_refreshTimer.Start(opt_MinUpdateInterval);
+    DocImg img;
+    img.setScreenRefreshInterval(this->opt_MinUpdateInterval);
 }
 
 void
@@ -387,6 +392,15 @@ void GlRenderFrame::render(void)
         }
     }
 
+    {
+        boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
+        boost::posix_time::time_duration diff = now - m_last_updatefilm_tick;
+        if(diff.total_milliseconds() >= opt_MinUpdateInterval)
+        {
+            img.updateNative();
+            m_last_updatefilm_tick = now;
+        }
+    }
     const float*    pixels = img.getPixels();
     BOOST_ASSERT_MSG(pixels != NULL, "why no pixels?");
 
@@ -600,6 +614,59 @@ void GlRenderFrame::mouseMiddleReleased(wxMouseEvent& event)
 void GlRenderFrame::mouseLeftWindow(wxMouseEvent& event)
 {
 }
+
+void
+GlRenderFrame::enterLockMode(void)
+{
+    if(this->m_refreshTimer.IsRunning() && this->m_refreshTimer.GetInterval() != this->opt_MaxUpdateInterval)
+        this->m_refreshTimer.Stop();
+
+    if(!this->m_refreshTimer.IsRunning())
+        this->m_refreshTimer.Start(opt_MaxUpdateInterval);
+
+    gme::MainFrame* mainfrm = dynamic_cast<gme::MainFrame*>(wxTheApp->GetTopWindow());
+    if(mainfrm)
+    {
+        mainfrm->setDocLocked(true);
+    }
+
+    DocImg img;
+    img.setScreenRefreshInterval(this->opt_MaxUpdateInterval);
+}
+
+void
+GlRenderFrame::leaveLockMode(void)
+{
+    if(this->m_refreshTimer.IsRunning() && this->m_refreshTimer.GetInterval() != this->opt_MinUpdateInterval)
+        this->m_refreshTimer.Stop();
+
+    if(!this->m_refreshTimer.IsRunning())
+        this->m_refreshTimer.Start(opt_MinUpdateInterval);
+
+    gme::MainFrame* mainfrm = dynamic_cast<gme::MainFrame*>(wxTheApp->GetTopWindow());
+    if(mainfrm)
+    {
+        mainfrm->setDocLocked(false);
+    }
+
+    DocImg img;
+    img.setScreenRefreshInterval(this->opt_MinUpdateInterval);
+}
+
+void
+GlRenderFrame::editMode(int mode)
+{
+    if(m_edit_mode == cmd::GID_MD_LOCK && mode != cmd::GID_MD_LOCK)
+    {
+        leaveLockMode();
+    }
+    else if(m_edit_mode != cmd::GID_MD_LOCK && mode == cmd::GID_MD_LOCK)
+    {
+        enterLockMode();
+    }
+    m_edit_mode = mode;
+}
+
 
 void GlRenderFrame::mouseMoved(wxMouseEvent& event)
 {

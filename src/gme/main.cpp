@@ -18,10 +18,11 @@
 
 
 #include "config.h"
-#include "mainframe.h"
-#include "utils/option.h"
 #include <boost/scope_exit.hpp>
+#include "utils/option.h"
+#include "utils/gmexception.h"
 #include "dm/docio.h"
+#include "mainframe.h"
 
 class MyApp : public wxApp
 {
@@ -38,12 +39,15 @@ public:
     int OnExit()
     {
         m_mainFrame = NULL;
+        gme::exception::removeTranslator();
         return inherit::OnExit();
     }
 
     bool OnInit() 
     {
         //initionlize config.
+        //设置异常翻译。
+        gme::exception::installTranslator();
         ///@FIXME: 根据valgrind报告，如果使用wx提供的argv自动转化，其数据在进程销毁时才会清理。因此下文自行处理utf8转化。
         {
             typedef char*   str_point;

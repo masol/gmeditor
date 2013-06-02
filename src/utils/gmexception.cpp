@@ -16,54 +16,34 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef GME_PROPGRID_H
-#define GME_PROPGRID_H
 
-#include <wx/wx.h>
-#include <wx/aui/aui.h>
-#include <wx/propgrid/propgrid.h>
-#include <boost/shared_ptr.hpp>
-#include <boost/unordered_map.hpp>
+#include "config.h"
+#include "utils/gmexception.h"
 
 
-namespace gme{
+#ifdef WIN32
 
-class   GmePropPage;
-class PropFrame : public wxScrolledWindow
+#include "win32/Win32Exception.cpp"
+
+#else
+
+#endif
+
+
+namespace gme
 {
-public:
-    PropFrame(wxFrame *parent, wxWindowID id, const wxPoint& pos, const wxSize& size , const long& style);
-    ~PropFrame();
 
-    void setDocLocked(bool bLock);
-private:
-    wxPropertyGridManager   *m_pPropGridManager;
-    GmePropPage             *m_pLastShownPage;
+void exception::installTranslator() {
+#ifdef WIN32
+	_set_se_translator(Win32Exception::translate);
+#endif
+}
 
-    /// @brief set the default propertyview size.
-    void setDefaultFramePosition();
+void  exception::removeTranslator() {
+#ifdef WIN32
+	_set_se_translator(NULL);
+#endif
+}
 
-//    enum{
-//        PGID_POSTPROCESS = 0,
-//        PGID_MATERIAL,
-//        PGID_ENVIRONMENT,
-//        PGID_MAX
-//    };
-    /// @brief all all pages here.
-    void initPages(void);
 
-protected:
-    void OnPropertyGridPageChange( wxPropertyGridEvent& event );
-    void OnSelectedObjectChanged(const std::string &oid,const std::string &matid)
-    {
-        ///@todo check visible here.
-        //bugy... need fix it!
-        //showMatProps(matid);
-    }
-private:
-    DECLARE_EVENT_TABLE()
-};
-
-} //end namespace gme
-
-#endif // GME_PROPGRID_H
+}

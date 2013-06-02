@@ -16,54 +16,26 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef GME_PROPGRID_H
-#define GME_PROPGRID_H
-
-#include <wx/wx.h>
-#include <wx/aui/aui.h>
-#include <wx/propgrid/propgrid.h>
-#include <boost/shared_ptr.hpp>
-#include <boost/unordered_map.hpp>
+#ifndef  GME_UTILS_GMEXCEPTION_H
+#define  GME_UTILS_GMEXCEPTION_H
 
 
-namespace gme{
-
-class   GmePropPage;
-class PropFrame : public wxScrolledWindow
+namespace gme
 {
-public:
-    PropFrame(wxFrame *parent, wxWindowID id, const wxPoint& pos, const wxSize& size , const long& style);
-    ~PropFrame();
 
-    void setDocLocked(bool bLock);
-private:
-    wxPropertyGridManager   *m_pPropGridManager;
-    GmePropPage             *m_pLastShownPage;
-
-    /// @brief set the default propertyview size.
-    void setDefaultFramePosition();
-
-//    enum{
-//        PGID_POSTPROCESS = 0,
-//        PGID_MATERIAL,
-//        PGID_ENVIRONMENT,
-//        PGID_MAX
-//    };
-    /// @brief all all pages here.
-    void initPages(void);
-
-protected:
-    void OnPropertyGridPageChange( wxPropertyGridEvent& event );
-    void OnSelectedObjectChanged(const std::string &oid,const std::string &matid)
-    {
-        ///@todo check visible here.
-        //bugy... need fix it!
-        //showMatProps(matid);
-    }
-private:
-    DECLARE_EVENT_TABLE()
+///@brief 安装平台相关的Exception Handler.
+struct	exception{
+	/** @brief 安装异常翻译。这将把se转化为ex抛出。
+	**/
+	static	void	installTranslator(void);
+	/** @brief 移除异常转化。
+	**/
+    static	void 	removeTranslator(void);
 };
 
-} //end namespace gme
 
-#endif // GME_PROPGRID_H
+}
+
+#endif //GME_UTILS_GMEXCEPTION_H
+
+

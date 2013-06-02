@@ -61,9 +61,9 @@ SlgUtil::Editor::~Editor()
 //                m_session->editActions.AddAction(slg::MATERIAL_TYPES_EDIT);
 //            }
             m_session->EndEdit();
-        }catch(std::exception e)
+        }catch(std::exception &e)
         {
-            Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("更新场景时发生错误:'%s'，强制更新场景...")) % e.what() ) );
+            Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("更新场景时发生错误:'%s'，这通常是显卡驱动引发的，请检查显卡驱动。强制更新场景...")) % e.what() ) );
             m_session->Stop();
             m_session->Start();
             Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("更新完毕。")) ) );

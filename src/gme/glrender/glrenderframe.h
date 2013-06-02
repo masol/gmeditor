@@ -59,9 +59,12 @@ public:
 protected:
     boost::shared_ptr<wxGLContext>  m_context;
     boost::posix_time::ptime    m_micro_tick;
+    boost::posix_time::ptime    m_last_updatefilm_tick;
 
     wxTimer  m_refreshTimer;
     long     opt_MinUpdateInterval;
+    ///@brief 在锁定时的更新频率(default is 3s)。
+    long     opt_MaxUpdateInterval;
     float    opt_RotateStep;
     long     opt_MinEditInterval;
     long     m_lastx;
@@ -124,6 +127,8 @@ protected:
     void    drawBackground(const wxSize &winsize,const float *pixels,gme::DocImg::ViewPort &vp);
     void    initGL(void);
     bool    OnDropFiles(wxCoord x, wxCoord y,const wxArrayString& filenames);
+    void    enterLockMode(void);
+    void    leaveLockMode(void);
 public:
     void    refreshMouseEvt(void);
     GlRenderFrame(wxWindow* parent,int* args,int vm);
@@ -148,10 +153,7 @@ public:
     {
         return m_edit_mode;
     }
-    inline void    editMode(int mode)
-    {
-        m_edit_mode = mode;
-    }
+    void    editMode(int mode);
     inline int     viewMode(void)const
     {
         return m_viewMode;

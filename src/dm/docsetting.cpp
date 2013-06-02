@@ -106,14 +106,15 @@ DocSetting::enableSun(void)
         slg::Scene  *scene = session->renderConfig->scene;
         if(!scene->sunLight)
         {
-            //SlgUtil::Editor editor(session);
-            session->Stop();
+            SlgUtil::Editor editor(session);
+            editor.addAction(slg::SUNLIGHT_EDIT);
+            editor.addAction(slg::MATERIAL_TYPES_EDIT);
+            //session->Stop();
             luxrays::Properties prop;
             prop.SetString("scene.sunlight.dir","0.0 0.0 1.0");
             scene->AddSunLight(prop);
-            //editor.addAction(slg::SUNLIGHT_EDIT);
-            session->Start();
-            pDocData->cachefilm().invalidate();
+            //session->Start();
+            //pDocData->cachefilm().invalidate();
             bSetOK = true;
         }
     }
@@ -130,11 +131,14 @@ DocSetting::disableSun(void)
         slg::Scene  *scene = session->renderConfig->scene;
         if(ExtraSettingManager::hasTwoOrMoreLighter(scene) && scene->sunLight)
         {
-            session->Stop();
+            SlgUtil::Editor editor(session);
+            editor.addAction(slg::SUNLIGHT_EDIT);
+            editor.addAction(slg::MATERIAL_TYPES_EDIT);
+            //session->Stop();
             delete scene->sunLight;
             scene->sunLight = NULL;
-            session->Start();
-            pDocData->cachefilm().invalidate();
+            //session->Start();
+            //pDocData->cachefilm().invalidate();
             bSetOK = true;
         }
     }
