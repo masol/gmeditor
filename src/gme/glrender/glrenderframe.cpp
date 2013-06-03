@@ -147,7 +147,11 @@ GlRenderFrame::OnDropFiles(wxCoord x, wxCoord y,const wxArrayString& filenames)
         {////如果未打开场景,我们只接受模型文件。
             if(OpenSceneDialog::isSupported(filename))
             {
-                dio.loadScene(filename);
+                gme::MainFrame* mainfrm = dynamic_cast<gme::MainFrame*>(wxTheApp->GetTopWindow());
+                if(mainfrm)
+                {
+                    mainfrm->openFile(filename);
+                }
             }else{
                 Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("由于文件'%s'不被支持，忽略之。") )% filename));
             }

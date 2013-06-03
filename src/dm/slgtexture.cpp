@@ -526,7 +526,7 @@ ExtraTextureManager::dumpImagemap(luxrays::Properties &prop,const slg::ImageMapT
         prop.SetString(prefix + "gain",boost::lexical_cast<std::string>(pImageTex->GetGain()));
 
     //update mapping2d.
-    dumpTextureMapping2D(pImageTex->GetTextureMapping(),prop,prefix + ".mapping.");
+    dumpTextureMapping2D(pImageTex->GetTextureMapping(),prop,prefix + "mapping.");
     return id;
 }
 
@@ -1123,6 +1123,12 @@ ExtraTextureManager::createTexture(ImportContext &ctx,type_xml_node &self)
 
                         appendAttribute(self,id,ss,"gamma");
                         appendAttribute(self,id,ss,"gain");
+
+                        type_xml_node   *pMapping = self.first_node(constDef::mapping);
+                        if(pMapping)
+                        {
+                            importTextureMapping2D(ss,*pMapping,id);
+                        }
 
                         m_slgname2filepath_map[id] = fullpath;
                         result = defineAndUpdate(id,ctx.scene(),ss.str());
@@ -1783,13 +1789,16 @@ ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Textur
                 }else if(curKey == "gamma")
                 {
                     newProps.SetString(prefix + newId + ".gamma",ctx.value);
+                    this->addPath(newId,m_slgname2filepath_map[oldId]);
                 }else if(curKey == "gain")
                 {
                     newProps.SetString(prefix + newId + ".gain",ctx.value);
+                    this->addPath(newId,m_slgname2filepath_map[oldId]);
                 }else if(checkTextureMapping2DUpdate(ctx,newProps,curKey,
                     prefix + newId + '.' + constDef::mapping + '.',
                     dynamic_cast<const slg::ImageMapTexture*>(pTex)->GetTextureMapping()))
                 {
+                    this->addPath(newId,m_slgname2filepath_map[oldId]);
                 }else{
                     BOOST_ASSERT_MSG(false,"unreachable code.");
                 }
@@ -1800,7 +1809,6 @@ ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Textur
                 //ctx.editor.needRefresh(bNeedRefresh);
 
                 m_tex2id[ctx.editor.scene()->texDefs.GetTexture(newId)] = newId;
-                this->addPath(newId,m_slgname2filepath_map[oldId]);
                 m_slgname2filepath_map.erase(oldId);
                 return newId;
             }

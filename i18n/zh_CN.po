@@ -758,3 +758,18 @@ msgstr ""
 #: src/dm/cachefilm.cpp:67
 msgid "invalid format"
 msgstr "无效格式"
+
+msgid "Open Recent"
+msgstr "最近场景"
+
+msgid "Open recent opend files"
+msgstr "从最近打开的场景中打开."
+
+msgid "另存为(&A)"
+msgstr "另存为(&A)"
+
+msgid "将现有场景另存为..."
+msgstr "将现有场景另存为..."
+
+msgid "飞鹿图形宝"
+msgstr "飞鹿图形宝"

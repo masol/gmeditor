@@ -130,6 +130,8 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_MENU(wxID_OPEN, MainFrame::onMenuFileOpen)
 	EVT_MENU(wxID_SAVE, MainFrame::onMenuFileSave)
 	EVT_UPDATE_UI(wxID_SAVE,MainFrame::onUpdateMenuFileSave)
+	EVT_MENU(wxID_SAVEAS, MainFrame::onMenuFileSaveAs)
+	EVT_UPDATE_UI(wxID_SAVEAS,MainFrame::onUpdateMenuFileSave)
 	EVT_MENU(cmd::GID_EXPORT, MainFrame::onMenuFileExport)
 	EVT_UPDATE_UI(cmd::GID_EXPORT,MainFrame::onUpdateonMenuFileExport)
 	EVT_MENU(cmd::GID_IMPORT, MainFrame::onMenuFileImport)
@@ -175,6 +177,8 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_MENU(cmd::GID_IMM_REFRESH,MainFrame::onImmRefresh)
 	EVT_UPDATE_UI(cmd::GID_IMM_REFRESH,MainFrame::onUpdateImmRefresh)
 
+    EVT_MENU_RANGE(wxID_FILE1, wxID_FILE9, MainFrame::onMRUFile)
+
 	EVT_CLOSE(MainFrame::onClose)
 END_EVENT_TABLE()
 
@@ -182,9 +186,14 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
                   wxDefaultPosition, wxSize(800,600),
                   wxDEFAULT_FRAME_STYLE)
 {
+    m_Config = new wxConfig("gmeditor");
+    m_FileHistory = new wxFileHistory(10);
+
     createMenubar();
 	createToolbar();
     createStatusbar();
+
+    m_FileHistory->Load(*m_Config);
 
     DECLARE_WXCONVERT;
 
@@ -222,6 +231,7 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
     sv_getImageFilepath = boost::bind(&MainFrame::getImageFilepath,this,_1);
 
     Doc::SetSysLog(Log_Adapter);
+
 }
 
 MainFrame::~MainFrame()
@@ -290,12 +300,19 @@ MainFrame::createMenubar()
     {//File
         wxMenu *pFileMenu = new wxMenu();
         pFileMenu->Append(wxID_OPEN, gmeWXT("Open"), gmeWXT("打开已有场景"));
+        wxMenu *pOpenRecentMenu = new wxMenu();
+        pFileMenu->AppendSubMenu(pOpenRecentMenu,gmeWXT("Open Recent"),gmeWXT("Open recent opend files"));
+	    m_FileHistory->UseMenu(pOpenRecentMenu);
+	    m_FileHistory->AddFilesToMenu(pOpenRecentMenu);
+
         pFileMenu->AppendSeparator();
 
         name = gmeWXT("保存(&S)");
         pFileMenu->Append(wxID_SAVE, appendShortCutString(wxID_SAVE,name), gmeWXT("保存现有场景"));
-        pFileMenu->Append(cmd::GID_SAVE_IMAGE, gmeWXT("保存图片(&S)"), gmeWXT("保存当前渲染结果"));
+        pFileMenu->Append(wxID_SAVEAS, gmeWXT("另存为(&A)"), gmeWXT("将现有场景另存为..."));
         pFileMenu->Append(cmd::GID_EXPORT, gmeWXT("导出(&E)"), gmeWXT("导出现有场景"));
+        pFileMenu->AppendSeparator();
+        pFileMenu->Append(cmd::GID_SAVE_IMAGE, gmeWXT("保存图片(&S)"), gmeWXT("保存当前渲染结果"));
         pFileMenu->AppendSeparator();
         pFileMenu->Append(wxID_EXIT, gmeWXT("退出(&X)"), gmeWXT("退出gmeditor"));
 
@@ -522,6 +539,12 @@ MainFrame::onClose(wxCloseEvent& event)
     exit(0);
 	event.Skip(false);
 	*/
+    if(m_FileHistory)
+    {
+        m_FileHistory->Save(*m_Config);
+	    delete m_Config;
+	    delete m_FileHistory;
+    }
 	DocCtl dctl;
 	dctl.stop();
 	Destroy();
@@ -658,6 +681,16 @@ MainFrame::onUpdateSetting(wxUpdateUIEvent &event)
     }
 }
 
+void
+MainFrame::onMRUFile(wxCommandEvent& event)
+{
+    wxString f(m_FileHistory->GetHistoryFile(event.GetId() - wxID_FILE1));
+	if (!f.empty())
+    {
+		openFile(f);
+    }
+}
+
 
 void
 MainFrame::onLogLevelChanged(wxCommandEvent &event)
@@ -785,6 +818,28 @@ MainFrame::setDocLocked(bool bLock)
 
 }
 
+void
+MainFrame::openFile(const std::string &filepath)
+{
+    wxBusyCursor wait;
+    gme::DocIO  dio;
+    if(dio.loadScene(filepath))
+    {
+        DECLARE_WXCONVERT;
+        wxString title(__("飞鹿图形宝"),gme_wx_utf8_conv);
+        wxString fpath(filepath.c_str(),gme_wx_utf8_conv);
+        SetTitle(title << wxString(" - ") << fpath); 
+
+        m_FileHistory->AddFileToHistory(fpath);
+    }
+}
+
+void
+MainFrame::openFile(const wxString& filepath)
+{
+    std::string path = boost::locale::conv::utf_to_utf<char>(filepath.ToStdWstring());
+    openFile(path);
+}
 
 void
 MainFrame::onMenuFileOpen(wxCommandEvent &event)
@@ -792,11 +847,7 @@ MainFrame::onMenuFileOpen(wxCommandEvent &event)
 	OpenSceneDialog dialog(this);
 	if ( dialog.ShowModal() == wxID_OK )
 	{
-        {
-            wxBusyCursor wait;
-            gme::DocIO  dio;
-		    dio.loadScene(dialog.GetPath());
-        }
+        openFile(dialog.GetPath());
         refreshMouseEvt();
 	}
 }
@@ -808,7 +859,7 @@ MainFrame::onMenuFileExport(wxCommandEvent &event)
 	if ( dialog.ShowModal() == wxID_OK )
 	{
 	    gme::DocIO  dio;
-	    dio.exportScene(dialog.GetPath(),true);
+        saveFile(dialog.GetPath(),true);
 	}
 }
 
@@ -819,12 +870,44 @@ MainFrame::onUpdateonMenuFileExport(wxUpdateUIEvent& event)
     event.Enable(dc.isRuning() || dc.isPause());
 }
 
+void
+MainFrame::onMenuFileSaveAs(wxCommandEvent &event)
+{
+    SaveSceneDialog dialog(this);
+    if ( dialog.ShowModal() == wxID_OK )
+    {
+        saveFile(dialog.GetPath(),false);
+    }
+}
 
+void
+MainFrame::saveFile(const std::string &fpath,bool bExport)
+{
+    if(!fpath.empty())
+    {
+    	gme::DocIO  dio;
+
+        std::string filepath = fpath;
+        if(!boost::iends_with(filepath,".sps") && !boost::iends_with(filepath,".cfg") && !boost::iends_with(filepath,".slg"))
+        {
+           filepath += ".sps";
+        }
+        wxBusyCursor wait;
+        std::string  error = __("失败。");
+        if(dio.exportScene(filepath,bExport))
+        {
+           dio.setLastLoadedPath(filepath);
+           error = __("成功。");
+        }
+        std::string content = boost::str(boost::format(__("保存文件'%s'%s")) % filepath % error);
+        Log_Adapter(Doc::LOG_STATUS,content.c_str(),NULL);
+    }
+}
 
 void
 MainFrame::onMenuFileSave(wxCommandEvent &event)
 {
-	gme::DocIO  dio;
+    gme::DocIO  dio;
     std::string filepath = dio.getLastLoadedPath();
 	if(filepath.empty() || !boost::iends_with(filepath,".sps"))
 	{
@@ -834,20 +917,8 @@ MainFrame::onMenuFileSave(wxCommandEvent &event)
         {
             filepath = dialog.GetPath();
         }
-
 	}
-	if(!filepath.empty())
-	{
-       wxBusyCursor wait;
-       std::string  error = __("失败。");
-	   if(dio.exportScene(filepath,false))
-       {
-           dio.setLastLoadedPath(filepath);
-           error = __("成功。");
-       }
-       std::string content = boost::str(boost::format(__("保存文件'%s'%s")) % filepath % error);
-       Log_Adapter(Doc::LOG_STATUS,content.c_str(),NULL);
-	}
+    saveFile(filepath,false);
 }
 
 void

@@ -1332,3 +1332,18 @@ msgstr "texture"
 
 #~ msgid "invalid format"
 #~ msgstr "invalid format"
+
+msgid "Open Recent"
+msgstr "Open Recent"
+
+msgid "Open recent opend files"
+msgstr "Open recent opend files"
+
+msgid "另存为(&A)"
+msgstr "Save As(&A)"
+
+msgid "将现有场景另存为..."
+msgstr "Save current scene as..."
+
+msgid "飞鹿图形宝"
+msgstr "Gmeditor"

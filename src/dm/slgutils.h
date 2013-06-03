@@ -22,6 +22,7 @@
 #include "slg/rendersession.h"
 #include "dm/xmlutil.h"
 #include <boost/foreach.hpp>
+#include <boost/algorithm/string.hpp>
 
 namespace gme{
 
@@ -104,9 +105,21 @@ public:
         BOOST_FOREACH(const std::string &key,Keys)
         {
             std::string value = oldProp.GetString(key,"");
-            std::string subkey = luxrays::Properties::ExtractField(key,3);
-            oldProp.Delete(key);
-            newProp.SetString(newPrefix + '.' + subkey,value);
+        
+            std::vector< std::string >    keyParts;
+            boost::split(keyParts,key,boost::is_any_of("."),boost::token_compress_on);
+
+            if(keyParts.size() >= 3)
+            {
+                std::string     subkey;
+                for(size_t idx = 3; idx < keyParts.size(); idx++)
+                {
+                    subkey += '.';
+                    subkey += keyParts[idx];
+                }
+                oldProp.Delete(key);
+                newProp.SetString(newPrefix + subkey,value);
+            }
         }
         return newId;
     }
@@ -118,12 +131,10 @@ public:
         {
             for(int row = 0; row < 4; row++)
             {
-                if(!col && !row)
+                if(col || row)
                     o << ' ';
                 o << boost::lexical_cast<std::string>(luxmat.m[row][col]);
             }
-            if(col != 3)
-                o << ' ';
         }
     }
 };

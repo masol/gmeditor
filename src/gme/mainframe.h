@@ -21,6 +21,8 @@
 
 #include <wx/wx.h>
 #include <wx/aui/aui.h>
+#include <wx/filehistory.h>
+#include <wx/config.h>
 #include <boost/function.hpp>
 
 namespace gme{
@@ -43,6 +45,8 @@ public:
     }
     void refreshMouseEvt(void);
     void setDocLocked(bool bLock);
+    void openFile(const std::string &filepath);
+    void openFile(const wxString& filepath);
 protected:
 	void onClose(wxCloseEvent& event);
 
@@ -54,7 +58,10 @@ protected:
     void onUpdateMenuFileImport(wxUpdateUIEvent& event);
 
     /** Processes menu File|Save */
+    void onMenuFileSaveAs(wxCommandEvent &event);
 	void onMenuFileSave(wxCommandEvent &event);
+    ///@brief 如果filepath不是一个可识别后缀，自动加入后缀保存。
+    void saveFile(const std::string &filepath,bool bExport);
   	void onUpdateMenuFileSave(wxUpdateUIEvent& event);
 
 	void onMenuFileSaveImage(wxCommandEvent &event);
@@ -123,9 +130,14 @@ protected:
     void onLogLevelChanged(wxCommandEvent &event);
     void onUpdateLogLevel(wxUpdateUIEvent &event);
 
+    void onMRUFile(wxCommandEvent& event);
+
     void onSetting(wxCommandEvent &event);
     void onUpdateSetting(wxUpdateUIEvent &event);
     int  getLoadingFlagFromCmd(int cmdid);
+private:
+    wxFileHistory*  m_FileHistory;
+	wxConfig*       m_Config;
 private:
     static  boost::function<bool (std::string &)>   sv_getImageFilepath;
 	bool getImageFilepath(std::string &result);
