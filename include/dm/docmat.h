@@ -21,6 +21,7 @@
 
 
 #include "dm/doc.h"
+#include "dm/objectnode.h"
 #include "dm/xmlutil.h"
 #include <string>
 

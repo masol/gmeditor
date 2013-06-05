@@ -68,7 +68,7 @@ Doc::Doc(void)
 	slg::SLG_DebugHandler = ::SLGDebugHandler;
 	slg::SLG_SDLDebugHandler = ::SDLDebugHandler;
 
-    FreeImage_Initialise(TRUE);
+    FreeImage_Initialise(0);
 	FreeImage_SetOutputMessage(::FreeImageErrorHandler);
 
     pDocData = new DocPrivate();
@@ -80,6 +80,7 @@ Doc::~Doc(void)
     {
         delete pDocData;
     }
+	FreeImage_DeInitialise();
 }
 
 bool

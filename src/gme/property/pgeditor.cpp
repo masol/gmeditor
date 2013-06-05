@@ -43,7 +43,7 @@ wxPGWindowList wxPGSliderEditor::CreateControls( wxPropertyGrid*  propgrid,
 	
 	getSliderInfo(propgrid, maxValue, tick);
 	//SliderWindow* slider = new SliderWindow(propgrid, 0, 0, 100);
-	m_slider->setSliderInfo(propgrid, maxValue, tick, value, pos, size);
+	m_slider->setSliderInfo(propgrid, property, maxValue, tick, value, pos, size);
 	//wxPGWindowList wndList = wxPGWindowList(slider);
 	//wxPGWindowList wndList = wxPGTextCtrlEditor::CreateControls
     //                        ( propgrid, property, pos,
@@ -114,10 +114,19 @@ wxPGSliderEditor::getInstance(wxPropertyGrid*  propgrid)
 {
 	if(m_instance == NULL)
 	{
-		wxPGSliderEditor *slider = new wxPGSliderEditor(propgrid);
-		m_instance = wxPropertyGrid::DoRegisterEditorClass(slider, slider->getEditorName());
+		wxPGSliderEditor* sliderEditor = new wxPGSliderEditor(propgrid);
+		m_instance = wxPropertyGrid::DoRegisterEditorClass(sliderEditor, sliderEditor->getEditorName());
 	}
 	return m_instance;
+}
+
+void 
+wxPGSliderEditor::Finalize()
+{
+	if(m_slider->IsShown())
+	{
+		m_slider->clearSelected();
+	}
 }
 
 }

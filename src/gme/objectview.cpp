@@ -359,6 +359,7 @@ ObjectView::onSaveMaterial(wxCommandEvent &event)
             if(mainfrm)
             {
                 mainfrm->saveMaterial(m_menuCmdTarget,dialog.GetPath(),false);
+                mainfrm->refreshMouseEvt();
             }
 	    }
         m_menuCmdTarget.clear();
@@ -377,6 +378,7 @@ ObjectView::onExportMaterial(wxCommandEvent &event)
             if(mainfrm)
             {
                 mainfrm->saveMaterial(m_menuCmdTarget,dialog.GetPath(),true);
+                mainfrm->refreshMouseEvt();
             }
 	    }
         m_menuCmdTarget.clear();
@@ -388,15 +390,17 @@ ObjectView::onImportMaterial(wxCommandEvent &event)
 {
     if(!m_menuCmdTarget.empty())
     {
-        ImportMaterialDialog  dialog(this);
-        if(dialog.ShowModal() == wxID_OK)
-	    {
-            gme::MainFrame* mainfrm = dynamic_cast<gme::MainFrame*>(wxTheApp->GetTopWindow());
-            if(mainfrm)
-            {
+        gme::MainFrame* mainfrm = dynamic_cast<gme::MainFrame*>(wxTheApp->GetTopWindow());
+        if(mainfrm)
+        {
+            ImportMaterialDialog  dialog(this);
+            if(dialog.ShowModal() == wxID_OK)
+	        {
                 mainfrm->importMaterial(m_menuCmdTarget,dialog.GetPath());
+                mainfrm->refreshMouseEvt();
             }
 	    }
+
         m_menuCmdTarget.clear();
     }
 }

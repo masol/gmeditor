@@ -18,6 +18,7 @@
 
 #include "config.h"
 #include <wx/dnd.h>
+#include <boost/algorithm/string/predicate.hpp>
 #include "utils/option.h"
 #include "dm/docimg.h"
 #include "dm/docio.h"
@@ -171,6 +172,7 @@ GlRenderFrame::OnDropFiles(wxCoord x, wxCoord y,const wxArrayString& filenames)
                     hittedId = obj.hittest(filmx,filmy);
                 }
             }
+
             if(OpenSceneDialog::isSupported(filename))
             {
                 DocObj obj;
@@ -180,6 +182,13 @@ GlRenderFrame::OnDropFiles(wxCoord x, wxCoord y,const wxArrayString& filenames)
                     pParent = obj.getRootObject().findObject(hittedId,NULL);
                 }
                 obj.importObject(filename,pParent);
+            }else if(!hittedId.empty() && boost::iends_with(filename,".spm"))
+            {//是一个材质文件.赋材质到object上。
+                gme::MainFrame* mainfrm = dynamic_cast<gme::MainFrame*>(wxTheApp->GetTopWindow());
+                if(mainfrm)
+                {
+                    mainfrm->importMaterial(hittedId,filename);
+                }
             }else if(OpenImageDialog::isSupported(filename))
             {///@todo: 是一张贴图。我们需要弹出菜单以让用户选择通道或者我们根据某个条件来判定通道。
             }else{

@@ -27,6 +27,7 @@
 #include "property/hdrpage.h"
 #include "property/materialpage.h"
 #include "property/envlightpage.h"
+#include "property/pgeditor.h"
 
 // -----------------------------------------------------------------------
 // Main propertygrid header.
@@ -53,6 +54,8 @@ enum
 BEGIN_EVENT_TABLE(PropFrame, wxScrolledWindow)
     // This occurs when propgridmanager's page changes.
     EVT_PG_PAGE_CHANGED( PGID, PropFrame::OnPropertyGridPageChange )
+
+	EVT_SIZE(PropFrame::OnResize)
 END_EVENT_TABLE()
 
 void PropFrame::OnPropertyGridPageChange( wxPropertyGridEvent& (event) )
@@ -69,6 +72,16 @@ void PropFrame::OnPropertyGridPageChange( wxPropertyGridEvent& (event) )
         m_pLastShownPage = pGmePage;
         std::cerr << "PropFrame::OnPropertyGridPageChange = " << idx <<std::endl;
     }
+}
+
+void 
+PropFrame::OnResize( wxSizeEvent& event )
+{
+	wxPGSliderEditor* sliderEditor = wxPGSliderEditor::getSliderEditor();
+	if(sliderEditor != NULL)
+	{
+		sliderEditor->Finalize();
+	}
 }
 
 void PropFrame::initPages()

@@ -38,16 +38,17 @@ public:
 	}
 	~SliderWindow(){};
 	
-	void setSliderInfo(wxPropertyGrid*  propgrid, double maxValue, double tick, double value, const wxPoint& pos, const wxSize&    size )
+	void setSliderInfo(wxPropertyGrid*  propgrid, wxPGProperty*    property, double maxValue, double tick, double value, const wxPoint& pos, const wxSize&    size )
 	{
 		m_maxValue = maxValue;
 		m_tick = tick;
+		m_property = property;
 		if(value > maxValue)
 			value = maxValue;
 		this->SetMax((int)(maxValue / tick));
 		this->SetValue((int)(value / tick));
 		// set positon and size
-		this->SetSize(size.x - 50, size.y);
+		this->resize(size.x, size.y);
 		this->SetPosition(wxPoint(pos.x + 50, pos.y));
 
 		this->Show();
@@ -69,9 +70,21 @@ public:
 	{
 		this->SetValue(0);
 	}
+
+	void resize(int w, int h)
+	{
+		this->SetSize(w - 50, h);
+	}
+
+	void clearSelected()
+	{
+		wxPropertyGrid *grid = m_property->GetGrid();
+		grid->ClearSelection();
+	}
 private:
 	double			m_maxValue;
 	double			m_tick;
+	wxPGProperty*   m_property;
 };
 
 // 滑块editor
@@ -82,6 +95,7 @@ private:
 	wxPGSliderEditor(){};
 	wxPGSliderEditor(wxPropertyGrid*  propgrid){
 		m_slider = new SliderWindow(propgrid, 0, 0, 100);
+		m_sliderEditor = this;
 	};
 	
 	~wxPGSliderEditor ()
@@ -112,8 +126,17 @@ private:
 
 public:
 	static wxPGEditor* getInstance(wxPropertyGrid*  propgrid);
+	static wxPGSliderEditor* getSliderEditor()
+	{
+		if(m_instance == NULL)
+			return NULL;
+		return wxDynamicCast ( m_instance, wxPGSliderEditor );
+	};
+	// 矫正位置
+	void Finalize();
 private:
 	static wxPGEditor *m_instance;
+	wxPGSliderEditor  *m_sliderEditor;
 	SliderWindow	  *m_slider;
 };
 

@@ -16,10 +16,6 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifdef __WXMSW__
-    #include <wx/msw/msvcrt.h>      // redefines the new() operator
-#endif
-
 #include "config.h"
 #include "mainframe.h"
 //#include "renderview.h"
@@ -666,6 +662,7 @@ MainFrame::onSaveMaterial(wxCommandEvent &event)
     if(dialog.ShowModal() == wxID_OK)
 	{
         saveSelectMaterial(dialog.GetPath(),false);
+        refreshMouseEvt();
 	}
 }
 
@@ -676,6 +673,7 @@ MainFrame::onExportMaterial(wxCommandEvent &event)
     if(dialog.ShowModal() == wxID_OK)
 	{
         saveSelectMaterial(dialog.GetPath(),true);
+        refreshMouseEvt();
 	}
 }
 
@@ -691,6 +689,7 @@ MainFrame::onImportMaterial(wxCommandEvent &event)
         {
             importMaterial(sel[0],dialog.GetPath());
         }
+        refreshMouseEvt();
 	}
 }
 
