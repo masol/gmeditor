@@ -73,6 +73,7 @@ protected:
 
 	void  onDocumentItemSelected(const std::string &id);
 	void  onDocumentItemDeselected(const std::string &id);
+    void  onMaterialUpdated(const std::string &id);
 	void  onDocumentClosed(void);
 private:
     DECLARE_EVENT_TABLE()

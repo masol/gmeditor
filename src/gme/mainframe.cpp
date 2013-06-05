@@ -179,6 +179,12 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 
     EVT_MENU_RANGE(wxID_FILE1, wxID_FILE9, MainFrame::onMRUFile)
 
+    EVT_MENU(cmd::GID_SAVE_MATERIAL, MainFrame::onSaveMaterial)
+    EVT_MENU(cmd::GID_EXPORT_MATERIAL, MainFrame::onExportMaterial)
+    EVT_MENU(cmd::GID_IMPORT_MAEERIAL, MainFrame::onImportMaterial)
+    EVT_UPDATE_UI_RANGE(cmd::GID_SAVE_MATERIAL,cmd::GID_IMPORT_MAEERIAL,MainFrame::onUpdateMaterialOperator)
+
+
 	EVT_CLOSE(MainFrame::onClose)
 END_EVENT_TABLE()
 
@@ -323,6 +329,11 @@ MainFrame::createMenubar()
         wxMenu *pEditMenu = new wxMenu();
 		pEditMenu->Append(cmd::GID_IMPORT, gmeWXT("导入(&I)"), gmeWXT("从文件中导入模型到当前场景"));
         pEditMenu->Append(wxID_DELETE, gmeWXT("删除(&D)"), gmeWXT("删除选中模型"));
+
+		pEditMenu->AppendSeparator();
+		pEditMenu->Append(cmd::GID_SAVE_MATERIAL, gmeWXT("保存材质(&S)"), gmeWXT("将当前选中模型的材质保存为文件。"));
+		pEditMenu->Append(cmd::GID_EXPORT_MATERIAL, gmeWXT("导出材质(&E)"), gmeWXT("将当前选中模型的材质导出为材质库。"));
+        pEditMenu->Append(cmd::GID_IMPORT_MAEERIAL, gmeWXT("导入材质(&F)"), gmeWXT("从外部导入材质并赋给当前选中模型。"));
 
 		pEditMenu->AppendSeparator();
 		pEditMenu->Append(cmd::GID_RENDER_START,gmeWXT("开始渲染"),gmeWXT("开始渲染当前场景"));
@@ -576,6 +587,121 @@ MainFrame::onUpdateViewmode(wxUpdateUIEvent& event)
     event.Check(this->m_renderView->isCurrentViewmodeFromCmd(event.GetId()));
 }
 
+
+bool
+MainFrame::saveMaterial(const std::string &objID,const std::string &fpath,bool bExport)
+{
+    wxBusyCursor wait;
+    std::string filepath = fpath;
+    if(!boost::iends_with(filepath,".spm"))
+    {
+       filepath += ".spm";
+    }
+
+    bool bSaveOK = false;
+    DocObj  obj;
+    gme::ObjectNode *pNode = obj.getRootObject().findObject(objID,NULL);
+    if(pNode && !pNode->matid().empty())
+    {
+        DocMat      mat;
+        bSaveOK = mat.saveMaterial(pNode->matid(),filepath,bExport);
+    }
+    std::string  error = __("失败。");
+    if(bSaveOK)
+    {
+       error = __("成功。");
+    }
+    std::string content = boost::str(boost::format(__("保存材质到文件'%s'%s")) % filepath % error);
+    Log_Adapter(Doc::LOG_STATUS,content.c_str(),NULL);
+    return bSaveOK;
+}
+
+bool
+MainFrame::saveSelectMaterial(const std::string &fpath,bool bExport)
+{
+    wxBusyCursor wait;
+    DocObj  obj;
+    const std::vector<std::string> &sel = obj.getSelection();
+    bool bSaveOK = false;
+    if(sel.size() == 1)
+    {
+        bSaveOK = saveMaterial(sel[0],fpath,bExport);
+    }
+    return bSaveOK;
+
+}
+
+bool
+MainFrame::importMaterial(const std::string &objID,const std::string &filepath)
+{
+    wxBusyCursor wait;
+    bool bImportOK = false;
+    std::string  objName = __("未知");
+    DocObj  obj;
+    gme::ObjectNode *pNode = obj.getRootObject().findObject(objID,NULL);
+    if(pNode)
+    {
+        objName = pNode->name();
+        if(!pNode->matid().empty())
+        {
+            DocMat      mat;
+            bImportOK = mat.loadMaterial(pNode,filepath);
+        }
+    }
+    std::string  error = __("失败。");
+    if(bImportOK)
+    {
+       error = __("成功。");
+    }
+    std::string content = boost::str(boost::format(__("从文件'%s'导入材质到对象'%s'%s")) % filepath % objName % error);
+    Log_Adapter(Doc::LOG_STATUS,content.c_str(),NULL);
+    return bImportOK;
+}
+
+
+void
+MainFrame::onSaveMaterial(wxCommandEvent &event)
+{
+    SaveMaterialDialog  dialog(this);
+    if(dialog.ShowModal() == wxID_OK)
+	{
+        saveSelectMaterial(dialog.GetPath(),false);
+	}
+}
+
+void
+MainFrame::onExportMaterial(wxCommandEvent &event)
+{
+    SaveMaterialDialog  dialog(this);
+    if(dialog.ShowModal() == wxID_OK)
+	{
+        saveSelectMaterial(dialog.GetPath(),true);
+	}
+}
+
+void
+MainFrame::onImportMaterial(wxCommandEvent &event)
+{
+    ImportMaterialDialog  dialog(this);
+    if(dialog.ShowModal() == wxID_OK)
+	{
+        DocObj  obj;
+        const std::vector<std::string> &sel = obj.getSelection();
+        if(sel.size() == 1)
+        {
+            importMaterial(sel[0],dialog.GetPath());
+        }
+	}
+}
+
+void
+MainFrame::onUpdateMaterialOperator(wxUpdateUIEvent &event)
+{
+    DocObj  obj;
+    event.Enable(obj.getSelection().size() == 1);
+}
+
+
 int
 MainFrame::getLoadingFlagFromCmd(int cmdid)
 {
@@ -828,7 +954,7 @@ MainFrame::openFile(const std::string &filepath)
         DECLARE_WXCONVERT;
         wxString title(__("飞鹿图形宝"),gme_wx_utf8_conv);
         wxString fpath(filepath.c_str(),gme_wx_utf8_conv);
-        SetTitle(title << wxString(" - ") << fpath); 
+        SetTitle(title << wxString(" - ") << fpath);
 
         m_FileHistory->AddFileToHistory(fpath);
     }

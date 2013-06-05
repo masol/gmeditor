@@ -53,6 +53,10 @@ BEGIN_EVENT_TABLE(ObjectView, inherited)
 	EVT_MENU(cmd::GID_IMPORT,ObjectView::onMenuImport)
 	EVT_MENU(cmd::GID_VIEWALL,ObjectView::onMenuViewAll)
 	EVT_MENU(cmd::GID_SETTARGET,ObjectView::onMenuSetCenter)
+
+	EVT_MENU(cmd::GID_SAVE_MATERIAL,ObjectView::onSaveMaterial)
+	EVT_MENU(cmd::GID_EXPORT_MATERIAL,ObjectView::onExportMaterial)
+	EVT_MENU(cmd::GID_IMPORT_MAEERIAL,ObjectView::onImportMaterial)
 END_EVENT_TABLE()
 
 ObjectView::ObjectView(wxWindow* parent, wxWindowID id,const wxPoint& pos, const wxSize& size)
@@ -335,12 +339,68 @@ ObjectView::onMenuViewAll(wxCommandEvent &event)
 {
     DocCamera   cam;
     cam.viewAll(this->m_menuCmdTarget);
+    m_menuCmdTarget.clear();
 }
 
 void
 ObjectView::onMenuSetCenter(wxCommandEvent &event)
 {
 }
+
+void
+ObjectView::onSaveMaterial(wxCommandEvent &event)
+{
+    if(!m_menuCmdTarget.empty())
+    {
+        SaveMaterialDialog  dialog(this);
+        if(dialog.ShowModal() == wxID_OK)
+	    {
+            gme::MainFrame* mainfrm = dynamic_cast<gme::MainFrame*>(wxTheApp->GetTopWindow());
+            if(mainfrm)
+            {
+                mainfrm->saveMaterial(m_menuCmdTarget,dialog.GetPath(),false);
+            }
+	    }
+        m_menuCmdTarget.clear();
+    }
+}
+
+void
+ObjectView::onExportMaterial(wxCommandEvent &event)
+{
+    if(!m_menuCmdTarget.empty())
+    {
+        SaveMaterialDialog  dialog(this);
+        if(dialog.ShowModal() == wxID_OK)
+	    {
+            gme::MainFrame* mainfrm = dynamic_cast<gme::MainFrame*>(wxTheApp->GetTopWindow());
+            if(mainfrm)
+            {
+                mainfrm->saveMaterial(m_menuCmdTarget,dialog.GetPath(),true);
+            }
+	    }
+        m_menuCmdTarget.clear();
+    }
+}
+
+void
+ObjectView::onImportMaterial(wxCommandEvent &event)
+{
+    if(!m_menuCmdTarget.empty())
+    {
+        ImportMaterialDialog  dialog(this);
+        if(dialog.ShowModal() == wxID_OK)
+	    {
+            gme::MainFrame* mainfrm = dynamic_cast<gme::MainFrame*>(wxTheApp->GetTopWindow());
+            if(mainfrm)
+            {
+                mainfrm->importMaterial(m_menuCmdTarget,dialog.GetPath());
+            }
+	    }
+        m_menuCmdTarget.clear();
+    }
+}
+
 
 
 void
@@ -353,9 +413,11 @@ ObjectView::OnItemContextMenu(wxTreeListEvent& event)
         return;
     const ObjectViewClientData* clientData = dynamic_cast<const ObjectViewClientData*>(m_treelist->GetItemData(item));
 
+    bool    hasMat = false;
     if(clientData)
     {//pop on a item.
         this->m_menuCmdTarget = clientData->m_objid;
+        hasMat = !clientData->m_matid.empty();
     }else{//pop on root
         this->m_menuCmdTarget.clear();
     }
@@ -366,6 +428,14 @@ ObjectView::OnItemContextMenu(wxTreeListEvent& event)
     menu.Append(cmd::GID_SETTARGET, gmeWXT("设置焦点"));
     //本功能会响应摄像机以及物体的位置变化，并自动矫正摄像机焦点到指定物体的中心点。
     //menu.Append(cmd::GID_SETTARGET, gmeWXT("焦点跟随"));
+    if(hasMat)
+    {
+        menu.AppendSeparator();
+        menu.Append(cmd::GID_SAVE_MATERIAL, gmeWXT("保存材质"));
+        menu.Append(cmd::GID_EXPORT_MATERIAL, gmeWXT("导出材质"));
+        menu.Append(cmd::GID_IMPORT_MAEERIAL, gmeWXT("导入材质"));
+    }
+
 
     PopupMenu(&menu);
 }

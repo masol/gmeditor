@@ -79,6 +79,33 @@ public:
     }
 };
 
+class SaveMaterialDialog : public FileDialogBase
+{
+public:
+    SaveMaterialDialog(wxWindow *parent)
+    {
+        DECLARE_WXCONVERT;
+	    pDialog = new wxFileDialog(parent, gmeWXT("材质保存为"), _(""), _(""),
+						       gmeWXT("SPM文件(*.spm)|*.spm|所有文件(*.*)|*.*"),
+						       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    }
+};
+
+
+class ImportMaterialDialog : public FileDialogBase
+{
+public:
+    ImportMaterialDialog(wxWindow *parent)
+    {
+	    DECLARE_WXCONVERT;
+	    pDialog = new wxFileDialog(parent, gmeWXT("选择打开文件"), _(""), _(""),
+						       gmeWXT("SPM文件(*.spm)|*.spm|所有文件(*.*)|*.*"),
+						       wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    }
+};
+
+
+
 
 class OpenSceneDialog : public FileDialogBase
 {

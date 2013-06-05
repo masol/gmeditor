@@ -42,6 +42,11 @@ public:
     {
     }
 
+    virtual wxDragResult OnDragOver(wxCoord x, wxCoord y,wxDragResult def)
+    {
+        return wxFileDropTarget::OnDragOver(x,y,def);
+    }
+
     virtual bool OnDropFiles(wxCoord x, wxCoord y,
                              const wxArrayString& filenames)
     {

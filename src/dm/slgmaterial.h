@@ -103,6 +103,7 @@ public:
     /** @brief 从xmlnode中定义一个材质。如果id未指定，尝试从xmlnode中读入，否则会自动创建一个随机id.
     **/
     void createMaterial(ImportContext &ctx,std::string& id,type_xml_node &xmlnode);
+    bool loadMaterial(std::stringstream &ss,ImportContext &ctx,std::string& id,type_xml_node &xmlnode);
     /**@brief 改进slg缺陷，递归检查一个材质是否是光源。
     **/
     static  bool    materialIsLight(const slg::Material *pmat);

@@ -775,7 +775,7 @@ ExtraObjectManager::importObjects(type_xml_node &node,ObjectNode &objNode,Import
         //无论是否加载成功，只要没有id，我们这里都给一个id。即便加载失败，有可能是组对象。
         if(objNode.m_id.empty())
             objNode.m_id = string::uuid_to_string(boost::uuids::random_generator()());
-        
+
         //else{
         //    objNode.m_filepath.clear();
         //}
@@ -967,8 +967,6 @@ ExtraObjectManager::importSpScene(const std::string &path,ObjectNode &parentNode
         }catch(std::exception &e)
         {
             Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("在加载文件'%s'时发生异常:%s"))%path % e.what() ) );
-            e.what();
-            (void)e;
         }
     }
     return count;

@@ -164,6 +164,13 @@ DocObj::onDeselected(type_selection_handler handler)
 }
 
 void
+DocObj::onMaterialUpdated(type_selection_handler handler)
+{
+    pDocData->selection_Evt.addEventListen(DocPrivate::SEL_ITEMMATUPDATED,handler);
+}
+
+
+void
 DocObj::onChildAdded(type_selection_handler handler)
 {
     pDocData->selection_Evt.addEventListen(DocPrivate::SEL_ITEMCHILDADDED,handler);

@@ -64,7 +64,9 @@ protected:
 	void onMenuImport(wxCommandEvent &event);
 	void onMenuViewAll(wxCommandEvent &event);
 	void onMenuSetCenter(wxCommandEvent &event);
-
+	void onSaveMaterial(wxCommandEvent &event);
+	void onExportMaterial(wxCommandEvent &event);
+	void onImportMaterial(wxCommandEvent &event);
 private:
 	void  onDocumentItemSelected(const std::string &id);
 	void  onDocumentItemDeselected(const std::string &id);

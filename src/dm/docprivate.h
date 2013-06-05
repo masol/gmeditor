@@ -87,6 +87,7 @@ public:
         SEL_ITEMDELSELECTED,
         SEL_ITEMCHILDADDED, //指示某个ObjectNode下新添加了孩子。
         SEL_ITEMSELFREMOVED, //指示某个ObjectNode自身被删除。
+        SEL_ITEMMATUPDATED, //指示某个ObjectNode的材质被更新。
         SEL_MAX
     };
 

@@ -60,6 +60,14 @@ MaterialPage::onDocumentItemSelected(const std::string &id)
 }
 
 void
+MaterialPage::onMaterialUpdated(const std::string &id)
+{
+    clearPage();
+    buildPage(id);
+}
+
+
+void
 MaterialPage::onDocumentItemDeselected(const std::string &id)
 {
     if(m_currentObject == id)
@@ -477,8 +485,8 @@ MaterialPage::addMaterialContent(wxPGProperty &matType,type_xml_node *pSelf,int 
         addTexture(matType,pSelf,constDef::index,0,"清漆折射率");
         addTexture(matType,pSelf,constDef::uroughness);
         //addTexture(matType,pSelf,constDef::vroughness);
-        //addTexture(matType,pSelf,constDef::ka,0,"清漆吸收色");
-        //addTexture(matType,pSelf,constDef::d,0,"清漆厚度");
+        addTexture(matType,pSelf,constDef::ka,0,"清漆吸收色");
+        addTexture(matType,pSelf,constDef::d,0,"清漆厚度");
         bool multibounce = false;
         type_xml_attr   *pAttr = pSelf->first_attribute("multibounce");
         if(pAttr && (boost::iequals(pAttr->value(),"true")))
@@ -581,6 +589,7 @@ MaterialPage::MaterialPage()
     DocObj  dobj;
     dobj.onSelected(boost::bind(&MaterialPage::onDocumentItemSelected,this,_1));
     dobj.onDeselected(boost::bind(&MaterialPage::onDocumentItemDeselected,this,_1));
+    dobj.onMaterialUpdated(boost::bind(&MaterialPage::onMaterialUpdated,this,_1));
 
 	// append film tonemap
 //	wxPGProperty* pf = this->Append(new wxPropertyCategory(gmeWXT("材质定义"),gmeWXT("material")));

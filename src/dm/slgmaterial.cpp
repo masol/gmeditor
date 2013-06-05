@@ -1270,11 +1270,9 @@ ExtraMaterialManager::updateMaterial(SlgUtil::UpdateContext &ctx,const slg::Mate
     return true;
 }
 
-
-void
-ExtraMaterialManager::createMaterial(ImportContext &ctx,std::string& id,type_xml_node &xmlnode)
+bool
+ExtraMaterialManager::loadMaterial(std::stringstream &ss,ImportContext &ctx,std::string& id,type_xml_node &xmlnode)
 {
-    slg::Scene  *scene = ctx.scene();//Doc::instance().pDocData->getSession()->renderConfig->scene;
     const char* name = NULL;
     const char* type = NULL;
 
@@ -1305,12 +1303,14 @@ ExtraMaterialManager::createMaterial(ImportContext &ctx,std::string& id,type_xml
     if(name)
         this->m_id2name[id] = name;
 
-    std::stringstream   ss;
+    bool    bLoadOK = false;
     if(type)
     {
         int typeidx = DocMat::getTypeFromTypeName(type);
         if(typeidx != DocMat::INVALID_MATERIAL)
         {
+            bLoadOK = true;
+
             ss << "scene.materials." << id << ".type = " << type <<std::endl;
 
             ExtraTextureManager &texManager = Doc::instance().pDocData->texManager;
@@ -1418,6 +1418,7 @@ ExtraMaterialManager::createMaterial(ImportContext &ctx,std::string& id,type_xml
                 }
                 break;
             default:
+                bLoadOK = false;
                 BOOST_ASSERT_MSG(false,"unrachable code!");
                 break;
             }
@@ -1426,16 +1427,27 @@ ExtraMaterialManager::createMaterial(ImportContext &ctx,std::string& id,type_xml
             {
                 ctx.addAction(slg::MATERIAL_TYPES_EDIT);
             }
-        }else{
-            ss << "scene.materials." << id << ".type = matte" << std::endl;
-            ss << "scene.materials." << id << ".kd = 0.75 0.75 0.75" << std::endl;
         }
     }
+    if(!bLoadOK)
+    {
+        ss << "scene.materials." << id << ".type = matte" << std::endl;
+        ss << "scene.materials." << id << ".kd = 0.75 0.75 0.75" << std::endl;
+    }
+    return bLoadOK;
+}
 
-    scene->DefineMaterials(ss.str());
+void
+ExtraMaterialManager::createMaterial(ImportContext &ctx,std::string& id,type_xml_node &xmlnode)
+{
+    std::stringstream   ss;
+
+    loadMaterial(ss,ctx,id,xmlnode);
+
+    ctx.scene()->DefineMaterials(ss.str());
     ctx.addAction(slg::MATERIALS_EDIT);
 
-    m_mat2id[scene->matDefs.GetMaterial(id)] = id;
+    m_mat2id[ctx.scene()->matDefs.GetMaterial(id)] = id;
 
 }
 

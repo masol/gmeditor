@@ -17,12 +17,15 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "config.h"
-#include "dm/docmat.h"
+#include <boost/assert.hpp>
+#include <boost/scope_exit.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include "slg/slg.h"
 #include "slg/sdl/material.h"
+#include "utils/rapidxml_print.hpp"
+#include "dm/docmat.h"
 #include "docprivate.h"
 #include "slgmaterial.h"
-#include <boost/assert.hpp>
 
 
 namespace gme{
@@ -273,29 +276,126 @@ DocMat::getTypeFromTypeName(const std::string &name)
 }
 
 
-std::string&
-DocMat::getMatName(const std::string& id)
-{
-    return pDocData->matManager.get(id);
-}
-
-int
-DocMat::getMatType(const std::string& id)
-{
-    return 0;
-}
+//std::string&
+//DocMat::getMatName(const std::string& id)
+//{
+//    return pDocData->matManager.get(id);
+//}
 
 bool
-DocMat::getMatProperty(const std::string& id,const std::string &prop,std::string &value)
+DocMat::saveMaterial(const std::string &matid,const std::string &filepath,bool bExportRes)
 {
+    const slg::Material* pMat = ExtraMaterialManager::getSlgMaterial(matid);
+    if(!pMat)
+        return false;
+
+    boost::filesystem::ofstream   ofstream;
+    ofstream.open(filepath.c_str());
+    if(ofstream.is_open())
+    {
+        BOOST_SCOPE_EXIT( (&ofstream))
+        {
+            ofstream.close();
+        }
+        BOOST_SCOPE_EXIT_END
+
+        ///boost自带的rapidxml没有print函数.....加入到utils中。
+        ofstream << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
+        {
+            std::ostream_iterator<char>   oit(ofstream);
+            type_xml_doc    xmldoc;
+
+            int flags = dumpContext::DUMP_NORMAL;
+            if(bExportRes)
+            {
+                flags = (dumpContext::DUMP_SAVECTM | dumpContext::DUMP_COPYRES);
+            }
+            boost::filesystem::path path(filepath);
+            boost::filesystem::path root_path = path.parent_path();
+            dumpContext     ctx(flags,root_path);
+
+            pDocData->matManager.dump(xmldoc,pMat,ctx);
+
+            rapidxml::print(oit,xmldoc);
+        }
+        return true;
+    }
     return false;
 }
 
 bool
-DocMat::setMatProperty(const std::string& id,const std::string &prop,const std::string &value)
+DocMat::loadMaterial(const ObjectNode *pNode,const std::string &path)
 {
+    const std::string &matid = pNode->matid();
+
+    if(matid.empty())
+        return false;
+
+    slg::Material   *pOldSlgMat = ExtraMaterialManager::getSlgMaterial(matid);
+    if(!pOldSlgMat)
+        return false;
+
+
+    boost::filesystem::ifstream file(path,std::ifstream::binary);
+    if(file) {
+        BOOST_SCOPE_EXIT( (&file))
+        {
+            file.close();
+        }BOOST_SCOPE_EXIT_END
+        // get length of file:
+        file.seekg (0, file.end);
+        std::streamoff length = file.tellg();
+        file.seekg (0, file.beg);
+
+        char * buffer = new char [length + 1];
+        BOOST_SCOPE_EXIT( (buffer))
+        {
+            delete[] buffer;
+        }BOOST_SCOPE_EXIT_END
+        // read data as a block:
+        file.read (buffer,length);
+        // ...buffer contains the entire file...
+        buffer[length] = 0;
+        type_xml_doc    doc;
+        const int flag = NS_RAPIDXML::parse_no_element_values | NS_RAPIDXML::parse_trim_whitespace;
+        try{
+            doc.parse<flag>(buffer);
+
+            type_xml_node   *pMat = doc.first_node(constDef::material);
+            if(pMat)
+            {
+                SlgUtil::Editor editor(pDocData->getSession());
+                ImportContext   ctx(pDocData->getSession()->renderConfig->scene,path);
+
+
+                std::stringstream ss;
+                std::string     realMatId = matid;
+                if(pDocData->matManager.loadMaterial(ss,ctx,realMatId,*pMat))
+                {
+                    pDocData->matManager.onMaterialRemoved(pOldSlgMat);
+                    
+                    luxrays::Properties prop;
+                    prop.LoadFromString(ss.str());
+                    //in any case,we need update root material.
+                    editor.scene()->UpdateMaterial(matid,prop);
+                    const slg::Material *newMat = editor.scene()->matDefs.GetMaterial(matid);
+
+                    SlgMaterial2Name mat2name;
+                    SlgTexture2Name tex2name;
+                    pDocData->matManager.updateMaterialInfo(newMat,mat2name,tex2name);
+                    editor.addAction(ctx.getAction());
+                    pDocData->fireSelection(DocPrivate::SEL_ITEMMATUPDATED,pNode->id());
+                    return true;
+                }
+            }
+        }catch(std::exception &e)
+        {
+            Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("在加载文件'%s'时发生异常:%s"))%path % e.what() ) );
+        }
+    }
     return false;
 }
+
 
 int
 DocMat::updateProperty(const std::vector<std::string> &keyPath,const std::string &value,type_xml_node &parent,boost::function<bool (std::string &)> &getImageFile)

@@ -60,7 +60,7 @@ public:
         m_pageShown = true;
     }
 protected:
-    virtual bool IsHandlingAllEvents() const { return false; }
+    virtual bool IsHandlingAllEvents() const { return true; }
 };
 
 }

@@ -62,6 +62,8 @@ public:
     void    onSelected(type_selection_handler handler);
     /// @brief set the callback when item removed from selection vector.
     void    onDeselected(type_selection_handler handler);
+    /// @brief set the callback when item's material been updated from external totally.
+    void    onMaterialUpdated(type_selection_handler handler);
 };
 
 }

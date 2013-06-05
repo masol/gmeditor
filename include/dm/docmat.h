@@ -80,10 +80,7 @@ public: //material.
     static  std::string  getTypeNameFromType(int type);
     static  int   getTypeFromTypeName(const std::string &name);
 public:
-    std::string& getMatName(const std::string& id);
-    int         getMatType(const std::string& id);
-    bool        getMatProperty(const std::string& id,const std::string &prop,std::string &value);
-    bool        setMatProperty(const std::string& id,const std::string &prop,const std::string &value);
+    //std::string& getMatName(const std::string& id);
 
     enum{
         UPDATE_DENY,
@@ -104,6 +101,14 @@ public:
       * @return self.
     **/
     type_xml_node*   getMaterial(const std::string &id,type_xml_node &parent);
+
+    /**@brief 将指定material id的材质保存到文件filepath中。
+    **/
+    bool        saveMaterial(const std::string &matid,const std::string &filepath,bool bExport = false);
+    /**@brief 从指定文件加载material并设置其id为matid..
+     * @param matid : 现实存在的一个material id.
+    **/
+    bool  loadMaterial(const ObjectNode *pNode,const std::string &filepath);
 };
 
 }

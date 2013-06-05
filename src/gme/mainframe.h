@@ -47,6 +47,8 @@ public:
     void setDocLocked(bool bLock);
     void openFile(const std::string &filepath);
     void openFile(const wxString& filepath);
+    bool importMaterial(const std::string &objID,const std::string &filepath);
+    bool saveMaterial(const std::string &objID,const std::string &filepath,bool bExport);
 protected:
 	void onClose(wxCloseEvent& event);
 
@@ -95,7 +97,7 @@ protected:
 
 	void onImmRefresh(wxCommandEvent &event);
     void onUpdateImmRefresh(wxUpdateUIEvent &event);
-    
+
 
 	void onAutoTarget(wxCommandEvent &event);
     void onUpdateAutoTarget(wxUpdateUIEvent &event);
@@ -131,6 +133,12 @@ protected:
     void onUpdateLogLevel(wxUpdateUIEvent &event);
 
     void onMRUFile(wxCommandEvent& event);
+
+	void onSaveMaterial(wxCommandEvent &event);
+	void onExportMaterial(wxCommandEvent &event);
+	void onImportMaterial(wxCommandEvent &event);
+    bool saveSelectMaterial(const std::string &filepath,bool bExport);
+    void onUpdateMaterialOperator(wxUpdateUIEvent &event);
 
     void onSetting(wxCommandEvent &event);
     void onUpdateSetting(wxUpdateUIEvent &event);
