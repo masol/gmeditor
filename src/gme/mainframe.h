@@ -137,6 +137,7 @@ protected:
 	void onSaveMaterial(wxCommandEvent &event);
 	void onExportMaterial(wxCommandEvent &event);
 	void onImportMaterial(wxCommandEvent &event);
+	void onImportGlueMaterial(wxCommandEvent &event);
     bool saveSelectMaterial(const std::string &filepath,bool bExport);
     void onUpdateMaterialOperator(wxUpdateUIEvent &event);
 

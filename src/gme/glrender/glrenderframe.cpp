@@ -98,8 +98,7 @@ GlRenderFrame::GlRenderFrame(wxWindow* parent,int *args,int vm) : inherited(pare
 
     m_edit_mode = cmd::GID_MD_ROTATE_AROUND_FOCUS;
 
-    m_needClearColor = true;
-    m_rorateAroundTarget = false;
+    m_needClearColor = 10;
     m_view_selection = true;
     m_view_skydir = false;
 
@@ -391,11 +390,20 @@ void GlRenderFrame::render(void)
     wxPaintDC(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
 
     DocImg  img;
-    if(!img.getSize(m_docWidth,m_docHeight))
     {
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black Background
-        SwapBuffers();
-        return;
+        int docWidth,docHeight;
+        if(!img.getSize(docWidth,docHeight))
+        {
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black Background
+            SwapBuffers();
+            return;
+        }
+        if(m_docWidth != docWidth || m_docHeight != docHeight)
+        {
+            m_docWidth = docWidth;
+            m_docHeight = docHeight;
+            m_needClearColor = 10;
+        }
     }
 
     wxSize  winsize = this->GetSize();
@@ -424,10 +432,10 @@ void GlRenderFrame::render(void)
 
 
     //glClear(GL_ALL_ATTRIB_BITS);
-    if(m_needClearColor)
+    if(m_needClearColor > 0)
     {
         glClear( GL_COLOR_BUFFER_BIT );
-        m_needClearColor = false;
+        m_needClearColor--;
     }
 
     drawBackground(winsize,pixels,m_lastViewPoint);

@@ -18,6 +18,7 @@
 
 #include "config.h"
 #include "utils/i18n.h"
+#include "utils/modulepath.h"
 #include "objectview.h"
 #include "stringutil.h"
 #include "dm/docobj.h"
@@ -57,6 +58,8 @@ BEGIN_EVENT_TABLE(ObjectView, inherited)
 	EVT_MENU(cmd::GID_SAVE_MATERIAL,ObjectView::onSaveMaterial)
 	EVT_MENU(cmd::GID_EXPORT_MATERIAL,ObjectView::onExportMaterial)
 	EVT_MENU(cmd::GID_IMPORT_MAEERIAL,ObjectView::onImportMaterial)
+	EVT_MENU(cmd::GID_IMPORT_GLUE_MATERIAL,ObjectView::onImportGlueMaterial)
+	EVT_MENU(cmd::GID_EXPORT_GLUE_MATERIAL,ObjectView::onExportGlueMaterial)
 END_EVENT_TABLE()
 
 ObjectView::ObjectView(wxWindow* parent, wxWindowID id,const wxPoint& pos, const wxSize& size)
@@ -405,6 +408,59 @@ ObjectView::onImportMaterial(wxCommandEvent &event)
     }
 }
 
+void
+ObjectView::onImportGlueMaterial(wxCommandEvent &event)
+{
+    if(!m_menuCmdTarget.empty())
+    {
+        //准备路径。
+        boost::filesystem::path    targetPath = gme::ModulePath::instance().modulePath();
+        targetPath /= "cache";
+        targetPath /= "materials";
+        targetPath /= m_menuCmdTarget;
+        if(boost::filesystem::exists(targetPath))
+        {
+            boost::filesystem::remove_all(targetPath);
+        }
+        boost::filesystem::create_directories(targetPath);
+
+        boost::filesystem::path gutil = gme::ModulePath::instance().modulePath();
+#if WIN32
+        gutil /= "gutil.exe";
+#else
+        gutil /= "gutil";
+#endif
+        std::string    cmdline;
+        if(boost::filesystem::exists(gutil))
+        {
+            cmdline = gutil.string();
+        }else{
+#if WIN32
+            cmdline = "gutil.exe";
+#else
+            cmdline = "gutil";
+#endif
+        }
+        cmdline += " --url=http://www.render001.com/modules/materiallib openweb";
+        wxExecuteEnv env;
+        DECLARE_WXCONVERT;
+        wxGetEnvMap(&env.env);
+        wxString    cmd(cmdline.c_str(),gme_wx_utf8_conv);
+        int code = wxExecute(cmd, wxEXEC_SYNC, NULL, &env);
+        if(code == 0)
+        {//成功返回。
+        }
+        m_menuCmdTarget.clear();
+    }
+}
+
+void
+ObjectView::onExportGlueMaterial(wxCommandEvent &event)
+{
+}
+
+
+
 
 
 void
@@ -438,6 +494,9 @@ ObjectView::OnItemContextMenu(wxTreeListEvent& event)
         menu.Append(cmd::GID_SAVE_MATERIAL, gmeWXT("保存材质"));
         menu.Append(cmd::GID_EXPORT_MATERIAL, gmeWXT("导出材质"));
         menu.Append(cmd::GID_IMPORT_MAEERIAL, gmeWXT("导入材质"));
+        menu.AppendSeparator();
+        menu.Append(cmd::GID_IMPORT_GLUE_MATERIAL, gmeWXT("导入云材质"));
+        //menu.Append(cmd::GID_EXPORT_GLUE_MATERIAL, gmeWXT("保存云材质"));
     }
 
 

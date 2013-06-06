@@ -308,7 +308,7 @@ ObjectNode::dump(type_xml_node &parent,dumpContext &ctx)
             conditional_md5 md5(ctx);
             //boost::filesystem::path target_model = ctx.target / "mesh%%%%%%.ply";
             //只有在不是multiMesh时我们才可以保存。否则会引发下次加载的模型重复。从而导致材质无法配对。
-            if(this->filepath().length())
+            if(!this->filepath().empty())
             {//获取映射的文件名。
                 if(ctx.isCopyResource())
                 {//保存资源。

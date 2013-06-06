@@ -678,6 +678,11 @@ MainFrame::onExportMaterial(wxCommandEvent &event)
 }
 
 void
+MainFrame::onImportGlueMaterial(wxCommandEvent &event)
+{
+}
+
+void
 MainFrame::onImportMaterial(wxCommandEvent &event)
 {
     ImportMaterialDialog  dialog(this);

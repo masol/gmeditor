@@ -67,6 +67,8 @@ protected:
 	void onSaveMaterial(wxCommandEvent &event);
 	void onExportMaterial(wxCommandEvent &event);
 	void onImportMaterial(wxCommandEvent &event);
+    void onImportGlueMaterial(wxCommandEvent &event);
+    void onExportGlueMaterial(wxCommandEvent &event);
 private:
 	void  onDocumentItemSelected(const std::string &id);
 	void  onDocumentItemDeselected(const std::string &id);

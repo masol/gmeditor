@@ -120,9 +120,7 @@ protected:
     int         m_docWidth;
     int         m_docHeight;
     ///@brief 指示下次绘制时是否需要清背景。
-    bool        m_needClearColor;
-    ///@brief 指示旋转模式是否绕中心点旋转。如果是false则绕位置点旋转。缺省是false.
-    bool        m_rorateAroundTarget;
+    int        m_needClearColor;
 protected:
     void    drawBackground(const wxSize &winsize,const float *pixels,gme::DocImg::ViewPort &vp);
     void    initGL(void);
@@ -161,12 +159,12 @@ public:
     inline void    viewMode(int m)
     {
         m_viewMode = m;
-        m_needClearColor = true;
+        m_needClearColor = 10;
     }
     inline void   docWidth(int w)
     {
         m_docWidth = w;
-        m_needClearColor = true;
+        m_needClearColor = 10;
     }
     inline int    docWidth()const
     {
@@ -175,7 +173,7 @@ public:
     inline void   docHeight(int w)
     {
         m_docHeight = w;
-        m_needClearColor = true;
+        m_needClearColor = 10;
     }
     inline int    docHeight()const
     {

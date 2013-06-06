@@ -662,7 +662,11 @@ MaterialPage::OnPropertyChanging( wxPropertyGridEvent& event )
     {
         float fv = any.As<float>();
         value = boost::str(boost::format("%.4f")%fv);
+    }else if(any.CheckType<wxString>()){
+        wxString  wxvalue = any.As<wxString>();
+        value = boost::locale::conv::utf_to_utf<char>(wxvalue.ToStdWstring());
     }else{
+        //value = boost::locale::conv::utf_to_utf<char>(any.As<wxString>().ToStdWstring());
         value =  event.GetValue().GetString().c_str();
     }
 
