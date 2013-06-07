@@ -192,7 +192,11 @@ protected:
     }
     ///@brief notify some child removed.
     void    onChildRemoved(const std::string &childid);
+
 public:
+    ///@brief 导出时是否创建新的mesh.含义同slgtexture.h::m_bExportNewFile.
+    static  bool    sv_exprtNewMesh;
+
     void    unionBBox(luxrays::BBox  *pbox);
     /** @brief 将自身的矩阵应用到matrix上以获取世界坐标系到对象坐标系的变幻矩阵。
     **/

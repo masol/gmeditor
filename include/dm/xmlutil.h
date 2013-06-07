@@ -238,6 +238,21 @@ namespace gme
             return false;
         }
     };
+	
+	inline void		recursion_remove_attribute(type_xml_node *pNode,const char* attr_name)
+	{
+		type_xml_attr	*pAttr = pNode->first_attribute(attr_name);
+		if(pAttr)
+		{
+			pNode->remove_attribute(pAttr);
+		}
+        type_xml_node   *child = pNode->first_node();
+        while(child)
+        {
+			recursion_remove_attribute(child,attr_name);
+            child = child->next_sibling();
+        }
+	}
 
     inline type_xml_node*    find_child(type_xml_node *pNode,const std::string &tagName)
     {

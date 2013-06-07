@@ -56,8 +56,12 @@ class ExtraTextureManager
 private:
     friend class DocPrivate;
     friend struct updateCompTexture;
-    ExtraTextureManager(){}
-    ~ExtraTextureManager(){}
+    ExtraTextureManager()
+    {
+    }
+    ~ExtraTextureManager()
+    {
+    }
 
     typedef   boost::unordered_map<std::string, std::string>        type_slgname2filepath;
     /** @brief 保存了imagetype类型的Texture从slgname到全路径的映射。
@@ -68,8 +72,18 @@ private:
     **/
     typedef   boost::unordered_map<const slg::Texture*, std::string>      type_texture2id;
     type_texture2id           m_tex2id;
+    ///@brief export时，当目标文件已经存在时，是否创建新的文件。缺省是false(不创建).
+    static  bool              sv_bExportNewImage;
 
 public:
+    static inline bool     exportNewImage(void)
+    {
+        return sv_bExportNewImage;
+    }
+    static inline void     exportNewImage(bool bn)
+    {
+        sv_bExportNewImage = bn;
+    }
     ///@brief 清空全部数据，用于场景重置(例如加载)。
     inline void    clear()
     {

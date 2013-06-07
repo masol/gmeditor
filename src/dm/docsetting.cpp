@@ -42,6 +42,43 @@ DocSetting::forceRefresh(bool forceRefresh)
     SlgUtil::Editor::forceRefresh(forceRefresh);
 }
 
+bool
+DocSetting::refreshWhenError(void)
+{
+    return SlgUtil::Editor::refreshWhenError();
+}
+
+void
+DocSetting::refreshWhenError(bool rwe)
+{
+    SlgUtil::Editor::refreshWhenError(rwe);
+}
+
+
+bool
+DocSetting::exportNewImage(void)
+{
+    return ExtraTextureManager::exportNewImage();
+}
+
+void
+DocSetting::exportNewImage(bool eni)
+{
+    ExtraTextureManager::exportNewImage(eni);
+}
+
+bool
+DocSetting::exportNewMesh(void)
+{
+    return ObjectNode::sv_exprtNewMesh;
+}
+
+void
+DocSetting::exportNewMesh(bool enm)
+{
+    ObjectNode::sv_exprtNewMesh = enm;
+}
+
 
 const std::string&
 DocSetting::getHDRLighterPath(void)

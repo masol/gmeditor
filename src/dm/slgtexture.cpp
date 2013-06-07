@@ -52,6 +52,8 @@ SlgTexture2Name::getTextureName(const slg::Texture* ptex)
     return m_textureNameArray[matNameIdx];
 }
 
+bool ExtraTextureManager::sv_bExportNewImage = false;
+
 void
 ExtraTextureManager::updateTextureInfo(const slg::Texture *pTex,SlgTexture2Name &tex2name)
 {
@@ -800,7 +802,7 @@ ExtraTextureManager::dump(type_xml_node &parent,const std::string &tag,const slg
             }
 
 
-            if(write_file.length() == 0)
+            if(write_file.empty())
             {//文件尚未被获取。
                 //获取原始文件地址。
                 const std::string *porigPath = Doc::instance().pDocData->texManager.queryPath(getTextureId(pTex));
@@ -812,10 +814,18 @@ ExtraTextureManager::dump(type_xml_node &parent,const std::string &tag,const slg
                         boost::filesystem::path   target = ctx.target;
                         target /= origpath.filename();
 
-                        target = boost::filesystem::gme_ext::ensureNonExistFile(target);
-                        //pImage->WriteImage(target.string());
                         //直接拷贝原始文件。
-                        boost::filesystem::copy(*porigPath,target);
+                        if(sv_bExportNewImage)
+                        {
+                            target = boost::filesystem::gme_ext::ensureNonExistFile(target);
+                            boost::filesystem::copy(*porigPath,target);
+                        }else{
+                            ///@todo 判断文件的md5码以决定是否导出。
+                            if(!boost::filesystem::exists(target))
+                            {
+                                boost::filesystem::copy(*porigPath,target);
+                            }
+                        }
                         write_file = target.filename().string();
                     }else{//不保存资源，直接保存m_filepath.
                         write_file = *porigPath;

@@ -316,6 +316,9 @@ DocMat::saveMaterial(const std::string &matid,const std::string &filepath,bool b
 
             pDocData->matManager.dump(xmldoc,pMat,ctx);
 
+            //模版中不能有id,删除所有id属性。
+            recursion_remove_attribute(&xmldoc,constDef::id);
+
             rapidxml::print(oit,xmldoc);
         }
         return true;
@@ -364,6 +367,8 @@ DocMat::loadMaterial(const ObjectNode *pNode,const std::string &path)
             type_xml_node   *pMat = doc.first_node(constDef::material);
             if(pMat)
             {
+                //模版中不能有id,删除所有id属性。
+                recursion_remove_attribute(pMat,constDef::id);
                 SlgUtil::Editor editor(pDocData->getSession());
                 ImportContext   ctx(pDocData->getSession()->renderConfig->scene,path);
 

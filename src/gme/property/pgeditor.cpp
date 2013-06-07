@@ -29,7 +29,7 @@ namespace gme
 wxPGEditor*	wxPGSliderEditor::m_instance = NULL;
 //----------------- wxPGSliderEditor ---------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxPGSliderEditor, wxPGEditor)
+IMPLEMENT_DYNAMIC_CLASS(wxPGSliderEditor, wxPGTextCtrlEditor)
 
 wxPGWindowList wxPGSliderEditor::CreateControls( wxPropertyGrid*  propgrid,
                                                  wxPGProperty*    property,
@@ -45,27 +45,30 @@ wxPGWindowList wxPGSliderEditor::CreateControls( wxPropertyGrid*  propgrid,
 	//SliderWindow* slider = new SliderWindow(propgrid, 0, 0, 100);
 	m_slider->setSliderInfo(propgrid, property, maxValue, tick, value, pos, size);
 	//wxPGWindowList wndList = wxPGWindowList(slider);
-	//wxPGWindowList wndList = wxPGTextCtrlEditor::CreateControls
-    //                        ( propgrid, property, pos,
-    //                           size );
-	wxPGWindowList wndList;
+	wxPGWindowList wndList = wxPGTextCtrlEditor::CreateControls
+                            ( propgrid, property, pos,
+							wxSize(m_slider->getTextWidth(), size.y) );
+	//wxPGWindowList wndList;
 	wndList.SetSecondary(m_slider);
 	return wndList;
 }
 
 void wxPGSliderEditor::UpdateControl ( wxPGProperty* property, wxWindow* wnd ) const
 {
-  //SliderWindow* ctrl = wxDynamicCast ( wnd, SliderWindow );
-  if ( m_slider )
-  {
+    //SliderWindow* ctrl = wxDynamicCast ( wnd, SliderWindow );
+	wxTextCtrl* ctrl = wxDynamicCast ( wnd, wxTextCtrl );
+	if(ctrl)
+	{
 		wxAny value = property->GetValue();
 		if (!value.IsNull())
 		{
-	 		 double val = wxANY_AS(value, double);
-			 m_slider->setRealValue ( val );
-
+ 			 wxString val = wxANY_AS(value, wxString);
+			 double dval;
+			 val.ToDouble(&dval);
+			 m_slider->setRealValue ( dval );
+			 ctrl->SetValue(val);
 		}
-  }
+	}
 }
 
 bool wxPGSliderEditor::OnEvent ( wxPropertyGrid*  propgrid, 
@@ -77,25 +80,35 @@ bool wxPGSliderEditor::OnEvent ( wxPropertyGrid*  propgrid,
 	{
 		// Update the value    
 		event.Skip();
-		propgrid->EditorsValueWasModified();
+		if ( m_slider )
+		{
+			wxVariant variant = wxVariant ( m_slider->getRealValue() );
+			
+			property->SetValue ( variant );
+		}
+		//propgrid->EditorsValueWasModified();
 
 		return true;
 	}
-	return false;
+	//else if(event.GetEventType() == )
+	//{
+	//
+	//}
+	return wxPGTextCtrlEditor::OnEvent(propgrid, property, wnd, event);
 }
 
 bool wxPGSliderEditor::GetValueFromControl ( wxVariant&     variant,
                                              wxPGProperty*  property,
                                              wxWindow*      wnd ) const
 {
-	//SliderWindow* ctrl = wxDynamicCast ( wnd, SliderWindow );
-	if ( m_slider )
+	wxTextCtrl* ctrl = wxDynamicCast ( wnd, wxTextCtrl );
+	if(ctrl)
 	{
-		variant = wxVariant ( m_slider->getRealValue() );
-	
+		double val;
+		ctrl->GetValue().ToDouble(&val);
+		variant = wxVariant(val);
 		property->SetValue ( variant );
 	}
-
 	return true;
 }
 

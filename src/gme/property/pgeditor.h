@@ -34,6 +34,7 @@ public:
                              wxSL_HORIZONTAL)
 	{
 		SetBackgroundColour(propgrid->GetCellBackgroundColour());
+		m_textWidth = 50;
 		this->Hide();
 	}
 	~SliderWindow(){};
@@ -49,7 +50,7 @@ public:
 		this->SetValue((int)(value / tick));
 		// set positon and size
 		this->resize(size.x, size.y);
-		this->SetPosition(wxPoint(pos.x + 50, pos.y));
+		this->SetPosition(wxPoint(pos.x + m_textWidth, pos.y));
 
 		this->Show();
 	}
@@ -73,7 +74,7 @@ public:
 
 	void resize(int w, int h)
 	{
-		this->SetSize(w - 50, h);
+		this->SetSize(w - m_textWidth, h);
 	}
 
 	void clearSelected()
@@ -81,14 +82,20 @@ public:
 		wxPropertyGrid *grid = m_property->GetGrid();
 		grid->ClearSelection();
 	}
+
+	int getTextWidth()
+	{
+		return m_textWidth;
+	}
 private:
 	double			m_maxValue;
 	double			m_tick;
 	wxPGProperty*   m_property;
+	int				m_textWidth;
 };
 
 // 滑块editor
-class wxPGSliderEditor : public wxPGEditor 
+class wxPGSliderEditor : public wxPGTextCtrlEditor 
 {
   DECLARE_DYNAMIC_CLASS(wxPGSliderEditor)
 private:

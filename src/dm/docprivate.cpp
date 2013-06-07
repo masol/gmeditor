@@ -29,6 +29,8 @@
 namespace gme{
 
 bool  SlgUtil::Editor::m_bForceRefresh = false;
+bool  SlgUtil::Editor::sv_bRefreshWhenError = false;
+
 //static  bool    sv_hack_slg_last_is_material_type = false;
 SlgUtil::Editor::~Editor()
 {
@@ -63,10 +65,16 @@ SlgUtil::Editor::~Editor()
             m_session->EndEdit();
         }catch(std::exception &e)
         {
-            Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("更新场景时发生错误:'%s'，这通常是显卡驱动引发的，请检查显卡驱动。强制更新场景...")) % e.what() ) );
-            m_session->Stop();
-            m_session->Start();
-            Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("更新完毕。建议您保存场景，重启飞图并打开场景以消除隐患。")) ) );
+            if(refreshWhenError())
+            {
+                Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("更新场景时发生错误:'%s'，这通常是显卡驱动引发的，请检查显卡驱动。强制更新场景...")) % e.what() ) );
+                m_session->Stop();
+                m_session->Start();
+                Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("更新完毕。建议您保存场景，重启飞图并打开场景以消除隐患。")) ) );
+            }else
+            {
+                Doc::SysLog(Doc::LOG_WARNING,boost::str(boost::format(__("更新场景时发生错误:'%s'，这通常是显卡驱动引发的，请检查显卡驱动。建议您保存场景，重启飞图并打开场景以消除隐患。")) % e.what() ) );
+            }
         }
     }
 }

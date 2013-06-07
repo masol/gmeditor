@@ -184,6 +184,8 @@ const char* constDef::postscale = "postscale";
 const char* constDef::burn = "burn";
 
 
+bool    ObjectNode::sv_exprtNewMesh = false;
+
 ObjectNode*
 ObjectNode::findObject(const std::string &id,ObjectNodePath *pPath)
 {
@@ -312,10 +314,21 @@ ObjectNode::dump(type_xml_node &parent,dumpContext &ctx)
             {//获取映射的文件名。
                 if(ctx.isCopyResource())
                 {//保存资源。
-		            boost::filesystem::path target_model = ctx.target / "mesh%%%%%%.ctm";
-                    boost::filesystem::path target = boost::filesystem::unique_path(target_model);
-                    //extMesh->WritePly(target.string());
-                    SaveCtmFile(this->useplynormals(),extMesh,target.string(),md5);
+                    boost::filesystem::path target;
+                    if(!sv_exprtNewMesh && boost::iends_with(this->filepath(),".ctm"))
+                    {//文件已经是一个ctm，可以拷贝之。
+                        boost::filesystem::path     origpath(this->filepath());
+                        target = ctx.target;
+                        target /= origpath.filename();
+                        if(!boost::filesystem::exists(target))
+                        {
+                            boost::filesystem::copy(origpath,target);
+                        }
+                    }else{
+		                boost::filesystem::path target_model = ctx.target / "mesh%%%%%%.ctm";
+                        target = boost::filesystem::unique_path(target_model);
+                        SaveCtmFile(this->useplynormals(),extMesh,target.string(),md5);
+                    }
                     write_file = target.filename().string();
                 }else{//不保存资源，直接保存m_filepath.
                     write_file = this->filepath();

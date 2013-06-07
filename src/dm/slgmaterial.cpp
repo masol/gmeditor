@@ -178,17 +178,17 @@ ExtraMaterialManager::dump(luxrays::Properties &prop,const slg::Material* pMat)
     const std::string matPrefix = "scene.materials." + id + '.';
     prop.SetString(matPrefix + "type",typeStr);
 
-    if(pMat->IsLightSource())
+    if(pMat->GetEmitTexture() )
     {
         prop.SetString(matPrefix + constDef::emission,ExtraTextureManager::dump(prop,pMat->GetEmitTexture()));
     }
 
-    if(pMat->HasBumpTex())
+    if(pMat->GetBumpTexture())
     {
         prop.SetString(matPrefix + constDef::bumptex,ExtraTextureManager::dump(prop,pMat->GetBumpTexture()));
     }
 
-    if(pMat->HasNormalTex())
+    if(pMat->GetNormalTexture())
     {
         prop.SetString(matPrefix + constDef::normaltex,ExtraTextureManager::dump(prop,pMat->GetNormalTexture()));
     }
@@ -389,17 +389,17 @@ ExtraMaterialManager::dump(type_xml_node &parent,const slg::Material* pMat,dumpC
     md5.update(type.c_str(),(MD5::size_type)type.length());
     ExtraTextureManager &texManager = Doc::instance().pDocData->texManager;
 
-    if(pMat->IsLightSource())
+    if(pMat->GetEmitTexture())
     {
         texManager.dump(*pSelf,constDef::emission,pMat->GetEmitTexture(),ctx,md5);
     }
 
-    if(pMat->HasBumpTex())
+    if(pMat->GetBumpTexture())
     {
         texManager.dump(*pSelf,constDef::bumptex,pMat->GetBumpTexture(),ctx,md5);
     }
 
-    if(pMat->HasNormalTex())
+    if(pMat->GetNormalTexture())
     {
         texManager.dump(*pSelf,constDef::normaltex,pMat->GetNormalTexture(),ctx,md5);
     }
@@ -677,17 +677,17 @@ ExtraMaterialManager::updateMaterialInfo(const slg::Material *pMat,SlgMaterial2N
 
     ExtraTextureManager &texManager = Doc::instance().pDocData->texManager;
 
-    if(pMat->IsLightSource())
+    if( pMat->GetEmitTexture() )
     {
         texManager.updateTextureInfo(pMat->GetEmitTexture(),tex2name);
     }
 
-    if(pMat->HasBumpTex())
+    if(pMat->GetBumpTexture())
     {
         texManager.updateTextureInfo(pMat->GetBumpTexture(),tex2name);
     }
 
-    if(pMat->HasNormalTex())
+    if(pMat->GetNormalTexture())
     {
         texManager.updateTextureInfo(pMat->GetNormalTexture(),tex2name);
     }
@@ -1533,7 +1533,7 @@ ExtraMaterialManager::materialLightNum(const slg::Material *pmat)
     int     num = 0;
     if(!pmat)
         return num;
-    if(pmat->IsLightSource())
+    if(pmat->GetEmitTexture())
     {
         num++;
     }
@@ -1552,7 +1552,7 @@ ExtraMaterialManager::materialIsLight(const slg::Material *pmat)
 {
     if(!pmat)
         return false;
-    if(pmat->IsLightSource())
+    if(pmat->GetEmitTexture())
         return true;
     const slg::MixMaterial *pMix = dynamic_cast<const slg::MixMaterial*>(pmat);
     if(pMix)

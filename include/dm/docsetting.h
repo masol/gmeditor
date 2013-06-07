@@ -98,6 +98,14 @@ public:
     //@brief 当前设置在编辑时是否强制刷新。
     static  bool    forceRefresh(void);
     static  void    forceRefresh(bool forceRefresh);
+    static  bool    refreshWhenError(void);
+    static  void    refreshWhenError(bool rwe);
+
+    static  bool    exportNewImage(void);
+    static  void    exportNewImage(bool eni);
+    static  bool    exportNewMesh(void);
+    static  void    exportNewMesh(bool enm);
+
 
     //@brief 当前加载设定。
     inline static  int loadingFlag(void)

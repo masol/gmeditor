@@ -405,6 +405,7 @@ MainFrame::createMenubar()
     {// setting
 		wxMenu *pSettingMenu = new wxMenu();
 		pSettingMenu->AppendCheckItem(cmd::GID_SET_FORCEREFRESH, gmeWXT("强制刷新"), gmeWXT("每次编辑时强制刷新GPU缓冲。"));
+		pSettingMenu->AppendCheckItem(cmd::GID_SET_REFRESH_WHEN_ERROR, gmeWXT("错误时强制刷新"), gmeWXT("当发生错误时，立即强制刷新整个场景。"));
 		pSettingMenu->AppendSeparator();
 
         wxMenu *pLoadingMenu = new wxMenu();
@@ -425,6 +426,8 @@ MainFrame::createMenubar()
 
 
         pSettingMenu->AppendSubMenu(pLoadingMenu,gmeWXT("加载设定"),gmeWXT("设定导入外部模型时对模型的自动处理。"));
+		pSettingMenu->AppendCheckItem(cmd::GID_SET_EXPORT_NEWIMG, gmeWXT("导出新贴图"), gmeWXT("每次导出时，每个贴图元素都强制导出新文件。"));
+		pSettingMenu->AppendCheckItem(cmd::GID_SET_EXPORT_NEWMESH, gmeWXT("导出新模型"), gmeWXT("每次导出时，每个模型元素都强制导出新文件。"));
 		pSettingMenu->AppendSeparator();
 		pSettingMenu->Append(cmd::GID_PREFERENCES, gmeWXT("参数设置(&P)"), gmeWXT("参数设置"));
 
@@ -754,8 +757,17 @@ MainFrame::onSetting(wxCommandEvent &event)
 {
     switch(event.GetId())
     {
+    case cmd::GID_SET_REFRESH_WHEN_ERROR:
+        DocSetting::refreshWhenError(!DocSetting::refreshWhenError());
+        break;
     case cmd::GID_SET_FORCEREFRESH:
         DocSetting::forceRefresh(!DocSetting::forceRefresh());
+        break;
+    case cmd::GID_SET_EXPORT_NEWMESH:
+        DocSetting::exportNewMesh(!DocSetting::exportNewMesh());
+        break;
+    case cmd::GID_SET_EXPORT_NEWIMG:
+        DocSetting::exportNewImage(!DocSetting::exportNewImage());
         break;
     case cmd::GID_SET_IgnoreNormals:
         DocSetting::ignoreNormals(true);
@@ -787,6 +799,15 @@ MainFrame::onUpdateSetting(wxUpdateUIEvent &event)
 {
     switch(event.GetId())
     {
+    case cmd::GID_SET_REFRESH_WHEN_ERROR:
+        event.Check(DocSetting::refreshWhenError());
+        break;
+    case cmd::GID_SET_EXPORT_NEWMESH:
+        event.Check(DocSetting::exportNewMesh());
+        break;
+    case cmd::GID_SET_EXPORT_NEWIMG:
+        event.Check(DocSetting::exportNewImage());
+        break;
     case cmd::GID_SET_FORCEREFRESH:
         event.Check(DocSetting::forceRefresh());
         break;

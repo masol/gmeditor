@@ -35,7 +35,17 @@ public:
         ///@brief to avoid bug in slg.export force refresh to user.
         ///@todo fix bug in slg.
         static  bool            m_bForceRefresh;
+        ///@todo 当正常更新发生错误时是否继续强制更新。
+        static  bool            sv_bRefreshWhenError;
     public:
+        inline static bool  refreshWhenError(void)
+        {
+            return sv_bRefreshWhenError;
+        }
+        inline static void  refreshWhenError(bool rwe)
+        {
+            sv_bRefreshWhenError = rwe;
+        }
         inline static bool  forceRefresh(void)
         {
             return m_bForceRefresh;
@@ -105,7 +115,7 @@ public:
         BOOST_FOREACH(const std::string &key,Keys)
         {
             std::string value = oldProp.GetString(key,"");
-        
+
             std::vector< std::string >    keyParts;
             boost::split(keyParts,key,boost::is_any_of("."),boost::token_compress_on);
 
