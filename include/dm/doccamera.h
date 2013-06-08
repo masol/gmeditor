@@ -112,6 +112,8 @@ public:
 public:
     bool    autoTarget(void);
     void    autoTarget(bool at);
+    bool    autoFocus(void);
+    void    autoFocus(bool af);
     /** @brief rotating around target.distx and disty is in document coordinate.
     **/
     bool   targetRotate(int distx,int disty,float optRotateFactor);
@@ -137,6 +139,9 @@ public:
      * @param objID : indicate object.if it's empty, viewall the scene.
     **/
     bool    viewAll(const std::string &objID);
+    /** @brief set center to current camera target.
+    **/
+    bool    setTarget(void);
 public: //camera storage.
     void    onCameraSwitched(type_state_handler handler);
     int     getSelected(void);

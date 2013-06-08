@@ -40,7 +40,7 @@ private:
     DocPrivate(void);
     ~DocPrivate(void);
     std::vector<std::string>                    m_selectionVector;
-    /** @brief  auto-focus.
+    /** @brief  auto-focus to target.
     **/
     bool                                    m_bAutofocus;
     /** @brief auto-target to selection.
@@ -90,6 +90,15 @@ public:
         SEL_ITEMMATUPDATED, //指示某个ObjectNode的材质被更新。
         SEL_MAX
     };
+
+    inline void  updateFocus(void)
+    {
+        if(m_bAutofocus)
+        {
+            slg::PerspectiveCamera *camera = this->getSession()->renderConfig->scene->camera;
+            camera->focalDistance = (camera->target - camera->orig).Length();
+        }
+    }
 
     inline const std::string&   currentFile(void)const
     {

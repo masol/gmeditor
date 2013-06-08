@@ -91,6 +91,15 @@ public:
 
         	if(!gme::Option::instance().initFromArgs(argc,mb_args ))
 		        return false;
+
+            //check tools require.
+            if(gme::Option::instance().is_existed("mergematerial"))
+            {
+                return false;
+            }else if(gme::Option::instance().is_existed("mergemesh"))
+            {
+                return false;
+            }
         }
         m_mainFrame = new gme::MainFrame(NULL);
         SetTopWindow(m_mainFrame);

@@ -149,6 +149,9 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 
 	EVT_MENU(cmd::GID_AUTO_TARGET,MainFrame::onAutoTarget)
 	EVT_UPDATE_UI(cmd::GID_AUTO_TARGET,MainFrame::onUpdateAutoTarget)
+	EVT_MENU(cmd::GID_AUTO_FOCUS,MainFrame::onAutoFocus)
+	EVT_UPDATE_UI(cmd::GID_AUTO_FOCUS,MainFrame::onUpdateAutoFocus)
+    
 
     EVT_MENU_RANGE(cmd::GID_PANE_BEGIN, cmd::GID_PANE_END,MainFrame::onViewPane)
     EVT_UPDATE_UI_RANGE(cmd::GID_PANE_BEGIN,cmd::GID_PANE_END,MainFrame::onUpdateViewPane)
@@ -357,6 +360,8 @@ MainFrame::createMenubar()
         pEditMenu->AppendSubMenu(pEditmodeMenu,gmeWXT("编辑模式(&M)"),gmeWXT("控制主窗口的编辑模式。"));
 		name = gmeWXT("自动对正(&A)");
 		pEditMenu->AppendCheckItem(cmd::GID_AUTO_TARGET,appendShortCutString(cmd::GID_AUTO_TARGET,name),gmeWXT("选择物体时自动校正摄像机中心点."));
+		name = gmeWXT("自动聚焦(&F)");
+		pEditMenu->AppendCheckItem(cmd::GID_AUTO_FOCUS,appendShortCutString(cmd::GID_AUTO_FOCUS,name),gmeWXT("摄像机中心点变化时自动聚焦到摄像机中心点."));
 
 		pEditMenu->AppendSeparator();
         pEditMenu->Append(cmd::GID_CAM_NEWFROMCURRENT,gmeWXT("保存当前视角(&M)"),gmeWXT("为当前视角新建一个摄像机位。"));
@@ -1192,6 +1197,22 @@ MainFrame::onUpdateAutoTarget(wxUpdateUIEvent &event)
     DocCamera dc;
     event.Check(dc.autoTarget());
 }
+
+void
+MainFrame::onAutoFocus(wxCommandEvent &event)
+{
+    (void)event;
+    DocCamera dc;
+    dc.autoFocus(!dc.autoFocus());
+}
+
+void
+MainFrame::onUpdateAutoFocus(wxUpdateUIEvent &event)
+{
+    DocCamera dc;
+    event.Check(dc.autoFocus());
+}
+
 
 void
 MainFrame::onViewPane(wxCommandEvent &event)

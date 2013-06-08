@@ -368,6 +368,9 @@ ObjectView::onMenuViewAll(wxCommandEvent &event)
 void
 ObjectView::onMenuSetCenter(wxCommandEvent &event)
 {
+    DocCamera   cam;
+    cam.setTarget();
+    m_menuCmdTarget.clear();
 }
 
 void

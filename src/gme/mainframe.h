@@ -101,6 +101,9 @@ protected:
 
 	void onAutoTarget(wxCommandEvent &event);
     void onUpdateAutoTarget(wxUpdateUIEvent &event);
+	void onAutoFocus(wxCommandEvent &event);
+    void onUpdateAutoFocus(wxUpdateUIEvent &event);
+    
 
 	void onViewPane(wxCommandEvent &event);
     void onUpdateViewPane(wxUpdateUIEvent &event);

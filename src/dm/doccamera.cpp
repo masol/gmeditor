@@ -135,10 +135,8 @@ DocCamera::translate(int distx,int disty,float optTranslateFactor)
 
         camera->TranslateLeft(distxInWorld);
         camera->Translate(luxrays::Normalize(camera->up) * distyInWorld);
-//        if(pDocData->autoFocus())
-//        {
-//            camera->focalDistance = luxrays::Distance(camera->target,camera->orig) / 2;
-//        }
+
+        pDocData->updateFocus();
 
 	    camera->Update(session->film->GetWidth(), session->film->GetHeight());
 	    session->editActions.AddAction(slg::CAMERA_EDIT);
@@ -166,10 +164,8 @@ DocCamera::straightTranslate(float factor)
         slg::PerspectiveCamera *camera = session->renderConfig->scene->camera;
 
         camera->TranslateForward(basic_step);
-//        if(pDocData->autoFocus())
-//        {
-//            camera->focalDistance = luxrays::Distance(camera->target,camera->orig) / 2;
-//        }
+
+        pDocData->updateFocus();
 
 	    camera->Update(session->film->GetWidth(), session->film->GetHeight());
 	    session->editActions.AddAction(slg::CAMERA_EDIT);
@@ -193,6 +189,17 @@ DocCamera::autoTarget(bool at)
     pDocData->autoTarget(at);
 }
 
+bool
+DocCamera::autoFocus(void)
+{
+    return pDocData->autoFocus();
+}
+
+void
+DocCamera::autoFocus(bool af)
+{
+    pDocData->autoFocus(af);
+}
 
 bool
 DocCamera::targetRotate(int distx,int disty,float optRotateFactor)
@@ -212,10 +219,8 @@ DocCamera::targetRotate(int distx,int disty,float optRotateFactor)
 
 	    ExtraCameraManager::targetRotateUp(camera,yangle);
 	    ExtraCameraManager::targetRotateLeft(camera,xangle);
-//        if(pDocData->autoFocus())
-//        {
-//            camera->focalDistance = luxrays::Distance(camera->target,camera->orig) / 2;
-//        }
+
+        pDocData->updateFocus();
 
 	    camera->Update(session->film->GetWidth(), session->film->GetHeight());
 	    session->editActions.AddAction(slg::CAMERA_EDIT);
@@ -246,10 +251,8 @@ DocCamera::rotate(int distX,int distY,float optRotateFactor)
 
 	    camera->RotateUp(yangle);
 	    camera->RotateLeft(xangle);
-//        if(pDocData->autoFocus())
-//        {
-//            camera->focalDistance = luxrays::Distance(camera->target,camera->orig) / 2;
-//        }
+
+        pDocData->updateFocus();
 
 	    camera->Update(session->film->GetWidth(), session->film->GetHeight());
 	    session->editActions.AddAction(slg::CAMERA_EDIT);
@@ -260,6 +263,31 @@ DocCamera::rotate(int distX,int distY,float optRotateFactor)
 	}
 	return false;
 }
+
+bool
+DocCamera::setTarget(void)
+{
+    if(!pDocData->isRunning())
+        return false;
+    slg::RenderSession* session = pDocData->getSession();
+    if(session && session->film)
+    {
+	    session->BeginEdit();
+
+	    slg::PerspectiveCamera *camera = session->renderConfig->scene->camera;
+        camera->focalDistance = (camera->target - camera->orig).Length();
+
+	    camera->Update(session->film->GetWidth(), session->film->GetHeight());
+	    session->editActions.AddAction(slg::CAMERA_EDIT);
+	    session->EndEdit();
+
+	    pDocData->cachefilm().invalidate();
+	    pDocData->camManager.saveCurrentCamera();
+	    return true;
+    }
+	return false;
+}
+
 
 bool
 DocCamera::viewAll(const std::string &objID)

@@ -330,13 +330,16 @@ ExtraObjectManager::importCTMObj(const std::string& path,ObjectNode &obj,ImportC
             uv = new luxrays::UV[vertCount];
             memcpy(uv,uvarray,sizeof(luxrays::UV) * vertCount);
         }
-        if(normalArray != NULL)
+        if(obj.useplynormals())
         {
-            normal = new luxrays::Normal[vertCount];
-            memcpy(normal,normalArray,sizeof(luxrays::Normal) * vertCount );
+            if(normalArray != NULL)
+            {
+                normal = new luxrays::Normal[vertCount];
+                memcpy(normal,normalArray,sizeof(luxrays::Normal) * vertCount );
+            }else{
+                obj.useplynormals(false);
+            }
         }
-
-        obj.useplynormals(normal != NULL);
 
         if(obj.alpha() < 1.0f)
         {
@@ -482,10 +485,15 @@ ExtraObjectManager::importAiMesh(const aiScene *assimpScene,aiMesh* pMesh,Object
                 }
             }
 
-            if(!DocSetting::ignoreNormals() && pMesh->HasNormals())
+            if(obj.useplynormals())
             {
-                normal = new luxrays::Normal[pMesh->mNumVertices];
-                memcpy(normal,pMesh->mNormals,sizeof(luxrays::Normal) * pMesh->mNumVertices);
+                if(pMesh->HasNormals())
+                {
+                    normal = new luxrays::Normal[pMesh->mNumVertices];
+                    memcpy(normal,pMesh->mNormals,sizeof(luxrays::Normal) * pMesh->mNumVertices);
+                }else{
+                    obj.useplynormals(false);
+                }
             }
 
             if(obj.alpha() < 1.0f)
@@ -496,9 +504,6 @@ ExtraObjectManager::importAiMesh(const aiScene *assimpScene,aiMesh* pMesh,Object
                     alpha[i] = obj.alpha();
                 }
             }
-
-            obj.useplynormals(normal != NULL);
-
 
             std::string     meshIdentify = DefineObject(ctx.scene(),pMesh->mNumVertices, realFace,pPoint, pTri, normal, uv, NULL,alpha,obj.useplynormals());
 
@@ -656,6 +661,10 @@ ExtraObjectManager::importObjects(type_xml_node &node,ObjectNode &objNode,Import
             }else if(boost::iequals(constDef::alpha,pAttr->name()))
             {
                 objNode.m_alpha = boost::lexical_cast<float>(pAttr->value());
+            }else if(boost::iequals(constDef::usenormal,pAttr->name()))
+            {
+                bool bFalse = boost::iequals(constDef::falsevalue,pAttr->value());
+                objNode.useplynormals(!bFalse);
             }
 			pAttr = pAttr->next_attribute();
 		}

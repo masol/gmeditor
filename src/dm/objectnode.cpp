@@ -19,6 +19,7 @@
 #include "config.h"
 #include "dm/doc.h"
 #include "dm/objectnode.h"
+#include "dm/docsetting.h"
 #include "docprivate.h"
 #include "slg/slg.h"
 #include <boost/filesystem/fstream.hpp>
@@ -182,6 +183,9 @@ const char* constDef::scale = "scale";
 const char* constDef::prescale = "prescale";
 const char* constDef::postscale = "postscale";
 const char* constDef::burn = "burn";
+const char* constDef::usenormal = "usenormal";
+const char* constDef::truevalue = "true";
+const char* constDef::falsevalue = "false";
 
 
 bool    ObjectNode::sv_exprtNewMesh = false;
@@ -215,6 +219,14 @@ ObjectNode::applyMatrix(Eigen::Matrix4f &matrix)
 {
 }
 
+ObjectNode::ObjectNode()
+{
+    m_useplynormals = !DocSetting::ignoreNormals();
+    m_alpha = 1.0f;
+    //创建者需要自行维护nil.
+//  m_id = boost::uuids::nil_generator()();
+//  m_matid = boost::uuids::nil_generator()();
+}
 
 void
 ObjectNode::drawSelf(void)
@@ -366,6 +378,8 @@ ObjectNode::dump(type_xml_node &parent,dumpContext &ctx)
                 std::string   alpha = boost::lexical_cast<std::string>(m_alpha);
                 pSelf->append_attribute(pDoc->allocate_attribute(constDef::alpha,allocate_string(pDoc,alpha)));
             }
+
+            pSelf->append_attribute(pDoc->allocate_attribute(constDef::usenormal,(m_useplynormals ? constDef::truevalue : constDef::falsevalue) ) );
 
             if(!write_file.empty())
             {//我们可能使用一个group model file.

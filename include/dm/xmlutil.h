@@ -93,6 +93,9 @@ namespace gme
         static  const char* prescale;
         static  const char* postscale;
         static  const char* burn;
+        static  const char* usenormal;
+        static  const char* truevalue;
+        static  const char* falsevalue;
     };
 
     //inline const char* getFilepathFromDocument(const type_xml_node &node)

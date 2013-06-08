@@ -27,6 +27,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <boost/scope_exit.hpp>
+#include <boost/foreach.hpp>
 #include <boost/locale.hpp>
 
 #if WIN32
@@ -112,8 +113,11 @@ static inline void		initOption_descritpion(boost::program_options::options_descr
 	cmdline.add_options()
 		("help,h", ("Display this information."))
 		("version,v", ("Display  version informationl."))
+		("mergematerial,m", ("merge material from sps."))
+		("mergemesh,e", ("merge mesh from model file."))
 		("config,c", boost::program_options::value<std::string>(),("Specify config file."))
 		("source,s", boost::program_options::value<std::string>(),("Specify source scene file."))
+		("model,d", boost::program_options::value<std::string>(),("Specify source model file."))
 		("output,o", boost::program_options::value<std::string>(),("Place the result image into <file>."))
 		("lang,l", boost::program_options::value<std::string>(),("Set the language."))
 		;
@@ -122,6 +126,7 @@ static inline void		initOption_descritpion(boost::program_options::options_descr
 struct  parser_context{
     boost::program_options::options_description     &cmdline_options;
     std::vector<std::string>                        sources;
+    std::vector<std::string>                        models;
     Option                                          &option;
     std::string                                     outfile;
     std::string                                     lang;
@@ -240,7 +245,22 @@ static	bool	parser_Option(boost::program_options::parsed_options &option,parser_
             {
                 ctx.lang = *(it->value.begin());
             }
-		}
+		}else if(it->string_key == "model")
+		{
+            if(it->value.size() > 0)
+            {
+                BOOST_FOREACH(const std::string &var,it->value)
+                {
+                    ctx.models.push_back(var);
+                }
+            }
+		}else if(it->string_key == "mergematerial")
+        {
+            ctx.option.put("mergematerial",1);
+        }else if(it->string_key == "mergemesh")
+        {
+            ctx.option.put("mergemesh",1);
+        }
 		it++;
 	}
 

@@ -304,14 +304,7 @@ public:
     {
         m_useplynormals = buse;
     }
-    ObjectNode()
-    {
-        m_useplynormals = false;
-        m_alpha = 1.0f;
-        //创建者需要自行维护nil.
-//        m_id = boost::uuids::nil_generator()();
-//        m_matid = boost::uuids::nil_generator()();
-    }
+    ObjectNode();
     ObjectNode(const ObjectNode& ref){
         assignFrom(ref);
     }

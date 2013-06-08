@@ -29,7 +29,7 @@
 #include <string>
 
 namespace gme {
-	
+
 class ModulePath : public Singleton<ModulePath> {
 	private:
 		friend class Singleton<ModulePath>;
@@ -46,9 +46,9 @@ class ModulePath : public Singleton<ModulePath> {
 			m_modulePath = boost::filesystem::path(modulePath);
 			m_moduleName = m_modulePath.generic_string();
 			m_modulePath = boost::filesystem::gme_ext::resolve_sym(m_modulePath);
-			m_modulePath = m_modulePath.parent_path();
+			m_modulePath = boost::filesystem::absolute(m_modulePath.parent_path());
 		}
-		
+
 		/**
 		 * @brief       是否已经被初始化完毕。
 		 * @return		true表示已经被初始化，false表示未初始化。
@@ -64,7 +64,7 @@ class ModulePath : public Singleton<ModulePath> {
 		inline const boost::filesystem::path&	modulePath(void)const{
 			return m_modulePath;
 		}
-		
+
 		/**
 		 * @brief       返回进程启动时的路径。
 		 * @return		进程启动时的路径。
@@ -72,8 +72,8 @@ class ModulePath : public Singleton<ModulePath> {
 		inline const boost::filesystem::path&	initPath(void)const{
 			return m_initPath;
 		}
-		
-		
+
+
 		/**
 		 * @brief       返回模块文件名。
 		 * @return		模块文件名.
@@ -107,7 +107,7 @@ class ModulePath : public Singleton<ModulePath> {
 		boost::filesystem::path		m_modulePath;
 		boost::filesystem::path		m_initPath;
 	};
-	
+
 } //namespace gme
 
 
