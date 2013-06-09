@@ -53,7 +53,6 @@ private:
     void initPages(void);
 
 protected:
-	void OnResize( wxSizeEvent& event );
     void OnPropertyGridPageChange( wxPropertyGridEvent& event );
     void OnSelectedObjectChanged(const std::string &oid,const std::string &matid)
     {

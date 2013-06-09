@@ -497,9 +497,9 @@ EnvLightPage::appendSunLight(wxPGProperty* pEnable,DocSetting &setting)
 //    color.Set(v.x * 255.0f,v.y * 255.0f,v.z * 255.0f);
 //    this->AppendIn(pEnable,new wxColourProperty(gmeWXT("方向"),"sundir",color));
     //turbidity
-    this->AppendIn(pEnable,new wxFloatProperty(gmeWXT("turbidity"),"sunturb",scene->sunLight->GetTubidity()));
+    this->AppendIn(pEnable,this->setFloatEditor(new wxFloatProperty(gmeWXT("turbidity"),"sunturb",scene->sunLight->GetTubidity()),0.0f,10.0f ) );
     //relsize
-    this->AppendIn(pEnable,new wxFloatProperty(gmeWXT("relsize"),"relsize",scene->sunLight->GetRelSize()));
+    this->AppendIn(pEnable,this->setFloatEditor(new wxFloatProperty(gmeWXT("relsize"),"relsize",scene->sunLight->GetRelSize()) , 0.0f, 10.0f ) );
     //sungain
     luxrays::Spectrum c = scene->sunLight->GetGain();
     appendGain(pEnable,c,"sungain",this->m_sungainSync,"sun");
@@ -511,9 +511,9 @@ EnvLightPage::appendGain(wxPGProperty* parent,luxrays::Spectrum &value,const std
     DECLARE_WXCONVERT;
     wxPGProperty *pGain = new wxBoolProperty(gmeWXT("增益"),id,curSyncValue);
     this->AppendIn(parent,pGain);
-    this->AppendIn(pGain,new wxFloatProperty(gmeWXT("红"),subprefix + "gr",value.r));
-    this->AppendIn(pGain,new wxFloatProperty(gmeWXT("绿"),subprefix + "gg",value.g));
-    this->AppendIn(pGain,new wxFloatProperty(gmeWXT("蓝"),subprefix + "gb",value.b));
+    this->AppendIn(pGain,this->setFloatEditor(new wxFloatProperty(gmeWXT("红"),subprefix + "gr",value.r)));
+    this->AppendIn(pGain,this->setFloatEditor(new wxFloatProperty(gmeWXT("绿"),subprefix + "gg",value.g)));
+    this->AppendIn(pGain,this->setFloatEditor(new wxFloatProperty(gmeWXT("蓝"),subprefix + "gb",value.b)));
 }
 
 
@@ -536,8 +536,8 @@ EnvLightPage::appendEnvLight(wxPGProperty* pType,DocSetting &setting)
 
         appendGain(pType,c,"gain",this->m_gainSync,"");
 
-        this->AppendIn(pType,new wxFloatProperty(gmeWXT("uDelta"),"udelta",pRealLight->GetUVMapping()->uDelta));
-        this->AppendIn(pType,new wxFloatProperty(gmeWXT("vDelta"),"vdelta",pRealLight->GetUVMapping()->vDelta));
+        this->AppendIn(pType,this->setFloatEditor(new wxFloatProperty(gmeWXT("uDelta"),"udelta",pRealLight->GetUVMapping()->uDelta)));
+        this->AppendIn(pType,this->setFloatEditor(new wxFloatProperty(gmeWXT("vDelta"),"vdelta",pRealLight->GetUVMapping()->vDelta)));
         break;
     }
     case slg::TYPE_IL_SKY:
@@ -554,7 +554,7 @@ EnvLightPage::appendEnvLight(wxPGProperty* pType,DocSetting &setting)
         luxrays::Spectrum c = pRealLight->GetGain();
         appendGain(pType,c,"skygain",this->m_skygainSync,"sg");
 
-        this->AppendIn(pType,new wxFloatProperty(gmeWXT("turbidity"),"turbidity",pRealLight->GetTubidity()));
+        this->AppendIn(pType,this->setFloatEditor(new wxFloatProperty(gmeWXT("turbidity"),"turbidity",pRealLight->GetTubidity()),0.0f,10.0f));
         break;
     }
     default:

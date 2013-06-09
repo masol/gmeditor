@@ -19,92 +19,88 @@
 #ifndef  GME_PROPERTY_PGEDITOR_H
 #define  GME_PROPERTY_PGEDITOR_H
 
+#define gme_wxPG_ATTR_MIN              wxS("GME_Min")
+#define gme_wxPG_ATTR_MAX              wxS("GME_Max")
+#define gme_wxPG_FLOAT_PRECISION       wxS("GME_Precision")
+
+
 namespace gme
 {
 
 class WXDLLIMPEXP_PROPGRID SliderWindow : public wxSlider
 {
 public:
-	SliderWindow(wxPropertyGrid*  propgrid,
-             int value,
-             int minValue,
-             int maxValue)
-			 : wxSlider(propgrid->GetPanel(), wxID_ANY, value, minValue, maxValue,
-                             wxDefaultPosition, wxDefaultSize,
-                             wxSL_HORIZONTAL)
+	SliderWindow(wxWindow*  parent,float value,float minValue,
+             float maxValue,int precision,const wxPoint &position = wxDefaultPosition,
+             const wxSize  &size = wxDefaultSize)
+			 : wxSlider(parent, wxID_ANY, value * precision,
+                          minValue * precision, maxValue * precision,
+                          position, size,wxSL_HORIZONTAL)
 	{
-		SetBackgroundColour(propgrid->GetCellBackgroundColour());
-		m_textWidth = 50;
-		this->Hide();
-	}
-	~SliderWindow(){};
-	
-	void setSliderInfo(wxPropertyGrid*  propgrid, wxPGProperty*    property, double maxValue, double tick, double value, const wxPoint& pos, const wxSize&    size )
-	{
-		m_maxValue = maxValue;
-		m_tick = tick;
-		m_property = property;
-		if(value > maxValue)
-			value = maxValue;
-		this->SetMax((int)(maxValue / tick));
-		this->SetValue((int)(value / tick));
-		// set positon and size
-		this->resize(size.x, size.y);
-		this->SetPosition(wxPoint(pos.x + m_textWidth, pos.y));
-
-		this->Show();
+        m_precision = precision;
+		//SetBackgroundColour(propgrid->GetCellBackgroundColour());
 	}
 
-	double getRealValue()
+	~SliderWindow(){}
+
+    inline float   getMaxValue(void)const
+    {
+        return ((float)this->GetMax() / (float)this->m_precision);
+    }
+    inline void   setMaxValue(float max)
+    {
+        this->SetMax(max * this->m_precision);
+    }
+    inline float   getMinValue(void)const
+    {
+        return ((float)this->GetMin() / (float)this->m_precision);
+    }
+    inline void   setMinValue(float min)
+    {
+        this->SetMin(min * this->m_precision);
+    }
+	inline float getRealValue()const
 	{
 		int value = this->GetValue();
-		double retValue = value * m_tick;
-		return retValue;
+		return ((float)value /(float) m_precision);
 	}
-	void setRealValue(double value)
+	inline void setRealValue(float value)
 	{
-		int sliderValue = (int)(value / m_tick);
+		int sliderValue = (int)(value * m_precision);
+        //文本框能输入的范围要超过slider的范围。
+        if(sliderValue > this->GetMax())
+            sliderValue = this->GetMax();
+        if(sliderValue < this->GetMin())
+            sliderValue = this->GetMin();
 		this->SetValue(sliderValue);
 	}
 
-	void SetDefalutValue()
+    inline void resize(int w, int h)
 	{
-		this->SetValue(0);
+		this->SetSize(w - getTextWidth(w), h);
 	}
-
-	void resize(int w, int h)
+	inline static int getTextWidth(int width)
 	{
-		this->SetSize(w - m_textWidth, h);
-	}
-
-	void clearSelected()
-	{
-		wxPropertyGrid *grid = m_property->GetGrid();
-		grid->ClearSelection();
-	}
-
-	int getTextWidth()
-	{
-		return m_textWidth;
+        int textWidth = 60;
+        int maxTexWidth = ((float)width / 3.0f);
+        if(textWidth > maxTexWidth)
+        {
+            textWidth = maxTexWidth;
+        }
+		return textWidth;
 	}
 private:
-	double			m_maxValue;
-	double			m_tick;
-	wxPGProperty*   m_property;
-	int				m_textWidth;
+    int             m_precision;
 };
 
 // 滑块editor
-class wxPGSliderEditor : public wxPGTextCtrlEditor 
+///@todo 使用wxSizer改写PGSliderEditor.
+class wxPGSliderEditor : public wxPGTextCtrlEditor
 {
   DECLARE_DYNAMIC_CLASS(wxPGSliderEditor)
 private:
 	wxPGSliderEditor(){};
-	wxPGSliderEditor(wxPropertyGrid*  propgrid){
-		m_slider = new SliderWindow(propgrid, 0, 0, 100);
-		m_sliderEditor = this;
-	};
-	
+
 	~wxPGSliderEditor ()
 	{
 		std::cout << "~wxPGSliderEditor called" <<std::endl;
@@ -124,27 +120,18 @@ private:
 	void SetValueToUnspecified ( wxPGProperty* property, wxWindow* wnd) const;
 	//void DrawValue ( wxDC& dc, const wxRect& rect, wxPGProperty* property, const wxString& text) const;
 
-	bool getSliderInfo ( wxPropertyGrid* propgrid, double &max, double &tick) const
-	{
-		max = 10000;
-		tick = 0.1;
-		return true;
-	};
-
 public:
-	static wxPGEditor* getInstance(wxPropertyGrid*  propgrid);
+	static wxPGEditor* getInstance(void);
 	static wxPGSliderEditor* getSliderEditor()
 	{
 		if(m_instance == NULL)
 			return NULL;
 		return wxDynamicCast ( m_instance, wxPGSliderEditor );
 	};
-	// 矫正位置
-	void Finalize();
 private:
+    SliderWindow*   getSliderFromTextCtrl(wxTextCtrl *ctrl)const;
+    wxTextCtrl*     getTextCtrlFromSlider(SliderWindow *ctrl)const;
 	static wxPGEditor *m_instance;
-	wxPGSliderEditor  *m_sliderEditor;
-	SliderWindow	  *m_slider;
 };
 
 }

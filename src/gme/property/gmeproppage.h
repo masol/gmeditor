@@ -21,6 +21,7 @@
 
 #include <wx/wx.h>
 #include <wx/propgrid/manager.h>
+#include "pgeditor.h"
 
 namespace gme{
 
@@ -32,6 +33,15 @@ protected:
     inline  bool    isPagenShown(void)const
     {
         return m_pageShown;
+    }
+    inline wxFloatProperty*  setFloatEditor(wxFloatProperty *pProp,float min_var = 0.0f,float max_var = 1.0f,int gme_precision = 1000,int wx_precision = 4)
+    {
+        this->SetPropertyAttribute(pProp,gme_wxPG_ATTR_MIN,min_var);
+        this->SetPropertyAttribute(pProp,gme_wxPG_ATTR_MAX,max_var);
+        this->SetPropertyAttribute(pProp,gme_wxPG_FLOAT_PRECISION,gme_precision);
+        this->SetPropertyAttribute(pProp,wxPG_FLOAT_PRECISION ,wx_precision);
+        pProp->SetEditor (wxPGSliderEditor::getInstance());
+        return pProp;
     }
 #ifdef PROPERTY_HAS_DELETE_PROPERTY
     inline  void    removeChild(wxPGProperty *parent)

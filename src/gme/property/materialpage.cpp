@@ -31,7 +31,6 @@
 #include "../mainframe.h"
 #include "luxrays/utils/properties.h"
 #include "slg/sdl/texture.h"
-#include "pgeditor.h"
 #include "../cmdids.h"
 #include "../filedialog.h"
 #include "imgfileeditor.h"
@@ -169,12 +168,14 @@ MaterialPage::addMapping2D(wxPGProperty *pTexType,type_xml_node *pSelf)
     }
     this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("uScale"),"uscale",uScale));
     this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("vScale"),"vscale",vScale));
-    this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("uDelta"),"udelta",uDelta));
-    this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("vDelta"),"vdelta",vDelta));
+
+    this->AppendIn(pTexType,this->setFloatEditor(new wxFloatProperty(gmeWXT("uDelta"),"udelta",uDelta),0.0f,1.0f,10000,4) );
+
+    this->AppendIn(pTexType,this->setFloatEditor(new wxFloatProperty(gmeWXT("vDelta"),"vdelta",vDelta)) );
 }
 
 void
-MaterialPage::addTextureContent(wxPGProperty *pTexType,type_xml_node *pSelf,int type)
+MaterialPage::addTextureContent(wxPGProperty *pTexType,type_xml_node *pSelf,int type,float min_var,float max_var)
 {
     DECLARE_WXCONVERT;
     if(type == DocMat::CONST_FLOAT3)
@@ -195,9 +196,7 @@ MaterialPage::addTextureContent(wxPGProperty *pTexType,type_xml_node *pSelf,int 
     }else if(type == DocMat::CONST_FLOAT)
     {
         float   value = GetAttributeValue(pSelf,"value",0.5f);
-		wxFloatProperty *pTexValue = new wxFloatProperty(gmeWXT("值"),"value",value);
-		//pTexValue->SetEditor (wxPGSliderEditor::getInstance(pTexType->GetGrid()));
-        this->AppendIn(pTexType,pTexValue);
+        this->AppendIn(pTexType,this->setFloatEditor(new wxFloatProperty(gmeWXT("值"),"value",value),min_var,max_var) );
     }else if(type == DocMat::IMAGEMAP)
     {
         type_xml_attr  *pAttr = pSelf->first_attribute("file");
@@ -216,7 +215,8 @@ MaterialPage::addTextureContent(wxPGProperty *pTexType,type_xml_node *pSelf,int 
         {
             gain = boost::lexical_cast<float>(pAttr->value());
         }
-        this->AppendIn(pTexType,new wxFloatProperty(gmeWXT("增益"),"gain",gain));
+
+        this->AppendIn(pTexType,this->setFloatEditor(new wxFloatProperty(gmeWXT("增益"),"gain",gain),0.0f,max_var) );
 
 #if 0  //disable gamma setting.(this need refresh imagefile,so i need to modify slg source)
         float gamma = 2.2f;
@@ -338,7 +338,7 @@ MaterialPage::addTextureContent(wxPGProperty *pTexType,type_xml_node *pSelf,int 
 
 
 void
-MaterialPage::addTexture(wxPGProperty &parent,type_xml_node *pParent,const std::string &childTag,int flag,const char* name)
+MaterialPage::addTexture(wxPGProperty &parent,type_xml_node *pParent,const std::string &childTag,int flag,const char* name,float min_var,float max_var)
 {
     DECLARE_WXCONVERT;
 //build texture.
@@ -377,7 +377,7 @@ MaterialPage::addTexture(wxPGProperty &parent,type_xml_node *pParent,const std::
 
     if(pSelf)
     {//开始向pTextype添加可选项。
-        addTextureContent(pTexType,pSelf,type);
+        addTextureContent(pTexType,pSelf,type,min_var,max_var);
     }
 }
 
@@ -408,7 +408,7 @@ MaterialPage::addMaterialContent(wxPGProperty &matType,type_xml_node *pSelf,int 
     if(type != DocMat::NULLMAT)
     {
         addTexture(matType,pSelf,constDef::emission,TEX_HAS_DISABLE | TEX_HAS_IES);
-        addTexture(matType,pSelf,constDef::bumptex,TEX_HAS_DISABLE);
+        addTexture(matType,pSelf,constDef::bumptex,TEX_HAS_DISABLE,NULL,0.0010f,0.01f);
         addTexture(matType,pSelf,constDef::normaltex,TEX_HAS_DISABLE);
     }
 
@@ -422,18 +422,18 @@ MaterialPage::addMaterialContent(wxPGProperty &matType,type_xml_node *pSelf,int 
     {
         addTexture(matType,pSelf,constDef::kr);
         addTexture(matType,pSelf,constDef::kt);
-        addTexture(matType,pSelf,constDef::ioroutside);
-        addTexture(matType,pSelf,constDef::iorinside);
+        addTexture(matType,pSelf,constDef::ioroutside,0,NULL,1.0f,10.0f);
+        addTexture(matType,pSelf,constDef::iorinside,0,NULL,1.0f,10.0f);
     }else if(type == DocMat::METAL)
     {
         addTexture(matType,pSelf,constDef::kr);
-        addTexture(matType,pSelf,constDef::exp);
+        addTexture(matType,pSelf,constDef::exp,0,NULL,1.0f,1000000.0f);
     }else if(type == DocMat::ARCHGLASS)
     {
         addTexture(matType,pSelf,constDef::kr);
         addTexture(matType,pSelf,constDef::kt);
-        addTexture(matType,pSelf,constDef::ioroutside);
-        addTexture(matType,pSelf,constDef::iorinside);
+        addTexture(matType,pSelf,constDef::ioroutside,0,NULL,1.0f,10.0f);
+        addTexture(matType,pSelf,constDef::iorinside,0,NULL,1.0f,10.0f);
     }else if(type == DocMat::MIX)
     {
         bool    bAdded = false;
@@ -479,7 +479,7 @@ MaterialPage::addMaterialContent(wxPGProperty &matType,type_xml_node *pSelf,int 
     {
         addTexture(matType,pSelf,constDef::kd);
         addTexture(matType,pSelf,constDef::ks,0,"清漆颜色");
-        addTexture(matType,pSelf,constDef::index,0,"清漆折射率");
+        addTexture(matType,pSelf,constDef::index,0,"清漆折射率",1.0f,10.0f);
         addTexture(matType,pSelf,constDef::uroughness);
         //addTexture(matType,pSelf,constDef::vroughness);
         addTexture(matType,pSelf,constDef::ka,0,"清漆吸收色");
@@ -496,8 +496,8 @@ MaterialPage::addMaterialContent(wxPGProperty &matType,type_xml_node *pSelf,int 
     {
         addTexture(matType,pSelf,constDef::uroughness);
         //addTexture(matType,pSelf,constDef::vroughness);
-        addTexture(matType,pSelf,constDef::n,0,"折射率");
-        addTexture(matType,pSelf,constDef::k,0,"吸收系数");
+        addTexture(matType,pSelf,constDef::n,0,"折射率",1.0f,10.0f);
+        addTexture(matType,pSelf,constDef::k,0,"吸收系数",1.0f,10.0f);
     }else
     {
         BOOST_ASSERT_MSG(false,"unknow material type!");

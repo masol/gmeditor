@@ -85,15 +85,15 @@ HDRPage::refreshToneMapping(int typevlaue,const slg::ToneMapParams *param,wxPGPr
     case slg::TONEMAP_LINEAR:
         {
             const slg::LinearToneMapParams *pRealParam = dynamic_cast<const slg::LinearToneMapParams*>(param);
-            this->AppendIn(pToneMap,new wxFloatProperty(gmeWXT("缩放系数"),wxString("scale"),pRealParam->scale) );
+            this->AppendIn(pToneMap,this->setFloatEditor(new wxFloatProperty(gmeWXT("缩放系数"),wxString("scale"),pRealParam->scale), 0.0f,8.0f) );
         }
         break;
     case slg::TONEMAP_REINHARD02:
         {
             const slg::Reinhard02ToneMapParams *pRealParam = dynamic_cast<const slg::Reinhard02ToneMapParams*>(param);
-            this->AppendIn(pToneMap,new wxFloatProperty(gmeWXT("prescale"),wxString("prescale"),pRealParam->preScale) );
-            this->AppendIn(pToneMap,new wxFloatProperty(gmeWXT("postscale"),wxString("postscale"),pRealParam->postScale) );
-            this->AppendIn(pToneMap,new wxFloatProperty(gmeWXT("burn"),wxString("burn"),pRealParam->burn) );
+            this->AppendIn(pToneMap,this->setFloatEditor(new wxFloatProperty(gmeWXT("prescale"),wxString("prescale"),pRealParam->preScale),0.0f,8.0f ) );
+            this->AppendIn(pToneMap,this->setFloatEditor(new wxFloatProperty(gmeWXT("postscale"),wxString("postscale"),pRealParam->postScale) , 0.0f, 8.0f) );
+            this->AppendIn(pToneMap,this->setFloatEditor(new wxFloatProperty(gmeWXT("burn"),wxString("burn"),pRealParam->burn),0.0f,8.0f) );
         }
         break;
     }
@@ -109,8 +109,8 @@ HDRPage::buildCamera(wxPGProperty *pCamCate)
     {
         DECLARE_WXCONVERT;
 
-        this->AppendIn(pCamCate,new wxFloatProperty(gmeWXT("视野"),wxString("fov"),cam.fieldOfView) );
-        this->AppendIn(pCamCate,new wxFloatProperty(gmeWXT("焦距"),wxString("lensradius"),cam.lensRadius) );
+        this->AppendIn(pCamCate,this->setFloatEditor(new wxFloatProperty(gmeWXT("视野"),wxString("fov"),cam.fieldOfView) , 15.0f, 360.0f) );
+        this->AppendIn(pCamCate,this->setFloatEditor(new wxFloatProperty(gmeWXT("焦距"),wxString("lensradius"),cam.lensRadius) , 0.0f, 1.0f) );
         this->AppendIn(pCamCate,new wxFloatProperty(gmeWXT("聚焦距离"),wxString("focaldistance"),cam.focalDistance) );
         this->AppendIn(pCamCate,new wxFloatProperty(gmeWXT("近平面"),wxString("hither"),cam.clipHither) );
         this->AppendIn(pCamCate,new wxFloatProperty(gmeWXT("远平面"),wxString("yon"),cam.clipYon) );
