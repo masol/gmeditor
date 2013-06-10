@@ -346,12 +346,12 @@ ExtraSettingManager::createLights(ImportContext &ctx,type_xml_node &parents)
                 prop = pLights->first_attribute("gain");
                 if(prop)
                 {
-                    ss << "scene.infinitelight.gain = " << prop->value() << std::endl;
+                    ss << "scene.skylight.gain = " << prop->value() << std::endl;
                 }
                 prop = pLights->first_attribute("turbidity");
                 if(prop)
                 {
-                    ss << "scene.infinitelight.turbidity = " << prop->value() << std::endl;
+                    ss << "scene.skylight.turbidity = " << prop->value() << std::endl;
                 }
             }
             if(!ss.str().empty())

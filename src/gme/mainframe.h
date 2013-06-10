@@ -48,6 +48,7 @@ public:
     void openFile(const std::string &filepath);
     void openFile(const wxString& filepath);
     bool importMaterial(const std::string &objID,const std::string &filepath);
+    bool importGlueMaterial(const std::string &objID);
     bool saveMaterial(const std::string &objID,const std::string &filepath,bool bExport);
 protected:
 	void onClose(wxCloseEvent& event);
@@ -150,6 +151,8 @@ protected:
 private:
     wxFileHistory*  m_FileHistory;
 	wxConfig*       m_Config;
+    //可以通过Option,环境变量来配置glueserver.缺省是www.render001.com
+    std::string     m_glueserver;
 private:
     static  boost::function<bool (std::string &)>   sv_getImageFilepath;
 	bool getImageFilepath(std::string &result);

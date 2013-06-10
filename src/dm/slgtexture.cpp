@@ -1455,7 +1455,7 @@ ExtraTextureManager::createTexture(ImportContext &ctx,type_xml_node &self)
 }
 
 std::string
-ExtraTextureManager::buildDefaultTexture(SlgUtil::UpdateContext &ctx,const slg::Texture *pTex,int type)
+ExtraTextureManager::buildDefaultTexture(SlgUtil::UpdateContext &ctx,const slg::Texture *pTex,int type,int channelType)
 {
     //first,remove all texture definition from ctx.
     const std::string &id = this->getTextureId(pTex);
@@ -1473,8 +1473,26 @@ ExtraTextureManager::buildDefaultTexture(SlgUtil::UpdateContext &ctx,const slg::
     switch(type)
     {
     case slg::CONST_FLOAT3:
+        switch(channelType)
+        {
+        case TEXC_BUMP:
+            return "0.015 0.015 0.015";
+        case TEXC_IOR:
+            return "1.5 1.5 1.5";
+        case TEXC_EXP:
+            return "100.0 100.0 100.0";
+        }
         return "1.0 1.0 1.0";
     case slg::CONST_FLOAT:
+        switch(channelType)
+        {
+        case TEXC_BUMP:
+            return "0.015";
+        case TEXC_IOR:
+            return "1.5";
+        case TEXC_EXP:
+            return "10.0";
+        }
         return "1.0";
     case slg::IMAGEMAP:
         {//we need generate new id.
@@ -1485,6 +1503,19 @@ ExtraTextureManager::buildDefaultTexture(SlgUtil::UpdateContext &ctx,const slg::
                 std::stringstream   ss;
                 ss << "scene.textures." << id << ".type = imagemap" << std::endl;
                 ss << "scene.textures." << id << ".file = " << fullpath << std::endl;
+
+                switch(channelType)
+                {
+                case TEXC_BUMP:
+                    ss << "scene.textures." << id << ".gain = 0.015" << std::endl;
+                    break;
+                case TEXC_IOR:
+                    ss << "scene.textures." << id << ".gain = 1.5" << std::endl;
+                    break;
+                case TEXC_EXP:
+                    ss << "scene.textures." << id << ".gain = 100.0" << std::endl;
+                    break;
+                }
 
 //                ctx.props.SetString("scene.textures." + id + ".type","imagemap");
 //                ctx.props.SetString("scene.textures." + id + ".file",fullpath);
@@ -1754,7 +1785,7 @@ struct  updateCompTexture
 };
 
 std::string
-ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Texture *pTex,size_t curIdx)
+ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Texture *pTex,size_t curIdx,int channelType)
 {
     ctx.editor.addAction(slg::IMAGEMAPS_EDIT);
     if(curIdx == ctx.keyPath.size())
@@ -1763,7 +1794,7 @@ ExtraTextureManager::updateTexture(SlgUtil::UpdateContext &ctx,const slg::Textur
 
 //        std::cerr << "boost::lexical_cast<int>(ctx.value)=" << type << std::endl;
 
-        ctx.updatedId = buildDefaultTexture(ctx,pTex,type);
+        ctx.updatedId = buildDefaultTexture(ctx,pTex,type,channelType);
         ///@fixme: 修改slg代码以禁止强制刷新。
 //        ctx.editor.needRefresh(true);
         ctx.idIsMat = false;

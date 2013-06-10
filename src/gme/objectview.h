@@ -69,8 +69,6 @@ protected:
 	void onImportMaterial(wxCommandEvent &event);
     void onImportGlueMaterial(wxCommandEvent &event);
     void onExportGlueMaterial(wxCommandEvent &event);
-    //可以通过Option,环境变量来配置glueserver.缺省是www.render001.com
-    std::string     m_glueserver;
 private:
 	void  onDocumentItemSelected(const std::string &id);
 	void  onDocumentItemDeselected(const std::string &id);

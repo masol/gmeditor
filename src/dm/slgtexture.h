@@ -76,6 +76,14 @@ private:
     static  bool              sv_bExportNewImage;
 
 public:
+    ///@brief 控制缺省值。
+    enum{
+        TEXC_NORMAL,
+        TEXC_BUMP,
+        TEXC_IOR,
+        TEXC_EXP,
+        TEXC_MAX
+    };
     static inline bool     exportNewImage(void)
     {
         return sv_bExportNewImage;
@@ -137,7 +145,7 @@ public:
     static std::string getBondnameFromType(slg::MasonryBond type);
     bool defineImageMapTexture(ImportContext &ctx,const std::string &src,std::string &id);
     ///@brief 更新贴图属性。返回贴图id.
-    std::string    updateTexture(SlgUtil::UpdateContext &ctx,const slg::Texture *pTex,size_t curIdx);
+    std::string    updateTexture(SlgUtil::UpdateContext &ctx,const slg::Texture *pTex,size_t curIdx,int channelType = TEXC_NORMAL);
     static const slg::Texture*  getTextureFromKeypath(const slg::Texture *pTex,const std::vector<std::string> &keyPath,size_t curIdx);
 private:
     ///@brief dump混合材质。
@@ -154,7 +162,7 @@ private:
     std::string dumpImagemap(luxrays::Properties &prop,const slg::ImageMapTexture* pTex);
     static  bool    checkTextureMapping2DUpdate(SlgUtil::UpdateContext &ctx,luxrays::Properties &newProps,const std::string &curKey,const std::string &mapping_prefix,const slg::TextureMapping2D *pMapping);
 
-    std::string buildDefaultTexture(SlgUtil::UpdateContext &ctx,const slg::Texture *pTex,int type);
+    std::string buildDefaultTexture(SlgUtil::UpdateContext &ctx,const slg::Texture *pTex,int type,int channelType);
     static  inline bool ImageMapTexture_isGainDefault(float gain)
     {
         return (gain == 1.0f);

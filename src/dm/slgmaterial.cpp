@@ -1007,13 +1007,13 @@ ExtraMaterialManager::getTextureFromKeypath(const slg::Material *pMat,const std:
 }
 
 static  inline bool
-checkAndUpdateDisableTexture(ExtraTextureManager &texManager,SlgUtil::UpdateContext &ctx,const std::string &curKey,const std::string &prefix,const std::string &suffix,const slg::Texture *pTex,size_t curIdx)
+checkAndUpdateDisableTexture(ExtraTextureManager &texManager,SlgUtil::UpdateContext &ctx,const std::string &curKey,const std::string &prefix,const std::string &suffix,const slg::Texture *pTex,size_t curIdx,int texType = ExtraTextureManager::TEXC_NORMAL)
 {
     if(curKey == suffix)
     {
 
         std::string key = prefix + suffix;
-        std::string texValue = texManager.updateTexture(ctx,pTex,curIdx+1);
+        std::string texValue = texManager.updateTexture(ctx,pTex,curIdx+1,texType);
         if(texValue.empty())
         {
             ctx.props.Delete(key);
@@ -1065,7 +1065,7 @@ ExtraMaterialManager::updateMaterial(SlgUtil::UpdateContext &ctx,const slg::Mate
             }else{
                 ctx.props.SetString(key,texValue);
             }
-        }else if(checkAndUpdateDisableTexture(texManager,ctx,curKey,prefix,constDef::bumptex,pMat->GetBumpTexture(),curIdx))
+        }else if(checkAndUpdateDisableTexture(texManager,ctx,curKey,prefix,constDef::bumptex,pMat->GetBumpTexture(),curIdx,ExtraTextureManager::TEXC_BUMP))
         {
         }else if(checkAndUpdateDisableTexture(texManager,ctx,curKey,prefix,constDef::normaltex,pMat->GetNormalTexture(),curIdx))
         {
@@ -1102,11 +1102,11 @@ ExtraMaterialManager::updateMaterial(SlgUtil::UpdateContext &ctx,const slg::Mate
                     }else if(curKey == constDef::ioroutside)
                     {
                         ctx.props.SetString(prefix + constDef::ioroutside,texManager.updateTexture(
-                            ctx,pMaterial->GetOutsideIOR(),curIdx+1));
+                            ctx,pMaterial->GetOutsideIOR(),curIdx+1,ExtraTextureManager::TEXC_IOR));
                     }else if(curKey == constDef::iorinside)
                     {
                         ctx.props.SetString(prefix + constDef::iorinside,texManager.updateTexture(
-                            ctx,pMaterial->GetIOR(),curIdx+1));
+                            ctx,pMaterial->GetIOR(),curIdx+1,ExtraTextureManager::TEXC_IOR));
                     }else{
                         BOOST_ASSERT(false);
                     }
@@ -1122,7 +1122,7 @@ ExtraMaterialManager::updateMaterial(SlgUtil::UpdateContext &ctx,const slg::Mate
                     }else if(curKey == constDef::exp)
                     {
                         ctx.props.SetString(prefix + constDef::exp,texManager.updateTexture(
-                            ctx,pMaterial->GetExp(),curIdx+1));
+                            ctx,pMaterial->GetExp(),curIdx+1,ExtraTextureManager::TEXC_EXP));
                     }else{
                         BOOST_ASSERT(false);
                     }
@@ -1142,11 +1142,11 @@ ExtraMaterialManager::updateMaterial(SlgUtil::UpdateContext &ctx,const slg::Mate
                     }else if(curKey == constDef::ioroutside)
                     {
                         ctx.props.SetString(prefix + constDef::ioroutside,texManager.updateTexture(
-                            ctx,pMaterial->GetOutsideIOR(),curIdx+1));
+                            ctx,pMaterial->GetOutsideIOR(),curIdx+1,ExtraTextureManager::TEXC_IOR));
                     }else if(curKey == constDef::iorinside)
                     {
                         ctx.props.SetString(prefix + constDef::iorinside,texManager.updateTexture(
-                            ctx,pMaterial->GetIOR(),curIdx+1));
+                            ctx,pMaterial->GetIOR(),curIdx+1,ExtraTextureManager::TEXC_IOR));
                     }else{
                         BOOST_ASSERT(false);
                     }
@@ -1227,7 +1227,7 @@ ExtraMaterialManager::updateMaterial(SlgUtil::UpdateContext &ctx,const slg::Mate
                     }else if(curKey == constDef::index)
                     {
                         ctx.props.SetString(prefix + constDef::index,texManager.updateTexture(
-                            ctx,pMaterial->GetIndex(),curIdx+1));
+                            ctx,pMaterial->GetIndex(),curIdx+1,ExtraTextureManager::TEXC_IOR));
                     }else if(curKey == "multibounce")
                     {
                         ctx.props.SetString(prefix + "multibounce",(boost::iequals(ctx.value,"true") ? "1" : "0"));
@@ -1242,7 +1242,7 @@ ExtraMaterialManager::updateMaterial(SlgUtil::UpdateContext &ctx,const slg::Mate
                     if(curKey == constDef::n)
                     {
                         ctx.props.SetString(prefix + constDef::n,texManager.updateTexture(
-                            ctx,pMaterial->GetN(),curIdx+1));
+                            ctx,pMaterial->GetN(),curIdx+1,ExtraTextureManager::TEXC_IOR));
                     }else if(curKey == constDef::k)
                     {
                         ctx.props.SetString(prefix + constDef::k,texManager.updateTexture(

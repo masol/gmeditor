@@ -19,9 +19,7 @@
 #include "config.h"
 #include <functional>
 #include <boost/algorithm/string/predicate.hpp>
-#include "utils/option.h"
 #include "utils/i18n.h"
-#include "utils/modulepath.h"
 #include "objectview.h"
 #include "stringutil.h"
 #include "dm/docobj.h"
@@ -73,23 +71,6 @@ ObjectView::ObjectView(wxWindow* parent, wxWindowID id,const wxPoint& pos, const
     m_sizer = new wxBoxSizer(wxVERTICAL);
     m_sizer->Add(m_treelist,wxSizerFlags(1).Expand());
     SetSizer(m_sizer);
-
-    {//initionlize glueserver.
-        char *gs = getenv("GLUESERVER");
-        if(gs)
-        {
-            m_glueserver = gs;
-        }
-        if(gme::Option::instance().is_existed("glueserver"))
-        {
-            m_glueserver = gme::Option::instance().get<std::string>("glueserver");
-        }
-        if(m_glueserver.empty())
-        {
-            m_glueserver = "www.render001.com";
-        }
-    }
-
 
     DocIO   dio;
     dio.onSceneLoaded(boost::bind(&ObjectView::onDocumentOpend,this));
@@ -432,79 +413,14 @@ ObjectView::onImportMaterial(wxCommandEvent &event)
 }
 
 
-class file_name_ends_with_spm: public std::unary_function<boost::filesystem::path, bool> {
-public:
-  bool operator()(const boost::filesystem::directory_entry& entry) const {
-      return boost::iends_with(entry.path().filename().string(),".spm");
-  }
-};
-
-static
-bool find_file(const boost::filesystem::path& dir_path,boost::filesystem::path &path_found)
-{
-    const boost::filesystem::recursive_directory_iterator end;
-    const boost::filesystem::recursive_directory_iterator it = std::find_if(boost::filesystem::recursive_directory_iterator(dir_path),end,file_name_ends_with_spm());
-    if (it == end){
-        return false;
-    }
-    path_found = it->path();
-    return true;
-}
-
 void
 ObjectView::onImportGlueMaterial(wxCommandEvent &event)
 {
     if(!m_menuCmdTarget.empty())
     {
         gme::MainFrame* mainfrm = dynamic_cast<gme::MainFrame*>(wxTheApp->GetTopWindow());
+        mainfrm->importGlueMaterial(m_menuCmdTarget);
 
-        //准备路径。
-        boost::filesystem::path    targetPath = gme::ModulePath::instance().modulePath();
-        targetPath /= "cache";
-        targetPath /= "materials";
-        targetPath /= m_menuCmdTarget;
-        if(boost::filesystem::exists(targetPath))
-        {
-            boost::filesystem::remove_all(targetPath);
-        }
-        boost::filesystem::create_directories(targetPath);
-
-        boost::filesystem::path gutil = gme::ModulePath::instance().modulePath();
-#if WIN32
-        gutil /= "gutil.exe";
-#else
-        gutil /= "gutil";
-#endif
-        std::stringstream    cmdline;
-        if(boost::filesystem::exists(gutil))
-        {
-            cmdline << gutil.string();
-        }else{
-#if WIN32
-            cmdline << "gutil.exe";
-#else
-            cmdline << "gutil";
-#endif
-        }
-        cmdline << " --dir=\"";
-        cmdline << targetPath.string();
-        cmdline << "\"";
-        cmdline << " --url=\"http://127.0.0.1:10828/session?resource=/modules/materiallib/index.html\" --glueserver=";
-        cmdline << m_glueserver;
-        cmdline << "  openweb";
-        wxExecuteEnv env;
-        DECLARE_WXCONVERT;
-        wxGetEnvMap(&env.env);
-        wxString    cmd(cmdline.str().c_str(),gme_wx_utf8_conv);
-        int code = wxExecute(cmd, wxEXEC_SYNC, NULL, &env);
-        if(code == 0)
-        {//成功返回。在目录中寻找spm文件。
-            boost::filesystem::path     resultfile;
-            if(find_file(targetPath,resultfile))
-            {//
-                mainfrm->importMaterial(m_menuCmdTarget,resultfile.string());
-            }
-        }
         m_menuCmdTarget.clear();
     }
 }

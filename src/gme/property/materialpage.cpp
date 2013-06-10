@@ -407,8 +407,10 @@ MaterialPage::addMaterialContent(wxPGProperty &matType,type_xml_node *pSelf,int 
 
     if(type != DocMat::NULLMAT)
     {
-        addTexture(matType,pSelf,constDef::emission,TEX_HAS_DISABLE | TEX_HAS_IES);
-        addTexture(matType,pSelf,constDef::bumptex,TEX_HAS_DISABLE,NULL,0.0010f,0.01f);
+        ///混合材质不允许加入灯光。
+        if(type != DocMat::MIX)
+            addTexture(matType,pSelf,constDef::emission,TEX_HAS_DISABLE | TEX_HAS_IES);
+        addTexture(matType,pSelf,constDef::bumptex,TEX_HAS_DISABLE,NULL,0.0001f,0.1f);
         addTexture(matType,pSelf,constDef::normaltex,TEX_HAS_DISABLE);
     }
 
@@ -427,7 +429,7 @@ MaterialPage::addMaterialContent(wxPGProperty &matType,type_xml_node *pSelf,int 
     }else if(type == DocMat::METAL)
     {
         addTexture(matType,pSelf,constDef::kr);
-        addTexture(matType,pSelf,constDef::exp,0,NULL,1.0f,1000000.0f);
+        addTexture(matType,pSelf,constDef::exp,0,NULL,0.0f,100.0f);
     }else if(type == DocMat::ARCHGLASS)
     {
         addTexture(matType,pSelf,constDef::kr);

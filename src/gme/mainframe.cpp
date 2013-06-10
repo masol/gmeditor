@@ -21,6 +21,8 @@
 //#include "renderview.h"
 #include "objectview.h"
 #include "utils/i18n.h"
+#include "utils/option.h"
+#include "utils/modulepath.h"
 #include "stringutil.h"
 #include "cmdids.h"
 #include "dm/docio.h"
@@ -42,6 +44,26 @@
 #include "cameraview.h"
 
 #include "buildinfo.h"
+
+
+class file_name_ends_with_spm: public std::unary_function<boost::filesystem::path, bool> {
+public:
+  bool operator()(const boost::filesystem::directory_entry& entry) const {
+      return boost::iends_with(entry.path().filename().string(),".spm");
+  }
+};
+
+static
+bool find_file(const boost::filesystem::path& dir_path,boost::filesystem::path &path_found)
+{
+    const boost::filesystem::recursive_directory_iterator end;
+    const boost::filesystem::recursive_directory_iterator it = std::find_if(boost::filesystem::recursive_directory_iterator(dir_path),end,file_name_ends_with_spm());
+    if (it == end){
+        return false;
+    }
+    path_found = it->path();
+    return true;
+}
 
 namespace gme{
 
@@ -181,7 +203,8 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
     EVT_MENU(cmd::GID_SAVE_MATERIAL, MainFrame::onSaveMaterial)
     EVT_MENU(cmd::GID_EXPORT_MATERIAL, MainFrame::onExportMaterial)
     EVT_MENU(cmd::GID_IMPORT_MAEERIAL, MainFrame::onImportMaterial)
-    EVT_UPDATE_UI_RANGE(cmd::GID_SAVE_MATERIAL,cmd::GID_IMPORT_MAEERIAL,MainFrame::onUpdateMaterialOperator)
+    EVT_MENU(cmd::GID_IMPORT_GLUE_MATERIAL, MainFrame::onImportGlueMaterial)
+    EVT_UPDATE_UI_RANGE(cmd::GID_SAVE_MATERIAL,cmd::GID_EXPORT_GLUE_MATERIAL,MainFrame::onUpdateMaterialOperator)
 
 
 	EVT_CLOSE(MainFrame::onClose)
@@ -193,6 +216,22 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
 {
     m_Config = new wxConfig("gmeditor");
     m_FileHistory = new wxFileHistory(10);
+
+    {//initionlize glueserver.
+        char *gs = getenv("GLUESERVER");
+        if(gs)
+        {
+            m_glueserver = gs;
+        }
+        if(gme::Option::instance().is_existed("glueserver"))
+        {
+            m_glueserver = gme::Option::instance().get<std::string>("glueserver");
+        }
+        if(m_glueserver.empty())
+        {
+            m_glueserver = "www.render001.com";
+        }
+    }
 
     createMenubar();
 	createToolbar();
@@ -289,6 +328,9 @@ MainFrame::appendShortCutString(int cmdid,wxString &shortCut)
     case cmd::GID_IMM_REFRESH:
         shortCut.append("\tF5");
         break;
+    case cmd::GID_IMPORT_GLUE_MATERIAL:
+        shortCut.append("\tF2");
+        break;
     default:
         break;
     }
@@ -333,6 +375,8 @@ MainFrame::createMenubar()
 		pEditMenu->Append(cmd::GID_SAVE_MATERIAL, gmeWXT("保存材质(&S)"), gmeWXT("将当前选中模型的材质保存为文件。"));
 		pEditMenu->Append(cmd::GID_EXPORT_MATERIAL, gmeWXT("导出材质(&E)"), gmeWXT("将当前选中模型的材质导出为材质库。"));
         pEditMenu->Append(cmd::GID_IMPORT_MAEERIAL, gmeWXT("导入材质(&F)"), gmeWXT("从外部导入材质并赋给当前选中模型。"));
+        name = gmeWXT("导入云材质(&G)");
+        pEditMenu->Append(cmd::GID_IMPORT_GLUE_MATERIAL, appendShortCutString(cmd::GID_IMPORT_GLUE_MATERIAL,name), gmeWXT("从兼容飞图的云端导入材质。" ) );
 
 		pEditMenu->AppendSeparator();
 		pEditMenu->Append(cmd::GID_RENDER_START,gmeWXT("开始渲染"),gmeWXT("开始渲染当前场景"));
@@ -632,7 +676,59 @@ MainFrame::saveSelectMaterial(const std::string &fpath,bool bExport)
         bSaveOK = saveMaterial(sel[0],fpath,bExport);
     }
     return bSaveOK;
+}
 
+bool
+MainFrame::importGlueMaterial(const std::string &objID)
+{
+    //准备路径。
+    boost::filesystem::path    targetPath = gme::ModulePath::instance().modulePath();
+    targetPath /= "cache";
+    targetPath /= "materials";
+    targetPath /= objID;
+    if(boost::filesystem::exists(targetPath))
+    {
+        boost::filesystem::remove_all(targetPath);
+    }
+    boost::filesystem::create_directories(targetPath);
+
+    boost::filesystem::path gutil = gme::ModulePath::instance().modulePath();
+#if WIN32
+    gutil /= "gutil.exe";
+#else
+    gutil /= "gutil";
+#endif
+    std::stringstream    cmdline;
+    if(boost::filesystem::exists(gutil))
+    {
+        cmdline << gutil.string();
+    }else{
+#if WIN32
+        cmdline << "gutil.exe";
+#else
+        cmdline << "gutil";
+#endif
+    }
+    cmdline << " --dir=\"";
+    cmdline << targetPath.string();
+    cmdline << "\"";
+    cmdline << " --url=\"http://127.0.0.1:10828/session?resource=/modules/materiallib/index.html\" --glueserver=";
+    cmdline << m_glueserver;
+    cmdline << "  openweb";
+    wxExecuteEnv env;
+    DECLARE_WXCONVERT;
+    wxGetEnvMap(&env.env);
+    wxString    cmd(cmdline.str().c_str(),gme_wx_utf8_conv);
+    int code = wxExecute(cmd, wxEXEC_SYNC, NULL, &env);
+    if(code == 0)
+    {//成功返回。在目录中寻找spm文件。
+        boost::filesystem::path     resultfile;
+        if(find_file(targetPath,resultfile))
+        {//
+            return importMaterial(objID,resultfile.string());
+        }
+    }
+    return false;
 }
 
 bool
@@ -688,6 +784,13 @@ MainFrame::onExportMaterial(wxCommandEvent &event)
 void
 MainFrame::onImportGlueMaterial(wxCommandEvent &event)
 {
+    DocObj  obj;
+    const std::vector<std::string> &sel = obj.getSelection();
+    if(sel.size() == 1)
+    {
+        importGlueMaterial(sel[0]);
+    }
+    
 }
 
 void
