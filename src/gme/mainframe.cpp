@@ -712,8 +712,7 @@ MainFrame::importGlueMaterial(const std::string &objID)
     cmdline << " --dir=\"";
     cmdline << targetPath.string();
     cmdline << "\"";
-    cmdline << " --url=\"http://127.0.0.1:10828/session?resource=/modules/materiallib/index.html\" --glueserver=";
-    cmdline << m_glueserver;
+    cmdline << " --url=\"http://www.render001.com/session.html?redirect=/modules/materiallib/index.html\"";
     cmdline << "  openweb";
     wxExecuteEnv env;
     DECLARE_WXCONVERT;

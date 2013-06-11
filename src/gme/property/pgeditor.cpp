@@ -144,7 +144,10 @@ bool wxPGSliderEditor::OnEvent ( wxPropertyGrid*  propgrid,
         {
 		    // Update the value
 		    event.Skip();
-		    property->SetValue ( ctrl->getRealValue() );
+			double ctrlValue = ctrl->getRealValue();
+			double propValue = property->GetValue().GetDouble();
+			if(propValue != ctrlValue)
+				property->SetValue ( ctrlValue );
 		    //propgrid->EditorsValueWasModified();
 		    return true;
         }
@@ -198,7 +201,7 @@ bool wxPGSliderEditor::OnEvent ( wxPropertyGrid*  propgrid,
                 ctrl->SetSize(pt.x,pt.y, textWidth, size.y);
                 pSlider->SetSize(pt.x + textWidth + 2, pt.y, totalWidth - textWidth - 2, size.y);
                 event.Skip();
-                return true;
+                //return true;
             }
         }
     }

@@ -1,0 +1,23 @@
+/* XPM */
+static char * preferences_xpm[] = {
+"16 16 4 1",
+" 	c None",
+".	c Black",
+"X	c Red",
+"o	c Green",
+"                ",
+"                ",
+"                ",
+"                ",
+"                ",
+"      ..        ",
+"     ....  XX   ",
+"     .... XXXX  ",
+"      ..  XXXX  ",
+"           XX   ",
+"    oo          ",
+"   oooo         ",
+"   oooo         ",
+"    oo          ",
+"                ",
+"                "};
