@@ -1,5 +1,5 @@
 /* XPM */
-static char * amblight_xpm[] = {
+static const char * amblight_xpm[] = {
 "16 16 4 1",
 " 	c None",
 ".	c Black",

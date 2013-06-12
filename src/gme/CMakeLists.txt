@@ -66,6 +66,7 @@ set(GME_SRCS
 	main.cpp
 	filedialog.cpp
 	cameraview.cpp
+	iconlist.cpp
 	data/xpmres.cpp
 	dialog/preferencesdialog.cpp
    )

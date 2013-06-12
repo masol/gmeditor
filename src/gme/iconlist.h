@@ -15,43 +15,39 @@
 //                                                                          //
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
+#ifndef  GME_ICONLIST_H
+#define  GME_ICONLIST_H
 
-#ifndef GME_SERVER_SERVER_H
-#define GME_SERVER_SERVER_H
-
+#include <boost/unordered_map.hpp>
+#include <boost/shared_ptr.hpp>
+#include <wx/wx.h>
+#include <wx/listctrl.h>
+#include <wx/imaglist.h>
 #include "utils/singleton.h"
 
-namespace gme
-{
+namespace gme{
 
-///@brief 负责维护网段内对等发现的广播服务。
-class UDPServer
+
+class IconList : public Singleton<IconList>
 {
+    friend  class Singleton<IconList>;
+    typedef Singleton<IconList> inherit;
+public:
+	int getIcon(std::string name);
+	wxImageList* getImageList();
+
+	~IconList()
+	{
+		if(m_imagelist)
+			delete m_imagelist;
+	}
 private:
-    friend class Server;
-    UDPServer(/*ios*/);
-    ~UDPServer();
-public:
-    void    start();
-    void    stop();
-};
-
-class Server : public Singleton<Server>
-{
-protected:
-    friend class Singleton<Server>;
-    typedef Singleton<Server>   inherited;
-    Server();
-public:
-    ~Server();
-    void    start();
-    void    stop();
-    bool    isRunning();
+	IconList();
+	void addIcon(std::string name,wxBitmap bitmap);
+	boost::unordered_map<std::string,int> iconmap;
+	wxImageList *m_imagelist;
 };
 
 }
 
-
-
-
-#endif //GME_SERVER_SERVER_H
+#endif

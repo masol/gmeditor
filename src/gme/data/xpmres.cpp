@@ -36,6 +36,23 @@
 #include "bitmap/rotateCam.xpm"
 #include "bitmap/select.xpm"
 
+#include "bitmap/ambLight.xpm"
+#include "bitmap/camera.xpm"
+#include "bitmap/clearLog.xpm"
+#include "bitmap/editLightDir.xpm"
+#include "bitmap/exportMat.xpm"
+#include "bitmap/hdrprop.xpm"
+#include "bitmap/importMat.xpm"
+#include "bitmap/lockwnd.xpm"
+#include "bitmap/matprop.xpm"
+#include "bitmap/object.xpm"
+#include "bitmap/preferences.xpm"
+#include "bitmap/refresh.xpm"
+#include "bitmap/saveas.xpm"
+#include "bitmap/saveCam.xpm"
+#include "bitmap/saveimage.xpm"
+#include "bitmap/saveMat.xpm"
+
 namespace gme{
 
 namespace xpm{
@@ -56,6 +73,23 @@ type_xpm zoomCam = zoomCam_xpm;
 type_xpm rotateCamAroundCenter = rotateCamAroundCenter_xpm;
 type_xpm rotateCam = rotateCam_xpm;
 type_xpm select = select_xpm;
+
+type_xpm ambLight = amblight_xpm;
+type_xpm camera = camera_xpm;
+type_xpm clearLog =clearlog_xpm;
+type_xpm editLightDir=editlightdir_xpm;
+type_xpm exportMat=exportmat_xpm;
+type_xpm hdrprop=hdrprop_xpm;
+type_xpm importMat=importmat_xpm;
+type_xpm lockwnd=lockwnd_xpm;
+type_xpm matprop=matprop_xpm;
+type_xpm object=object_xpm;
+type_xpm preferences=preferences_xpm;
+type_xpm refresh=refresh_xpm;
+type_xpm saveas=saveas_xpm;
+type_xpm saveCam=savecam_xpm;
+type_xpm saveimage=saveimage_xpm;
+type_xpm saveMat=savemat_xpm;
 
 } //end namespace xpm
 } //end namepsace gme

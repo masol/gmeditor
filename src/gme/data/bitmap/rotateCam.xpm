@@ -1,5 +1,5 @@
 /* XPM */
-static char * rotateCam_xpm[] = {
+static const char * rotateCam_xpm[] = {
 "16 16 170 2",
 "  	c None",
 ". 	c #4E89B1",

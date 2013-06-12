@@ -1,5 +1,5 @@
 /* XPM */
-static char * exportmat_xpm[] = {
+static const char * exportmat_xpm[] = {
 "16 16 146 2",
 "  	c None",
 ". 	c #F1F1F1",

@@ -41,6 +41,23 @@ extern  type_xpm rotateCamAroundCenter;
 extern  type_xpm rotateCam;
 extern  type_xpm select;
 
+extern  type_xpm ambLight;
+extern  type_xpm camera;
+extern  type_xpm clearLog;
+extern  type_xpm editLightDir;
+extern  type_xpm exportMat;
+extern  type_xpm hdrprop;
+extern  type_xpm importMat;
+extern  type_xpm lockwnd;
+extern  type_xpm matprop;
+extern  type_xpm object;
+extern  type_xpm preferences;
+extern  type_xpm refresh;
+extern  type_xpm saveas;
+extern  type_xpm saveCam;
+extern  type_xpm saveimage;
+extern  type_xpm saveMat;
+
 } //end namespace xpm
 } //end namepsace gme
 

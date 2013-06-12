@@ -157,6 +157,7 @@ private:
     static  boost::function<bool (std::string &)>   sv_getImageFilepath;
 	bool getImageFilepath(std::string &result);
     wxAuiPaneInfo&  getPaneFromCmdID(int cmdid);
+	void createMenuImageItem(wxMenu* parentMenu,int id,const wxString& text, const wxString& helpString,wxBitmap bmp);
 	//not need free members.
     ObjectView      *m_objectView;
     GlRenderView    *m_renderView;

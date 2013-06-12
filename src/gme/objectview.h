@@ -80,7 +80,20 @@ public:
     ObjectView(wxWindow* parent, wxWindowID id,const wxPoint& pos, const wxSize& size);
     ~ObjectView();
 private:
+	
     wxDECLARE_EVENT_TABLE();
+
+/*	enum{
+        ICON_OBJECT = 0,
+		ICON_MAX
+    };
+wxImageList *m_imagelist;
+	int iconmap[ICON_MAX];
+	void addIcon(int name,wxBitmap bitmap){
+		int index = m_imagelist->Add(bitmap);
+		iconmap[name] = index;
+	}
+*/
 };
 
 }

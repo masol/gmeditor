@@ -28,6 +28,7 @@
 #include "property/materialpage.h"
 #include "property/envlightpage.h"
 #include "property/pgeditor.h"
+#include "data/xpmres.h"
 
 // -----------------------------------------------------------------------
 // Main propertygrid header.
@@ -76,10 +77,9 @@ void PropFrame::initPages()
 {
 	DECLARE_WXCONVERT;
 
-	wxPropertyGridPage *pPage = m_pPropGridManager->AddPage(gmeWXT("高动态图映射"),wxPG_NULL_BITMAP,new HDRPage());
-
-	m_pPropGridManager->AddPage(gmeWXT("材质属性"),wxPG_NULL_BITMAP,new MaterialPage());
-	m_pPropGridManager->AddPage(gmeWXT("环境光"),wxPG_NULL_BITMAP,new EnvLightPage());
+	wxPropertyGridPage *pPage = m_pPropGridManager->AddPage(gmeWXT("高动态图映射"),wxBitmap(xpm::hdrprop),new HDRPage());
+	m_pPropGridManager->AddPage(gmeWXT("材质属性"),wxBitmap(xpm::matprop),new MaterialPage());
+	m_pPropGridManager->AddPage(gmeWXT("环境光"),wxBitmap(xpm::ambLight),new EnvLightPage());
 
 
 

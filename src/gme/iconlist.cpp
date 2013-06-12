@@ -16,42 +16,32 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef GME_SERVER_SERVER_H
-#define GME_SERVER_SERVER_H
+#include "config.h"
+#include "iconlist.h"
+#include "stringutil.h"
+#include "data/xpmres.h"
 
-#include "utils/singleton.h"
+namespace gme{
 
-namespace gme
-{
-
-///@brief 负责维护网段内对等发现的广播服务。
-class UDPServer
-{
-private:
-    friend class Server;
-    UDPServer(/*ios*/);
-    ~UDPServer();
-public:
-    void    start();
-    void    stop();
-};
-
-class Server : public Singleton<Server>
-{
-protected:
-    friend class Singleton<Server>;
-    typedef Singleton<Server>   inherited;
-    Server();
-public:
-    ~Server();
-    void    start();
-    void    stop();
-    bool    isRunning();
-};
-
+IconList::IconList(){
+	m_imagelist = new wxImageList(16, 16, true);
+	// 添加所有需要用得到的icon
+	this->addIcon("icon_camera",wxBitmap(xpm::camera));
+	this->addIcon("icon_object",wxBitmap(xpm::camera));
 }
 
 
+void IconList::addIcon(std::string name,wxBitmap bitmap){
+		int index = m_imagelist->Add(bitmap);
+		iconmap[name] = index ;
+	}
 
+int IconList::getIcon(std::string name){
+	return iconmap[name];
+}
 
-#endif //GME_SERVER_SERVER_H
+wxImageList* IconList::getImageList(){
+	return m_imagelist;
+}
+
+}

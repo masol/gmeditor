@@ -1,5 +1,5 @@
 /* XPM */
-static char * matprop_xpm[] = {
+static const char * matprop_xpm[] = {
 "16 16 4 1",
 " 	c None",
 ".	c Black",

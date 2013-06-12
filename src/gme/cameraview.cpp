@@ -26,8 +26,7 @@
 #include "utils/i18n.h"
 #include "stringutil.h"
 #include "cmdids.h"
-
-
+#include "iconlist.h"
 
 namespace gme{
 
@@ -47,10 +46,13 @@ CameraView::CameraView(wxWindow* parent, wxWindowID id,const wxPoint& pos, const
     DocIO   dio;
     dio.onSceneLoaded(boost::bind(&CameraView::onDocumentOpend,this));
     dio.onSceneClosed(boost::bind(&CameraView::onDocumentClosed,this));
+
+	this->SetImageList(IconList::instance().getImageList(),wxIMAGE_LIST_SMALL);
 }
 
 CameraView::~CameraView()
 {
+
 }
 
 void
@@ -105,7 +107,8 @@ CameraView::newCamFromCurrent(void)
       	DECLARE_WXCONVERT;
 
         wxString    name( (cam.name.empty() ? "未命名" : cam.name.c_str()),gme_wx_utf8_conv);
-        long itemIdx = this->InsertItem(idx, name);
+
+		long itemIdx = this->InsertItem(idx, name, IconList::instance().getIcon("icon_camera"));
         if(itemIdx >= 0)
         {
             this->SetItemData(itemIdx,idx);
@@ -162,11 +165,12 @@ CameraView::refresh(void)
 	DECLARE_WXCONVERT;
     DocCamera   doccam;
     size_t count = doccam.size();
+
     for(size_t i = 0; i <count; i++)
     {
         Camera   &cam = doccam.get(i);
         wxString    name( (cam.name.empty() ? "未命名" : cam.name.c_str()),gme_wx_utf8_conv);
-        long itemIdx = this->InsertItem(i, name);
+		long itemIdx = this->InsertItem(i, name, IconList::instance().getIcon("icon_camera"));
         if(itemIdx >= 0)
         {
             this->SetItemData(itemIdx,i);

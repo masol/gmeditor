@@ -47,6 +47,19 @@ public:
     void    newCamFromCurrent(void);
 private:
     wxDECLARE_EVENT_TABLE();
+	//wxImageList *m_imagelist;
+
+	//enum{
+    //    ICON_CAMERA = 0,
+	//	ICON_MAX
+    //};
+
+	//int iconmap[ICON_MAX];
+	//boost::unordered_map<std::string, int> iconmap;
+	//void addIcon(int name,wxBitmap bitmap){
+	//	int index = m_imagelist->Add(bitmap);
+	//	iconmap[name] = index;
+	//}
 };
 
 }

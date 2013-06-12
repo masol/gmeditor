@@ -346,7 +346,9 @@ MainFrame::createMenubar()
 
     {//File
         wxMenu *pFileMenu = new wxMenu();
-        pFileMenu->Append(wxID_OPEN, gmeWXT("Open"), gmeWXT("打开已有场景"));
+        //pFileMenu->Append(wxID_OPEN, gmeWXT("Open"), gmeWXT("打开已有场景"));
+		createMenuImageItem(pFileMenu,wxID_OPEN, gmeWXT("Open"), gmeWXT("打开已有场景"),wxBitmap(xpm::open));
+
         wxMenu *pOpenRecentMenu = new wxMenu();
         pFileMenu->AppendSubMenu(pOpenRecentMenu,gmeWXT("Open Recent"),gmeWXT("Open recent opend files"));
 	    m_FileHistory->UseMenu(pOpenRecentMenu);
@@ -354,22 +356,34 @@ MainFrame::createMenubar()
 
         pFileMenu->AppendSeparator();
 
-        name = gmeWXT("保存(&S)");
-        pFileMenu->Append(wxID_SAVE, appendShortCutString(wxID_SAVE,name), gmeWXT("保存现有场景"));
+		name = gmeWXT("保存(&S)");
+		/*
+        pFileMenu->Append(wxID_SAVE, appendShortCutString(wxID_SAVE,name), gmeWXT("保存现有场景"));	
         pFileMenu->Append(wxID_SAVEAS, gmeWXT("另存为(&A)"), gmeWXT("将现有场景另存为..."));
         pFileMenu->Append(cmd::GID_EXPORT, gmeWXT("导出(&E)"), gmeWXT("导出现有场景"));
         pFileMenu->AppendSeparator();
         pFileMenu->Append(cmd::GID_SAVE_IMAGE, gmeWXT("保存图片(&S)"), gmeWXT("保存当前渲染结果"));
         pFileMenu->AppendSeparator();
         pFileMenu->Append(wxID_EXIT, gmeWXT("退出(&X)"), gmeWXT("退出gmeditor"));
-
+		*/
+		createMenuImageItem(pFileMenu,wxID_SAVE, appendShortCutString(wxID_SAVE,name), gmeWXT("保存现有场景"),wxBitmap(xpm::save));
+		createMenuImageItem(pFileMenu,wxID_SAVEAS, gmeWXT("另存为(&A)"), gmeWXT("将现有场景另存为..."),wxBitmap(xpm::saveas));
+		createMenuImageItem(pFileMenu,cmd::GID_EXPORT, gmeWXT("导出(&E)"), gmeWXT("导出现有场景"),wxBitmap(xpm::_export));
+		pFileMenu->AppendSeparator();
+		createMenuImageItem(pFileMenu,cmd::GID_SAVE_IMAGE, gmeWXT("保存图片(&S)"), gmeWXT("保存当前渲染结果"),wxBitmap(xpm::saveimage));
+		pFileMenu->AppendSeparator();
+		pFileMenu->Append(wxID_EXIT, gmeWXT("退出(&X)"), gmeWXT("退出gmeditor"));
         pMenuBar->Append(pFileMenu, gmeWXT("文件(&F)"));
     }
 
     {//Edit
         wxMenu *pEditMenu = new wxMenu();
+		/*
 		pEditMenu->Append(cmd::GID_IMPORT, gmeWXT("导入(&I)"), gmeWXT("从文件中导入模型到当前场景"));
         pEditMenu->Append(wxID_DELETE, gmeWXT("删除(&D)"), gmeWXT("删除选中模型"));
+		*/
+		createMenuImageItem(pEditMenu,cmd::GID_IMPORT, gmeWXT("导入(&I)"), gmeWXT("从文件中导入模型到当前场景"),wxBitmap(xpm::import));
+		createMenuImageItem(pEditMenu,wxID_DELETE, gmeWXT("删除(&D)"), gmeWXT("删除选中模型"),wxBitmap(xpm::_delete));
 
 		pEditMenu->AppendSeparator();
 		pEditMenu->Append(cmd::GID_SAVE_MATERIAL, gmeWXT("保存材质(&S)"), gmeWXT("将当前选中模型的材质保存为文件。"));
@@ -379,15 +393,19 @@ MainFrame::createMenubar()
         pEditMenu->Append(cmd::GID_IMPORT_GLUE_MATERIAL, appendShortCutString(cmd::GID_IMPORT_GLUE_MATERIAL,name), gmeWXT("从兼容飞图的云端导入材质。" ) );
 
 		pEditMenu->AppendSeparator();
+		/*
 		pEditMenu->Append(cmd::GID_RENDER_START,gmeWXT("开始渲染"),gmeWXT("开始渲染当前场景"));
 		pEditMenu->Append(cmd::GID_RENDER_STOP,gmeWXT("结束渲染"),gmeWXT("结束当前场景的渲染"));
 		pEditMenu->Append(cmd::GID_RENDER_PAUSE,gmeWXT("暂停渲染"),gmeWXT("暂停渲染当前场景"));
-
+		*/
+		createMenuImageItem(pEditMenu,cmd::GID_RENDER_START,gmeWXT("开始渲染"),gmeWXT("开始渲染当前场景"),wxBitmap(xpm::start));
+		createMenuImageItem(pEditMenu,cmd::GID_RENDER_STOP,gmeWXT("结束渲染"),gmeWXT("结束当前场景的渲染"),wxBitmap(xpm::stop));
+		createMenuImageItem(pEditMenu,cmd::GID_RENDER_PAUSE,gmeWXT("暂停渲染"),gmeWXT("暂停渲染当前场景"),wxBitmap(xpm::pause));
 		pEditMenu->AppendSeparator();
         wxMenu *pEditmodeMenu = new wxMenu();
 
         name = gmeWXT("锁定(&L)");
-        pEditmodeMenu->AppendRadioItem(cmd::GID_MD_LOCK,appendShortCutString(cmd::GID_MD_LOCK,name), gmeWXT("锁定窗口。"));
+		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_LOCK,appendShortCutString(cmd::GID_MD_LOCK,name), gmeWXT("锁定窗口。"));	
         name = gmeWXT("平移(&P)");
 		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_PANE, appendShortCutString(cmd::GID_MD_PANE,name), gmeWXT("平移控制。"));
 		name = gmeWXT("旋转(&R)");
@@ -544,7 +562,7 @@ MainFrame::createToolbar()
 		wxAuiToolBar *pViewTbr = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
                                                   wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW| wxAUI_TB_HORIZONTAL);
 
-		pViewTbr->AddTool(cmd::GID_MD_LOCK,gmeWXT("锁定"),wxBitmap(xpm::help),gmeWXT("锁定说明"),wxITEM_RADIO);
+		pViewTbr->AddTool(cmd::GID_MD_LOCK,gmeWXT("锁定"),wxBitmap(xpm::lockwnd),gmeWXT("锁定说明"),wxITEM_RADIO);
 		pViewTbr->AddTool(cmd::GID_MD_PANE,gmeWXT("平移"),wxBitmap(xpm::translateCam),gmeWXT("平移说明"),wxITEM_RADIO);
 		pViewTbr->AddTool(cmd::GID_MD_ROTATE,gmeWXT("旋转"),wxBitmap(xpm::rotateCam),gmeWXT("旋转说明"),wxITEM_RADIO);
 		pViewTbr->AddTool(cmd::GID_MD_ROTATE_AROUND_FOCUS,gmeWXT("焦点旋转"),wxBitmap(xpm::rotateCamAroundCenter),gmeWXT("焦点旋转说明"),wxITEM_RADIO);
@@ -598,7 +616,48 @@ MainFrame::onClose(wxCloseEvent& event)
     exit(0);
 	event.Skip(false);
 	*/
-    if(m_FileHistory)
+	gme::DocIO  dio;
+	std::string filepath = dio.getLastLoadedPath();
+	if(!filepath.empty())
+	{
+		DECLARE_WXCONVERT;
+		wxMessageDialog messageDialog(this, gmeWXT("退出前是否保存？"), gmeWXT("退出"), wxCENTER | wxNO_DEFAULT | wxYES_NO | wxCANCEL | wxICON_INFORMATION);
+		messageDialog.SetYesNoCancelLabels(gmeWXT("保存"), gmeWXT("不保存"), gmeWXT("撤销"));
+		// 是否退出
+		bool flag = true;
+		switch ( messageDialog.ShowModal() )
+		{
+			case wxID_YES:
+				{
+					// save scene
+					if(!boost::iends_with(filepath,".sps"))
+					{
+						SaveSceneDialog dialog(this);
+						filepath.clear();
+						if ( dialog.ShowModal() == wxID_OK )
+						{
+							filepath = dialog.GetPath();
+						}
+					}
+					saveFile(filepath,false);
+				}
+				break;
+
+			case wxID_NO:
+				// do nothing
+				break;
+
+			case wxID_CANCEL:
+				flag = false;
+				break;
+
+			default:
+				break;
+		}
+		if(!flag)
+			return;
+	}
+	if(m_FileHistory)
     {
         m_FileHistory->Save(*m_Config);
 	    delete m_Config;
@@ -712,7 +771,11 @@ MainFrame::importGlueMaterial(const std::string &objID)
     cmdline << " --dir=\"";
     cmdline << targetPath.string();
     cmdline << "\"";
-    cmdline << " --url=\"http://www.render001.com/session.html?redirect=/modules/materiallib/index.html\"";
+    cmdline << " --url=\"http://";
+    cmdline << m_glueserver;
+    cmdline << "/session.html?redirect=/modules/materiallib/index.html\"";
+    cmdline << " --glueserver=";
+    cmdline << m_glueserver;
     cmdline << "  openweb";
     wxExecuteEnv env;
     DECLARE_WXCONVERT;
@@ -1388,6 +1451,16 @@ MainFrame::onUpdateMenuEditDelete(wxUpdateUIEvent& event)
     DocObj  obj;
     //@FIXME: need to implement obj.canDeleteItem. to remove last object cause slg crash.
     event.Enable(obj.getSelection().size() > 0);
+}
+
+void 
+MainFrame::createMenuImageItem(wxMenu* parentMenu,int id,const wxString& text, const wxString& helpString,wxBitmap bmp)
+{
+	DECLARE_WXCONVERT;
+	wxMenuItem *item = new wxMenuItem(parentMenu,id,text,helpString);
+	item->SetBitmap(bmp);
+	parentMenu->Append(item);
+	return ;
 }
 
 } //namespace gme

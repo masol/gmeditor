@@ -1,5 +1,5 @@
 /* XPM */
-static char * zoomCam_xpm[] = {
+static const char * zoomCam_xpm[] = {
 "16 16 81 1",
 " 	c None",
 ".	c #6DA4BD",

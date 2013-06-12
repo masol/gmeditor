@@ -31,6 +31,8 @@
 #include <boost/bind.hpp>
 #include "cmdids.h"
 #include "filedialog.h"
+#include "data/xpmres.h"
+#include "iconlist.h"
 
 namespace gme{
 
@@ -71,6 +73,25 @@ ObjectView::ObjectView(wxWindow* parent, wxWindowID id,const wxPoint& pos, const
     m_sizer = new wxBoxSizer(wxVERTICAL);
     m_sizer->Add(m_treelist,wxSizerFlags(1).Expand());
     SetSizer(m_sizer);
+
+	m_treelist->SetImageList(IconList::instance().getImageList());
+
+//    {//initionlize glueserver.
+//        char *gs = getenv("GLUESERVER");
+//        if(gs)
+//        {
+//            m_glueserver = gs;
+//        }
+//        if(gme::Option::instance().is_existed("glueserver"))
+//        {
+//            m_glueserver = gme::Option::instance().get<std::string>("glueserver");
+//       }
+//        if(m_glueserver.empty())
+//        {
+//            m_glueserver = "www.render001.com";
+//        }
+//    }
+
 
     DocIO   dio;
     dio.onSceneLoaded(boost::bind(&ObjectView::onDocumentOpend,this));
@@ -215,10 +236,10 @@ ObjectView::addChild(wxTreeListItem& parent,const ObjectNode &node,DocMat &objop
 {
     wxMBConvUTF8	gme_wx_utf8_conv;
     wxString    name(node.name().c_str(),gme_wx_utf8_conv);
-	wxTreeListItem item = m_treelist->AppendItem(parent,name);
+	wxTreeListItem item = m_treelist->AppendItem(parent,name,IconList::instance().getIcon("icon_object"),IconList::instance().getIcon("icon_object"));
     //here,we set item text to materail name,not matid!
-//    m_treelist->SetItemText(item, 1, objop.getMatName(node.matid()));
-//    m_treelist->SetItemText(item, 2, "");
+	//m_treelist->SetItemText(item, 1, objop.getMatName(node.matid()));
+	//m_treelist->SetItemText(item, 2, "");
     m_treelist->SetItemData(item,new ObjectViewClientData(node.id(),node.matid()));
     ObjectNode::type_child_container::const_iterator it = node.begin();
     while(it != node.end())
