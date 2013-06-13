@@ -104,6 +104,7 @@ DocPrivate::DocPrivate(void)
     m_state = DocPrivate::ST_STOPPED;
     forceExport = false;
     m_fileFilmValid = false;
+    m_bModified = false;
 }
 
 void
@@ -124,6 +125,7 @@ DocPrivate::closeScene(void)
     this->m_state = ST_STOPPED;
     m_filmPathfile.clear();
     m_fileFilmValid = false;
+    m_bModified = false;
     objManager.clear();
     matManager.clear();
     texManager.clear();

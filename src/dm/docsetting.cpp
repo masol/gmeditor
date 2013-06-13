@@ -129,6 +129,7 @@ DocSetting::changeSkyEnv(void)
         session->Start();
         pDocData->cachefilm().invalidate();
         bSetOK = true;
+        pDocData->setModified();
     }
     return bSetOK;
 }
@@ -153,6 +154,7 @@ DocSetting::enableSun(void)
             //session->Start();
             //pDocData->cachefilm().invalidate();
             bSetOK = true;
+            pDocData->setModified();
         }
     }
     return bSetOK;
@@ -177,6 +179,7 @@ DocSetting::disableSun(void)
             //session->Start();
             //pDocData->cachefilm().invalidate();
             bSetOK = true;
+            pDocData->setModified();
         }
     }
     return bSetOK;
@@ -198,6 +201,7 @@ DocSetting::disableEnv(void)
             session->Start();
             pDocData->cachefilm().invalidate();
             bSetOK = true;
+            pDocData->setModified();
         }
     }
     return bSetOK;
@@ -212,6 +216,7 @@ DocSetting::changeSunTurbidity(float t)
         SlgUtil::Editor editor(session);
         session->renderConfig->scene->sunLight->SetTurbidity(t);
         editor.addAction(slg::SUNLIGHT_EDIT);
+        pDocData->setModified();
         return true;
     }
     return false;
@@ -226,6 +231,7 @@ DocSetting::changeSunRelsize(float s)
         SlgUtil::Editor editor(session);
         session->renderConfig->scene->sunLight->SetRelSize(s);
         editor.addAction(slg::SUNLIGHT_EDIT);
+        pDocData->setModified();
         return true;
     }
     return false;
@@ -241,6 +247,7 @@ DocSetting::changeSunGain(const luxrays::Spectrum &g)
         session->renderConfig->scene->sunLight->SetGain(g);
         session->renderConfig->scene->sunLight->Preprocess();
         editor.addAction(slg::SUNLIGHT_EDIT);
+        pDocData->setModified();
         return true;
     }
     return false;
@@ -255,6 +262,7 @@ DocSetting::changeSunDir(const luxrays::Vector &dir)
         SlgUtil::Editor editor(session);
         session->renderConfig->scene->sunLight->SetDir(dir);
         editor.addAction(slg::SUNLIGHT_EDIT);
+        pDocData->setModified();
         return true;
     }
     return false;
@@ -286,6 +294,7 @@ DocSetting::changeSunDir(float filmx,float filmy)
             luxrays::Vector dir = camera->target - pt;
             session->renderConfig->scene->sunLight->SetDir(dir);
             editor.addAction(slg::SUNLIGHT_EDIT);
+            pDocData->setModified();
             return true;
         }
     }
@@ -305,6 +314,7 @@ DocSetting::changeSkyDir(const luxrays::Vector &dir)
             SlgUtil::Editor editor(session);
             pRealLight->SetSunDir(dir);
             editor.addAction(slg::SKYLIGHT_EDIT);
+            pDocData->setModified();
             return true;
         }
     }
@@ -323,6 +333,7 @@ DocSetting::changeSkyTurbidity(float t)
             SlgUtil::Editor editor(session);
             pRealLight->SetTurbidity(t);
             editor.addAction(slg::SKYLIGHT_EDIT);
+            pDocData->setModified();
             return true;
         }
     }
@@ -341,6 +352,7 @@ DocSetting::changeEnvUDelta(float d)
             SlgUtil::Editor editor(session);
             pRealLight->GetUVMapping()->uDelta = d;
             editor.addAction(slg::INFINITELIGHT_EDIT);
+            pDocData->setModified();
             return true;
         }
     }
@@ -359,6 +371,7 @@ DocSetting::changeEnvVDelta(float d)
             SlgUtil::Editor editor(session);
             pRealLight->GetUVMapping()->vDelta = d;
             editor.addAction(slg::INFINITELIGHT_EDIT);
+            pDocData->setModified();
             return true;
         }
     }
@@ -380,6 +393,7 @@ DocSetting::changeEnvGain(const luxrays::Spectrum &g)
             session->renderConfig->scene->envLight->Preprocess();
             editor.addAction(slg::SKYLIGHT_EDIT);
         }
+        pDocData->setModified();
         return true;
     }
     return false;
@@ -413,6 +427,7 @@ DocSetting::changeHDRfile(const std::string &fullpath)
         session->Start();
         pDocData->cachefilm().invalidate();
         //editor.addAction(slg::INFINITELIGHT_EDIT);
+        pDocData->setModified();
         bSetOK = true;
     }
     return bSetOK;
@@ -434,6 +449,7 @@ DocSetting::setToneMapParams(const slg::ToneMapParams &param)
     if(pDocData->getSession() && pDocData->getSession()->film)
     {
         pDocData->getSession()->film->SetToneMapParams(param);
+        pDocData->setModified();
         return true;
     }
     return false;
@@ -456,6 +472,7 @@ DocSetting::setFilmFilter(int type)
     {
         slg::FilterType ft = (slg::FilterType)type;
         pDocData->getSession()->film->SetFilterType(ft);
+        pDocData->setModified();
         return true;
     }
     return false;
@@ -477,6 +494,7 @@ DocSetting::setGamma(float g)
     if(pDocData->getSession() && pDocData->getSession()->film)
     {
         pDocData->getSession()->film->InitGammaTable(g);
+        pDocData->setModified();
         return true;
     }
     return false;

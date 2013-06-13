@@ -43,7 +43,7 @@ public:
         return inherit::OnExit();
     }
 
-    bool OnInit() 
+    bool OnInit()
     {
         //initionlize config.
         //设置异常翻译。
@@ -52,6 +52,7 @@ public:
         {
             typedef char*   str_point;
             str_point*   mb_args = new str_point[argc];
+            wxMBConvUTF8	gme_wx_utf8_conv;
             for(int i = 0; i < argc;i++)
             {
                 wxString string(argv[i]);
@@ -68,13 +69,13 @@ public:
                         if(GetModuleFileName(NULL,fullpath,1024) > 0)
                         {
                             wxString    temp(fullpath);
-                            mb_args[i] = strdup(temp.mb_str());
+                            mb_args[i] = strdup(temp.mb_str(gme_wx_utf8_conv));
                         }else{
-                            mb_args[i] = strdup(string.mb_str());
+                            mb_args[i] = strdup(string.mb_str(gme_wx_utf8_conv));
                         }
                     }
                 }else{
-                    mb_args[i] = strdup(string.mb_str());
+                    mb_args[i] = strdup(string.mb_str(gme_wx_utf8_conv));
                 }
 #else
                 mb_args[i] = strdup(string.mb_str());

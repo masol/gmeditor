@@ -184,15 +184,34 @@ MaterialPage::addTextureContent(wxPGProperty *pTexType,type_xml_node *pSelf,int 
         type_xml_attr *rAttr = pSelf->first_attribute("r");
         type_xml_attr *gAttr = pSelf->first_attribute("g");
         type_xml_attr *bAttr = pSelf->first_attribute("b");
+        float   gain = 1.0f;
         if(rAttr && gAttr && bAttr)
         {
-            int r = (int)(boost::lexical_cast<float>(rAttr->value()) * 255.0f);
-            int g = (int)(boost::lexical_cast<float>(gAttr->value()) * 255.0f);
-            int b = (int)(boost::lexical_cast<float>(bAttr->value()) * 255.0f);
+            float   orig_r = boost::lexical_cast<float>(rAttr->value());
+            float   og = boost::lexical_cast<float>(gAttr->value());
+            float   ob = boost::lexical_cast<float>(bAttr->value());
+            float   otmax = (orig_r > og ? orig_r : og);
+            otmax = (otmax > ob ? otmax : ob);
+            if(otmax > 1.0f)
+            {
+                gain = std::ceil(otmax);
+            }else{
+                float otmin = (orig_r < og ? orig_r : og);
+                otmin = (otmin < ob ? otmax : ob);
+                const float minprecision = 1.0f / 255.0f;
+                if(otmin < minprecision)
+                {
+                    gain = otmin / minprecision;
+                }
+            }
+            int r = (int)(orig_r / gain * 255.0f);
+            int g = (int)(og / gain * 255.0f);
+            int b = (int)(ob / gain * 255.0f);
             color.Set(r,g,b);
         }
         wxPGProperty* pTexValue = new wxColourProperty(gmeWXT("颜色"),"value",color);
         this->AppendIn(pTexType,pTexValue);
+        this->AppendIn(pTexType,this->setFloatEditor(new wxFloatProperty(gmeWXT("增益"),"colorgain",gain),0.0f,10.0f) );
     }else if(type == DocMat::CONST_FLOAT)
     {
         float   value = GetAttributeValue(pSelf,"value",0.5f);
@@ -656,20 +675,62 @@ MaterialPage::OnPropertyChanging( wxPropertyGridEvent& event )
 //    }else
 //    std::cerr << event.GetValue().GetType();
     wxAny any = event.GetValue();
-    if(any.CheckType<wxColour>())
+
+    if(boost::ends_with(name,".colorgain"))
     {
-        wxColour pc = any.As<wxColour>();
-        value = boost::str(boost::format("%f %f %f") % ((float)pc.Red()/255.0f)  % ((float)pc.Green()/255.0f)  % ((float)pc.Blue()/255.0f) );
-    }else if(any.CheckType<float>())
-    {
-        float fv = any.As<float>();
-        value = boost::str(boost::format("%.4f")%fv);
-    }else if(any.CheckType<wxString>()){
-        wxString  wxvalue = any.As<wxString>();
-        value = boost::locale::conv::utf_to_utf<char>(wxvalue.ToStdWstring());
+        std::string colorvalue;
+        for(size_t idx = 0; idx < idArray.size() - 1; idx++)
+        {
+            colorvalue += idArray[idx];
+            colorvalue += '.';
+        }
+        colorvalue += "value";
+        wxPGProperty *pcolorvalueProp = this->GetProperty(colorvalue.c_str());
+        if(!pcolorvalueProp)
+        {
+            if(event.CanVeto())
+                event.Veto();
+            return;
+        }
+        float gain = any.As<float>();
+        wxAny   val = pcolorvalueProp->GetValue();
+        //BOOST_ASSERT(any.CheckType<wxColour>());
+        wxColour pc = val.As<wxColour>();
+        idArray.pop_back();
+        idArray.push_back("value");
+        value = boost::str(boost::format("%f %f %f") % ((float)pc.Red()/255.0f * gain)  % ((float)pc.Green()/255.0f * gain)  % ((float)pc.Blue()/255.0f * gain) );
     }else{
-        //value = boost::locale::conv::utf_to_utf<char>(any.As<wxString>().ToStdWstring());
-        value =  event.GetValue().GetString().c_str();
+        if(any.CheckType<wxColour>())
+        {
+            wxColour pc = any.As<wxColour>();
+            float gain = 1.0f;
+            if(boost::equals(idArray.back(),"value"))
+            {
+                std::string colorgain;
+                for(size_t idx = 0; idx < idArray.size() - 1; idx++)
+                {
+                    colorgain += idArray[idx];
+                    colorgain += '.';
+                }
+                colorgain += "colorgain";
+                wxPGProperty *pcolorgainProp = this->GetProperty(colorgain.c_str());
+                if(pcolorgainProp)
+                {
+                    gain = (float)pcolorgainProp->GetValue().GetDouble();
+                }
+            }
+            value = boost::str(boost::format("%f %f %f") % ((float)pc.Red()/255.0f * gain)  % ((float)pc.Green()/255.0f * gain)  % ((float)pc.Blue()/255.0f * gain) );
+        }else if(any.CheckType<float>())
+        {
+            float fv = any.As<float>();
+            value = boost::str(boost::format("%.4f")%fv);
+        }else if(any.CheckType<wxString>()){
+            wxString  wxvalue = any.As<wxString>();
+            value = boost::locale::conv::utf_to_utf<char>(wxvalue.ToStdWstring());
+        }else{
+            //value = boost::locale::conv::utf_to_utf<char>(any.As<wxString>().ToStdWstring());
+            value =  event.GetValue().GetString().c_str();
+        }
     }
 
     ///@fixme: why we can get a empty value?

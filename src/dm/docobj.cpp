@@ -76,6 +76,7 @@ DocObj::importObject(const std::string &path,ObjectNode *pParent)
         if(bLoadSuc)
         {
             editor.addAction(ctx.getAction());
+            pDocData->setModified();
             pDocData->fireSelection(DocPrivate::SEL_ITEMCHILDADDED,pParent->id());
         }
     }
@@ -95,7 +96,12 @@ DocObj::importObject(const std::string &path,ObjectNode *pParent)
 bool
 DocObj::deleteObject(const std::string &id)
 {
-    return pDocData->objManager.removeMesh(id);
+    if(pDocData->objManager.removeMesh(id))
+    {
+        pDocData->setModified();
+        return true;
+    }
+    return false;
 }
 
 void

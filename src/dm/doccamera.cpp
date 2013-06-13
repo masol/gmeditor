@@ -143,6 +143,7 @@ DocCamera::translate(int distx,int disty,float optTranslateFactor)
 	    session->EndEdit();
         pDocData->cachefilm().invalidate();
         pDocData->camManager.saveCurrentCamera();
+        pDocData->setModified();
 	    return true;
 	}
 	return false;
@@ -172,6 +173,7 @@ DocCamera::straightTranslate(float factor)
 	    session->EndEdit();
 	    pDocData->cachefilm().invalidate();
 	    pDocData->camManager.saveCurrentCamera();
+	    pDocData->setModified();
 	    return true;
 	}
 	return false;
@@ -227,6 +229,7 @@ DocCamera::targetRotate(int distx,int disty,float optRotateFactor)
 	    session->EndEdit();
 	    pDocData->cachefilm().invalidate();
 	    pDocData->camManager.saveCurrentCamera();
+	    pDocData->setModified();
 	    return true;
 	}
 	return false;
@@ -259,6 +262,7 @@ DocCamera::rotate(int distX,int distY,float optRotateFactor)
 	    session->EndEdit();
 	    pDocData->cachefilm().invalidate();
 	    pDocData->camManager.saveCurrentCamera();
+	    pDocData->setModified();
 	    return true;
 	}
 	return false;
@@ -283,6 +287,7 @@ DocCamera::setTarget(void)
 
 	    pDocData->cachefilm().invalidate();
 	    pDocData->camManager.saveCurrentCamera();
+	    pDocData->setModified();
 	    return true;
     }
 	return false;
@@ -299,6 +304,7 @@ DocCamera::viewAll(const std::string &objID)
         //this is done in slgutils::Editor.
 //        pDocData->cachefilm().invalidate();
         pDocData->camManager.saveCurrentCamera();
+        pDocData->setModified();
         return true;
     }
     return false;

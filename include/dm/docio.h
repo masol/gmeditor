@@ -62,6 +62,9 @@ public:
 
     void    onSceneLoaded(type_state_handler handler);
     void    onSceneClosed(type_state_handler handler);
+    void    onSceneModified(type_state_handler handler);
+
+    bool    isModified(void);
 public:
     /** @brief 更新node所指示对象的关联资源，将所有资源拷贝到指定目录，并修改node中的关联索引。
      * @details 静态方法，不需要锁定文档对象。

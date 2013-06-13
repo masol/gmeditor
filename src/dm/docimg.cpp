@@ -122,7 +122,7 @@ DocImg::setSize(int w,int h)
             session->Start();
             pDocData->cachefilm().invalidate();
             pDocData->imageSize_Evt.fire(w,h);
-
+            pDocData->setModified();
         }
         return true;
     }

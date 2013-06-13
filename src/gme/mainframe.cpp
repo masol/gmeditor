@@ -149,7 +149,7 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_MENU(wxID_SAVE, MainFrame::onMenuFileSave)
 	EVT_UPDATE_UI(wxID_SAVE,MainFrame::onUpdateMenuFileSave)
 	EVT_MENU(wxID_SAVEAS, MainFrame::onMenuFileSaveAs)
-	EVT_UPDATE_UI(wxID_SAVEAS,MainFrame::onUpdateMenuFileSave)
+	EVT_UPDATE_UI(wxID_SAVEAS,MainFrame::onUpdateMenuFileSaveAs)
 	EVT_MENU(cmd::GID_EXPORT, MainFrame::onMenuFileExport)
 	EVT_UPDATE_UI(cmd::GID_EXPORT,MainFrame::onUpdateonMenuFileExport)
 	EVT_MENU(cmd::GID_IMPORT, MainFrame::onMenuFileImport)
@@ -173,7 +173,7 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_UPDATE_UI(cmd::GID_AUTO_TARGET,MainFrame::onUpdateAutoTarget)
 	EVT_MENU(cmd::GID_AUTO_FOCUS,MainFrame::onAutoFocus)
 	EVT_UPDATE_UI(cmd::GID_AUTO_FOCUS,MainFrame::onUpdateAutoFocus)
-    
+
 
     EVT_MENU_RANGE(cmd::GID_PANE_BEGIN, cmd::GID_PANE_END,MainFrame::onViewPane)
     EVT_UPDATE_UI_RANGE(cmd::GID_PANE_BEGIN,cmd::GID_PANE_END,MainFrame::onUpdateViewPane)
@@ -358,7 +358,7 @@ MainFrame::createMenubar()
 
 		name = gmeWXT("保存(&S)");
 		/*
-        pFileMenu->Append(wxID_SAVE, appendShortCutString(wxID_SAVE,name), gmeWXT("保存现有场景"));	
+        pFileMenu->Append(wxID_SAVE, appendShortCutString(wxID_SAVE,name), gmeWXT("保存现有场景"));
         pFileMenu->Append(wxID_SAVEAS, gmeWXT("另存为(&A)"), gmeWXT("将现有场景另存为..."));
         pFileMenu->Append(cmd::GID_EXPORT, gmeWXT("导出(&E)"), gmeWXT("导出现有场景"));
         pFileMenu->AppendSeparator();
@@ -405,7 +405,7 @@ MainFrame::createMenubar()
         wxMenu *pEditmodeMenu = new wxMenu();
 
         name = gmeWXT("锁定(&L)");
-		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_LOCK,appendShortCutString(cmd::GID_MD_LOCK,name), gmeWXT("锁定窗口。"));	
+		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_LOCK,appendShortCutString(cmd::GID_MD_LOCK,name), gmeWXT("锁定窗口。"));
         name = gmeWXT("平移(&P)");
 		pEditmodeMenu->AppendRadioItem(cmd::GID_MD_PANE, appendShortCutString(cmd::GID_MD_PANE,name), gmeWXT("平移控制。"));
 		name = gmeWXT("旋转(&R)");
@@ -617,45 +617,48 @@ MainFrame::onClose(wxCloseEvent& event)
 	event.Skip(false);
 	*/
 	gme::DocIO  dio;
-	std::string filepath = dio.getLastLoadedPath();
-	if(!filepath.empty())
+	if(dio.isModified())
 	{
-		DECLARE_WXCONVERT;
-		wxMessageDialog messageDialog(this, gmeWXT("退出前是否保存？"), gmeWXT("退出"), wxCENTER | wxNO_DEFAULT | wxYES_NO | wxCANCEL | wxICON_INFORMATION);
-		messageDialog.SetYesNoCancelLabels(gmeWXT("保存"), gmeWXT("不保存"), gmeWXT("撤销"));
-		// 是否退出
-		bool flag = true;
-		switch ( messageDialog.ShowModal() )
-		{
-			case wxID_YES:
-				{
-					// save scene
-					if(!boost::iends_with(filepath,".sps"))
-					{
-						SaveSceneDialog dialog(this);
-						filepath.clear();
-						if ( dialog.ShowModal() == wxID_OK )
-						{
-							filepath = dialog.GetPath();
-						}
-					}
-					saveFile(filepath,false);
-				}
-				break;
+        std::string filepath = dio.getLastLoadedPath();
+        if(!filepath.empty())
+        {
+            DECLARE_WXCONVERT;
+            wxMessageDialog messageDialog(this, gmeWXT("退出前是否保存？"), gmeWXT("退出"), wxCENTER | wxNO_DEFAULT | wxYES_NO | wxCANCEL | wxICON_INFORMATION);
+            messageDialog.SetYesNoCancelLabels(gmeWXT("保存"), gmeWXT("不保存"), gmeWXT("撤销"));
+            // 是否退出
+            bool flag = true;
+            switch ( messageDialog.ShowModal() )
+            {
+                case wxID_YES:
+                    {
+                        // save scene
+                        if(!boost::iends_with(filepath,".sps"))
+                        {
+                            SaveSceneDialog dialog(this);
+                            filepath.clear();
+                            if ( dialog.ShowModal() == wxID_OK )
+                            {
+                                filepath = dialog.GetPath();
+                            }
+                        }
+                        saveFile(filepath,false);
+                    }
+                    break;
 
-			case wxID_NO:
-				// do nothing
-				break;
+                case wxID_NO:
+                    // do nothing
+                    break;
 
-			case wxID_CANCEL:
-				flag = false;
-				break;
+                case wxID_CANCEL:
+                    flag = false;
+                    break;
 
-			default:
-				break;
-		}
-		if(!flag)
-			return;
+                default:
+                    break;
+            }
+            if(!flag)
+                return;
+        }
 	}
 	if(m_FileHistory)
     {
@@ -852,7 +855,7 @@ MainFrame::onImportGlueMaterial(wxCommandEvent &event)
     {
         importGlueMaterial(sel[0]);
     }
-    
+
 }
 
 void
@@ -1245,9 +1248,17 @@ MainFrame::onMenuFileSave(wxCommandEvent &event)
 void
 MainFrame::onUpdateMenuFileSave(wxUpdateUIEvent &event)
 {
+	DocIO   dio;
+    event.Enable(dio.isModified());
+}
+
+void
+MainFrame::onUpdateMenuFileSaveAs(wxUpdateUIEvent& event)
+{
 	DocCtl dctl;
     event.Enable(dctl.isPause() || dctl.isRuning());
 }
+
 
 void
 MainFrame::onMenuFileQuit(wxCommandEvent &event)
@@ -1453,7 +1464,7 @@ MainFrame::onUpdateMenuEditDelete(wxUpdateUIEvent& event)
     event.Enable(obj.getSelection().size() > 0);
 }
 
-void 
+void
 MainFrame::createMenuImageItem(wxMenu* parentMenu,int id,const wxString& text, const wxString& helpString,wxBitmap bmp)
 {
 	DECLARE_WXCONVERT;

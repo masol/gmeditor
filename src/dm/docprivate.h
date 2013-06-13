@@ -68,6 +68,9 @@ private:
     friend class DocIO;
     ///@brief 保存了当前加载成功的文件路径。
     std::string                       m_currentFile;
+
+    ///@brief 记录文档是否被修改过。
+    bool                              m_bModified;
 public:
     typedef boost::function<void (int,int)>     type_imagesize_handler;
     typedef boost::function<void (void)>        type_state_handler;
@@ -79,6 +82,7 @@ public:
         STATE_PAUSE,
         STATE_AUTOFOCUS_CHANGED,
         STATE_CAMSELSWITCHED, //指示当前激活摄像机被切换。
+        STATE_MODIFIED,
         STATE_MAX
     };
 
@@ -252,6 +256,23 @@ public:
     inline  void    fireSizeChanged(void)
     {
         imageSize_Evt.fire(m_session->film->GetWidth(),m_session->film->GetHeight());
+    }
+
+    inline  bool    isModified(void)const
+    {
+        return m_bModified;
+    }
+    inline  void    clearModified()
+    {
+        m_bModified = false;
+    }
+    inline  void    setModified()
+    {
+        if(!m_bModified)
+        {
+            fireStateChanged(STATE_MODIFIED);
+            m_bModified = true;
+        }
     }
 };
 

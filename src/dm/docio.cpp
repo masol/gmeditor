@@ -610,6 +610,11 @@ DocIO::exportSpoloScene(const std::string &pathstring,bool bExportRes)
         }
         ofstream << "</scene>" << std::endl;
 
+        if(pDocData->m_currentFile == pathstring)
+        {
+            pDocData->clearModified();
+        }
+
         return true;
     }
 
@@ -658,6 +663,18 @@ void
 DocIO::onSceneClosed(type_state_handler handler)
 {
     pDocData->state_Evt.addEventListen(DocPrivate::STATE_CLOSE,handler);
+}
+
+void
+DocIO::onSceneModified(type_state_handler handler)
+{
+    pDocData->state_Evt.addEventListen(DocPrivate::STATE_MODIFIED,handler);
+}
+
+bool
+DocIO::isModified(void)
+{
+    return pDocData->isModified();
 }
 
 

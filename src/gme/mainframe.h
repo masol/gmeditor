@@ -66,6 +66,7 @@ protected:
     ///@brief 如果filepath不是一个可识别后缀，自动加入后缀保存。
     void saveFile(const std::string &filepath,bool bExport);
   	void onUpdateMenuFileSave(wxUpdateUIEvent& event);
+  	void onUpdateMenuFileSaveAs(wxUpdateUIEvent& event);
 
 	void onMenuFileSaveImage(wxCommandEvent &event);
 	void onMenuPreferences(wxCommandEvent &event);
@@ -104,7 +105,7 @@ protected:
     void onUpdateAutoTarget(wxUpdateUIEvent &event);
 	void onAutoFocus(wxCommandEvent &event);
     void onUpdateAutoFocus(wxUpdateUIEvent &event);
-    
+
 
 	void onViewPane(wxCommandEvent &event);
     void onUpdateViewPane(wxUpdateUIEvent &event);

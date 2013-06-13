@@ -378,7 +378,7 @@ DocMat::loadMaterial(const ObjectNode *pNode,const std::string &path)
                 if(pDocData->matManager.loadMaterial(ss,ctx,realMatId,*pMat))
                 {
                     pDocData->matManager.onMaterialRemoved(pOldSlgMat);
-                    
+
                     luxrays::Properties prop;
                     prop.LoadFromString(ss.str());
                     //in any case,we need update root material.
@@ -390,6 +390,7 @@ DocMat::loadMaterial(const ObjectNode *pNode,const std::string &path)
                     pDocData->matManager.updateMaterialInfo(newMat,mat2name,tex2name);
                     editor.addAction(ctx.getAction());
                     pDocData->fireSelection(DocPrivate::SEL_ITEMMATUPDATED,pNode->id());
+                    pDocData->setModified();
                     return true;
                 }
             }
@@ -457,6 +458,7 @@ DocMat::updateProperty(const std::vector<std::string> &keyPath,const std::string
                     {
                         editor.resetAction();
                     }else{
+                        pDocData->setModified();
                         editor.addAction(slg::MATERIALS_EDIT);
                         if (ExtraMaterialManager::materialIsLight(newMat))
                             editor.addAction(slg::AREALIGHTS_EDIT);
@@ -493,7 +495,7 @@ DocMat::updateMaterial(const std::string &id,const std::string &slgMatDef)
         scene->UpdateMaterial(id,props);
 
         //last,check the material used by othter material and update it!
-
+        pDocData->setModified();
         return true;
     }
 	return false;
