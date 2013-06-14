@@ -164,6 +164,10 @@ public: //camera storage.
     /** @brief try to get a camera object at position pos.throw exception if pos invalid.
     **/
     Camera&      get(int pos);
+    /** @brief 查找名称为name的camera.
+     * @return -1 if not found.
+    **/
+    int           find(const std::string &name);
 };
 
 }

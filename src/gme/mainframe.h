@@ -50,6 +50,8 @@ public:
     bool importMaterial(const std::string &objID,const std::string &filepath);
     bool importGlueMaterial(const std::string &objID);
     bool saveMaterial(const std::string &objID,const std::string &filepath,bool bExport);
+    void setOpenFromCommandLine(int srcIdx);
+    void quitProgram(bool bPromptWhenQuit = false);
 protected:
 	void onClose(wxCloseEvent& event);
 
@@ -143,8 +145,11 @@ protected:
 	void onExportMaterial(wxCommandEvent &event);
 	void onImportMaterial(wxCommandEvent &event);
 	void onImportGlueMaterial(wxCommandEvent &event);
+	void onCopyMaterial(wxCommandEvent &event);
+	void onPasteMaterial(wxCommandEvent &event);
     bool saveSelectMaterial(const std::string &filepath,bool bExport);
     void onUpdateMaterialOperator(wxUpdateUIEvent &event);
+    void onUpdatePasteMaterial(wxUpdateUIEvent &event);
 
     void onSetting(wxCommandEvent &event);
     void onUpdateSetting(wxUpdateUIEvent &event);
@@ -152,6 +157,7 @@ protected:
 private:
     wxFileHistory*  m_FileHistory;
 	wxConfig*       m_Config;
+	bool            m_promptWhenQuit;
     //可以通过Option,环境变量来配置glueserver.缺省是www.render001.com
     std::string     m_glueserver;
 private:

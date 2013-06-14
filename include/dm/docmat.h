@@ -25,6 +25,11 @@
 #include "dm/xmlutil.h"
 #include <string>
 
+namespace slg
+{
+class Material;
+}
+
 namespace gme{
 
 /** @brief 材质操作接口。
@@ -106,10 +111,16 @@ public:
     /**@brief 将指定material id的材质保存到文件filepath中。
     **/
     bool        saveMaterial(const std::string &matid,const std::string &filepath,bool bExport = false);
+    bool        saveMaterialToString(const std::string &matid,std::string &content);
     /**@brief 从指定文件加载material并设置其id为matid..
      * @param matid : 现实存在的一个material id.
     **/
-    bool  loadMaterial(const ObjectNode *pNode,const std::string &filepath);
+    bool        loadMaterial(const ObjectNode *pNode,const std::string &filepath);
+    bool        loadMaterialFromString(const ObjectNode *pNode,std::string &content);
+    static  const char*     CLIPBOARD_MAGIC;
+private:
+    bool  loadMaterialImpl(const ObjectNode *pNode,slg::Material *pOldSlgMat,char* matContent,const std::string &path);
+    void  saveMaterialImpl(const slg::Material* pMat,std::ostream &os,const std::string &filepath,bool bExportRes);
 };
 
 }

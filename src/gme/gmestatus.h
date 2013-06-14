@@ -30,6 +30,8 @@ public:
     typedef    wxStatusBar     inherit;
     GMEStatusBar(wxWindow *parent, long style = wxSTB_DEFAULT_STYLE);
     virtual ~GMEStatusBar();
+    ///@brief 设置从命令行打开了文件。srcIdx为当前打开文件的id.此时需要检查option选项并设置退出条件。
+    void setOpenFromCommandLine(int srcIdx);
 protected:
 	enum{
 		Field_TEXT,
@@ -55,8 +57,16 @@ protected:
     void OnClearCondition(wxCommandEvent &event);
     void SetTimeField(unsigned int time,int field_id);
 
+
+    void onUpdateRenderTerminate(wxUpdateUIEvent &event);
     void onRenderInfoType(wxCommandEvent &event);
     void onUpdateRenderInfoType(wxUpdateUIEvent &event);
+    ///@brief 当前渲染已经到达终止条件。
+    void terminateCurrent(void);
+    ///@brief 根据配置文件，自动切换下一个摄像机。
+    bool switchToNextCamera(void);
+    bool switchToNextSrc(void);
+    void quitProgram(void);
 private:
     int  getCmdIdFromShowType(void);
     wxStaticBitmap *m_statbmp;
@@ -68,6 +78,12 @@ private:
     int             opt_refresh_tick;   //0.5s default
     ///@biref   度量信息的显示模式。缺省是native.
     int             m_showType;
+    ///@brief   设置当前的source idx.用于自动渲染。
+    int             m_currentSource;
+    ///@brief   保存option中camera name的下标,用于自动渲染。
+    int             m_currentCamera;
+    ///@brief   指示是否自动切换下一个，直到关闭。在命令行打开并且设置了pass时有效。
+    bool            m_autoRender;
 
     DECLARE_EVENT_TABLE()
 };

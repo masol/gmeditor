@@ -299,32 +299,28 @@ DocMat::saveMaterial(const std::string &matid,const std::string &filepath,bool b
         }
         BOOST_SCOPE_EXIT_END
 
-        ///boost自带的rapidxml没有print函数.....加入到utils中。
-        ofstream << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
-        {
-            std::ostream_iterator<char>   oit(ofstream);
-            type_xml_doc    xmldoc;
-
-            int flags = dumpContext::DUMP_NORMAL;
-            if(bExportRes)
-            {
-                flags = (dumpContext::DUMP_SAVECTM | dumpContext::DUMP_COPYRES);
-            }
-            boost::filesystem::path path(filepath);
-            boost::filesystem::path root_path = path.parent_path();
-            dumpContext     ctx(flags,root_path);
-
-            pDocData->matManager.dump(xmldoc,pMat,ctx);
-
-            //模版中不能有id,删除所有id属性。
-            recursion_remove_attribute(&xmldoc,constDef::id);
-
-            rapidxml::print(oit,xmldoc);
-        }
+        saveMaterialImpl(pMat,ofstream,filepath,bExportRes);
         return true;
     }
     return false;
 }
+
+const char*     DocMat::CLIPBOARD_MAGIC = "GMEDATA";
+
+bool
+DocMat::saveMaterialToString(const std::string &matid,std::string &content)
+{
+    const slg::Material* pMat = ExtraMaterialManager::getSlgMaterial(matid);
+    if(!pMat)
+        return false;
+
+    std::stringstream   ss;
+    ss << CLIPBOARD_MAGIC;
+    saveMaterialImpl(pMat,ss,boost::filesystem::current_path().string(),false);
+    content = ss.str();
+    return true;
+}
+
 
 bool
 DocMat::loadMaterial(const ObjectNode *pNode,const std::string &path)
@@ -359,47 +355,101 @@ DocMat::loadMaterial(const ObjectNode *pNode,const std::string &path)
         file.read (buffer,length);
         // ...buffer contains the entire file...
         buffer[length] = 0;
-        type_xml_doc    doc;
-        const int flag = NS_RAPIDXML::parse_no_element_values | NS_RAPIDXML::parse_trim_whitespace;
         try{
-            doc.parse<flag>(buffer);
-
-            type_xml_node   *pMat = doc.first_node(constDef::material);
-            if(pMat)
-            {
-                //模版中不能有id,删除所有id属性。
-                recursion_remove_attribute(pMat,constDef::id);
-                SlgUtil::Editor editor(pDocData->getSession());
-                ImportContext   ctx(pDocData->getSession()->renderConfig->scene,path);
-
-
-                std::stringstream ss;
-                std::string     realMatId = matid;
-                if(pDocData->matManager.loadMaterial(ss,ctx,realMatId,*pMat))
-                {
-                    pDocData->matManager.onMaterialRemoved(pOldSlgMat);
-
-                    luxrays::Properties prop;
-                    prop.LoadFromString(ss.str());
-                    //in any case,we need update root material.
-                    editor.scene()->UpdateMaterial(matid,prop);
-                    const slg::Material *newMat = editor.scene()->matDefs.GetMaterial(matid);
-
-                    SlgMaterial2Name mat2name;
-                    SlgTexture2Name tex2name;
-                    pDocData->matManager.updateMaterialInfo(newMat,mat2name,tex2name);
-                    editor.addAction(ctx.getAction());
-                    pDocData->fireSelection(DocPrivate::SEL_ITEMMATUPDATED,pNode->id());
-                    pDocData->setModified();
-                    return true;
-                }
-            }
+            return loadMaterialImpl(pNode,pOldSlgMat,buffer,path);
         }catch(std::exception &e)
         {
             Doc::SysLog(Doc::LOG_ERROR,boost::str(boost::format(__("在加载文件'%s'时发生异常:%s"))%path % e.what() ) );
         }
     }
     return false;
+}
+
+bool
+DocMat::loadMaterialFromString(const ObjectNode *pNode,std::string &content)
+{
+    if(!boost::starts_with(content,CLIPBOARD_MAGIC))
+        return false;
+
+    const std::string &matid = pNode->matid();
+    if(matid.empty())
+        return false;
+
+    slg::Material   *pOldSlgMat = ExtraMaterialManager::getSlgMaterial(matid);
+    if(!pOldSlgMat)
+        return false;
+
+
+    char* buffer = const_cast<char*>(content.c_str());
+    buffer = &buffer[strlen(CLIPBOARD_MAGIC)];
+    return loadMaterialImpl(pNode,pOldSlgMat,buffer,boost::filesystem::current_path().string());
+}
+
+
+bool
+DocMat::loadMaterialImpl(const ObjectNode *pNode,slg::Material *pOldSlgMat,char* matContent,const std::string &path)
+{
+    const std::string &matid = pNode->matid();
+    type_xml_doc    doc;
+    const int flag = NS_RAPIDXML::parse_no_element_values | NS_RAPIDXML::parse_trim_whitespace;
+
+    doc.parse<flag>(matContent);
+    type_xml_node   *pMat = doc.first_node(constDef::material);
+    if(pMat)
+    {
+        //模版中不能有id,删除所有id属性。
+        recursion_remove_attribute(pMat,constDef::id);
+        SlgUtil::Editor editor(pDocData->getSession());
+        ImportContext   ctx(pDocData->getSession()->renderConfig->scene,path);
+
+
+        std::stringstream ss;
+        std::string     realMatId = matid;
+        if(pDocData->matManager.loadMaterial(ss,ctx,realMatId,*pMat))
+        {
+            pDocData->matManager.onMaterialRemoved(pOldSlgMat);
+
+            luxrays::Properties prop;
+            prop.LoadFromString(ss.str());
+            //in any case,we need update root material.
+            editor.scene()->UpdateMaterial(matid,prop);
+            const slg::Material *newMat = editor.scene()->matDefs.GetMaterial(matid);
+
+            SlgMaterial2Name mat2name;
+            SlgTexture2Name tex2name;
+            pDocData->matManager.updateMaterialInfo(newMat,mat2name,tex2name);
+            editor.addAction(ctx.getAction());
+            pDocData->fireSelection(DocPrivate::SEL_ITEMMATUPDATED,pNode->id());
+            pDocData->setModified();
+            return true;
+        }
+    }
+    return false;
+}
+
+void
+DocMat::saveMaterialImpl(const slg::Material* pMat,std::ostream &os,const std::string &filepath,bool bExportRes)
+{
+    ///boost自带的rapidxml没有print函数.....加入到utils中。
+    os << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
+    std::ostream_iterator<char>   oit(os);
+    type_xml_doc    xmldoc;
+
+    int flags = dumpContext::DUMP_NORMAL;
+    if(bExportRes)
+    {
+        flags = (dumpContext::DUMP_SAVECTM | dumpContext::DUMP_COPYRES);
+    }
+    boost::filesystem::path path(filepath);
+    boost::filesystem::path root_path = path.parent_path();
+    dumpContext     ctx(flags,root_path);
+
+    pDocData->matManager.dump(xmldoc,pMat,ctx);
+
+    //模版中不能有id,删除所有id属性。
+    recursion_remove_attribute(&xmldoc,constDef::id);
+
+    rapidxml::print(oit,xmldoc);
 }
 
 

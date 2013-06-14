@@ -17,13 +17,17 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "config.h"
+#include <boost/format.hpp>
 #include "utils/i18n.h"
-#include "gmestatus.h"
+#include "utils/option.h"
 #include "dm/docimg.h"
 #include "dm/docctl.h"
+#include "dm/doccamera.h"
+#include "dm/docio.h"
+#include "gmestatus.h"
 #include "cmdids.h"
 #include "stringutil.h"
-#include <boost/format.hpp>
+#include "mainframe.h"
 
 namespace gme{
 
@@ -34,6 +38,7 @@ BEGIN_EVENT_TABLE(GMEStatusBar, GMEStatusBar::inherit)
 	EVT_MENU(cmd::GID_SB_SE_TIME,GMEStatusBar::OnSetTime)
 	EVT_MENU(cmd::GID_SB_SE_CONVERGENCE,GMEStatusBar::OnSetConvergence)
 	EVT_MENU(cmd::GID_SB_SE_CLEARALL,GMEStatusBar::OnClearCondition)
+    EVT_UPDATE_UI_RANGE(cmd::GID_SB_SE_PASS,cmd::GID_SB_SE_CLEARALL,GMEStatusBar::onUpdateRenderTerminate)
 
     EVT_MENU_RANGE(cmd::GID_SB_RI_BEGIN,cmd::GID_SB_RI_END,GMEStatusBar::onRenderInfoType)
     EVT_UPDATE_UI_RANGE(cmd::GID_SB_RI_BEGIN,cmd::GID_SB_RI_END,GMEStatusBar::onUpdateRenderInfoType)
@@ -67,12 +72,15 @@ GMEStatusBar::GMEStatusBar(wxWindow *parent, long style)
     m_targetTime = 0;
     m_targetConv = 0;
 
-    m_showType = gme::DocImg::RI_NATIVE;
+    m_showType = gme::DocImg::RI_TOTAL;
 
     m_pGauge->Connect(wxEVT_LEFT_UP,wxMouseEventHandler(GMEStatusBar::OnGaugeClick),NULL,this);
     m_micro_tick = boost::posix_time::microsec_clock::local_time();
     opt_refresh_tick = 500;
 
+    m_currentSource = -1;
+    m_currentCamera = -1;
+    m_autoRender = false;
     //SetMinHeight(m_pGauge->GetBestSize().GetHeight());
 }
 
@@ -87,7 +95,81 @@ GMEStatusBar::OnClearCondition(wxCommandEvent &event)
 void
 GMEStatusBar::OnSetPass(wxCommandEvent &event)
 {
-    m_targetPass = 10000;
+    m_targetPass = 16000;
+}
+
+bool
+GMEStatusBar::switchToNextSrc(void)
+{
+    std::string source("document.source");
+    if(gme::Option::instance().is_existed(source))
+    {
+        gme::DocIO docio;
+        std::vector<std::string> srcset = gme::Option::instance().get<std::vector<std::string> >(source);
+        size_t  start = (m_currentSource >= 0 ? m_currentSource + 1 : 0);
+        for(size_t idx = start; idx < srcset.size(); idx++)
+        {
+            if(docio.loadScene(srcset[idx]))
+            {
+                m_currentSource = idx;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void
+GMEStatusBar::quitProgram(void)
+{
+    gme::MainFrame* mainfrm = dynamic_cast<gme::MainFrame*>(wxTheApp->GetTopWindow());
+    if(mainfrm)
+    {
+        mainfrm->quitProgram();
+    }
+}
+
+
+bool
+GMEStatusBar::switchToNextCamera(void)
+{
+    std::string  camera("document.camera");
+    if(gme::Option::instance().is_existed(camera))
+    {//存在camera.以此校正camera。
+        std::vector<std::string> camset = gme::Option::instance().get<std::vector<std::string> >(camera);
+        DocCamera doccam;
+        size_t start = (m_currentCamera >= 0) ? m_currentCamera+1 : 0;
+        if(start < camset.size())
+        {
+            for(size_t idx = start ; idx < camset.size() ; idx++)
+            {
+                int camId = doccam.find(camset[idx]);
+                if(camId >= 0 && doccam.setSelected(camId))
+                {
+                    //cameraview会自动切换，所以这里不需要切换camera.
+                    m_currentCamera = idx;
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+void
+GMEStatusBar::setOpenFromCommandLine(int srcIdx)
+{
+    m_currentSource = srcIdx;
+    std::string pass("pass");
+    if(gme::Option::instance().is_existed(pass))
+    {
+        m_targetPass = gme::Option::instance().get<long>(pass);
+        if(m_targetPass >  0)
+        {
+            m_autoRender = true;
+        }
+    }
+    switchToNextCamera();
 }
 
 void
@@ -116,10 +198,10 @@ GMEStatusBar::OnGaugeClick(wxMouseEvent& event)
     DECLARE_WXCONVERT;
 
     wxMenu menu;
-    menu.Append(cmd::GID_SB_SE_PASS, gmeWXT("设置次数终止"));
-    menu.Append(cmd::GID_SB_SE_TIME, gmeWXT("设置时间终止"));
-    menu.Append(cmd::GID_SB_SE_CONVERGENCE, gmeWXT("设置覆盖率终止"));
-    menu.Append(cmd::GID_SB_SE_CLEARALL, gmeWXT("永久渲染"));
+    menu.AppendCheckItem(cmd::GID_SB_SE_PASS, gmeWXT("设置次数终止"));
+    menu.AppendCheckItem(cmd::GID_SB_SE_TIME, gmeWXT("设置时间终止"));
+    menu.AppendCheckItem(cmd::GID_SB_SE_CONVERGENCE, gmeWXT("设置覆盖率终止"));
+    menu.AppendCheckItem(cmd::GID_SB_SE_CLEARALL, gmeWXT("永久渲染"));
     menu.AppendSeparator();
     menu.AppendCheckItem(cmd::GID_SB_RI_NATIVE, gmeWXT("本地效率"));
     menu.AppendCheckItem(cmd::GID_SB_RI_CONTRIBUTE, gmeWXT("贡献效率"));
@@ -155,6 +237,37 @@ GMEStatusBar::SetTimeField(unsigned int time,int field_id)
     std::string info = boost::str(boost::format("%02d:%02d:%02d")% h % m % s);
     SetStatusText(info, field_id);
 }
+
+void
+GMEStatusBar::terminateCurrent(void)
+{
+    //如果请求保存。
+    std::string output("document.output");
+    if(gme::Option::instance().is_existed(output))
+    {
+        DocImg  img;
+        std::vector<std::string> outset = gme::Option::instance().get<std::vector<std::string> >(output);
+        BOOST_FOREACH(const std::string &filename,outset)
+        {
+            img.saveImage(boost::filesystem::absolute(filename,boost::filesystem::current_path()).string());
+        }
+    }
+
+    if(m_autoRender)
+    {
+        if(!switchToNextCamera())
+        {
+            if(!switchToNextSrc())
+            {//Quit Program.
+                quitProgram();
+            }
+        }
+    }else{
+        DocCtl  ctl;
+        ctl.pause();
+    }
+}
+
 
 void
 GMEStatusBar::OnIdle(wxIdleEvent& event)
@@ -209,8 +322,7 @@ GMEStatusBar::OnIdle(wxIdleEvent& event)
             {
                 if(value >= 1.0f)
                 {
-                    DocCtl  ctl;
-                    ctl.stop();
+                    terminateCurrent();
                     SetStatusText("00:00:00", Field_END);
                 }else{
                     int restTime = 0;
@@ -277,6 +389,25 @@ GMEStatusBar::onUpdateRenderInfoType(wxUpdateUIEvent &event)
     event.Check(event.GetId() == getCmdIdFromShowType());
 }
 
+void
+GMEStatusBar::onUpdateRenderTerminate(wxUpdateUIEvent &event)
+{
+    switch(event.GetId())
+    {
+    case cmd::GID_SB_SE_PASS:
+        event.Check(m_targetPass != 0);
+        break;
+    case cmd::GID_SB_SE_TIME:
+        event.Check(m_targetPass == 0 && m_targetTime != 0);
+        break;
+    case cmd::GID_SB_SE_CONVERGENCE:
+        event.Check(m_targetPass == 0 && m_targetTime == 0 && m_targetConv != 0);
+        break;
+    case cmd::GID_SB_SE_CLEARALL:
+        event.Check(m_targetPass == 0 && m_targetTime == 0 && m_targetConv == 0);
+        break;
+    }
+}
 
 
 }

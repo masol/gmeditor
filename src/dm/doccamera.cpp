@@ -390,6 +390,22 @@ DocCamera::get(int pos)
 }
 
 int
+DocCamera::find(const std::string &name)
+{
+    int pos = 0;
+    BOOST_FOREACH( Camera &underly_cam, pDocData->camManager.m_cam_vector )
+    {
+        if(underly_cam.name == name)
+        {
+            return pos;
+        }
+        pos++;
+    }
+    return -1;
+}
+
+
+int
 DocCamera::addCam(const Camera &cam)
 {
     if(cam.name.length() == 0)

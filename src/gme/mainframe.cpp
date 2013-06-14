@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "config.h"
+#include <wx/clipbrd.h>
 #include "mainframe.h"
 //#include "renderview.h"
 #include "objectview.h"
@@ -205,6 +206,10 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
     EVT_MENU(cmd::GID_IMPORT_MAEERIAL, MainFrame::onImportMaterial)
     EVT_MENU(cmd::GID_IMPORT_GLUE_MATERIAL, MainFrame::onImportGlueMaterial)
     EVT_UPDATE_UI_RANGE(cmd::GID_SAVE_MATERIAL,cmd::GID_EXPORT_GLUE_MATERIAL,MainFrame::onUpdateMaterialOperator)
+    EVT_MENU(wxID_COPY, MainFrame::onCopyMaterial)
+    EVT_MENU(wxID_PASTE, MainFrame::onPasteMaterial)
+    EVT_UPDATE_UI(wxID_COPY,MainFrame::onUpdateMaterialOperator)
+    EVT_UPDATE_UI(wxID_PASTE,MainFrame::onUpdatePasteMaterial)
 
 
 	EVT_CLOSE(MainFrame::onClose)
@@ -214,6 +219,7 @@ MainFrame::MainFrame(wxWindow* parent) : wxFrame(parent, -1, _("GMEditor"),
                   wxDefaultPosition, wxSize(800,600),
                   wxDEFAULT_FRAME_STYLE)
 {
+    m_promptWhenQuit = true;
     m_Config = new wxConfig("gmeditor");
     m_FileHistory = new wxFileHistory(10);
 
@@ -317,7 +323,7 @@ MainFrame::appendShortCutString(int cmdid,wxString &shortCut)
         shortCut.append("\tCtrl+A");
         break;
     case cmd::GID_VIEWSELECTION:
-        shortCut.append("\tCtrl+V");
+        shortCut.append("\tCtrl+D");
         break;
     case cmd::GID_VIEWSKYLIGHTDIR:
         shortCut.append("\tCtrl+I");
@@ -330,6 +336,12 @@ MainFrame::appendShortCutString(int cmdid,wxString &shortCut)
         break;
     case cmd::GID_IMPORT_GLUE_MATERIAL:
         shortCut.append("\tF2");
+        break;
+    case wxID_COPY:
+        shortCut.append("\tCtrl+C");
+        break;
+    case wxID_PASTE:
+        shortCut.append("\tCtrl+V");
         break;
     default:
         break;
@@ -391,6 +403,10 @@ MainFrame::createMenubar()
         pEditMenu->Append(cmd::GID_IMPORT_MAEERIAL, gmeWXT("导入材质(&F)"), gmeWXT("从外部导入材质并赋给当前选中模型。"));
         name = gmeWXT("导入云材质(&G)");
         pEditMenu->Append(cmd::GID_IMPORT_GLUE_MATERIAL, appendShortCutString(cmd::GID_IMPORT_GLUE_MATERIAL,name), gmeWXT("从兼容飞图的云端导入材质。" ) );
+        name = gmeWXT("拷贝材质(&C)");
+		pEditMenu->Append(wxID_COPY,appendShortCutString(wxID_COPY,name), gmeWXT("拷贝材质到剪切板。"));
+        name = gmeWXT("粘帖材质(&V)");
+        pEditMenu->Append(wxID_PASTE,appendShortCutString(wxID_PASTE,name), gmeWXT("从剪切板拷贝材质。"));
 
 		pEditMenu->AppendSeparator();
 		/*
@@ -603,6 +619,13 @@ MainFrame::createStatusbar()
 }
 
 
+void
+MainFrame::quitProgram(bool bPromptWhenQuit)
+{
+    m_promptWhenQuit = bPromptWhenQuit;
+    Close(false);
+}
+
 /** @brief 这里是真正的退出实现。所有清理工作在这里执行。
 **/
 void
@@ -617,14 +640,14 @@ MainFrame::onClose(wxCloseEvent& event)
 	event.Skip(false);
 	*/
 	gme::DocIO  dio;
-	if(dio.isModified())
+	if(m_promptWhenQuit && dio.isModified())
 	{
         std::string filepath = dio.getLastLoadedPath();
         if(!filepath.empty())
         {
             DECLARE_WXCONVERT;
-            wxMessageDialog messageDialog(this, gmeWXT("退出前是否保存？"), gmeWXT("退出"), wxCENTER | wxNO_DEFAULT | wxYES_NO | wxCANCEL | wxICON_INFORMATION);
-            messageDialog.SetYesNoCancelLabels(gmeWXT("保存"), gmeWXT("不保存"), gmeWXT("撤销"));
+            wxMessageDialog messageDialog(this, gmeWXT("退出前是否保存？"), gmeWXT("退出"), wxCENTER | wxNO_DEFAULT | wxYES_NO | wxCANCEL | wxICON_QUESTION);
+            messageDialog.SetYesNoCancelLabels(gmeWXT("保存"), gmeWXT("不保存"), gmeWXT("取消"));
             // 是否退出
             bool flag = true;
             switch ( messageDialog.ShowModal() )
@@ -697,6 +720,14 @@ MainFrame::onUpdateViewmode(wxUpdateUIEvent& event)
     event.Check(this->m_renderView->isCurrentViewmodeFromCmd(event.GetId()));
 }
 
+
+void
+MainFrame::setOpenFromCommandLine(int srcIdx)
+{
+    GMEStatusBar *pBar = dynamic_cast<GMEStatusBar*>(this->GetStatusBar());
+    if(pBar)
+        pBar->setOpenFromCommandLine(srcIdx);
+}
 
 bool
 MainFrame::saveMaterial(const std::string &objID,const std::string &fpath,bool bExport)
@@ -825,6 +856,74 @@ MainFrame::importMaterial(const std::string &objID,const std::string &filepath)
 
 
 void
+MainFrame::onCopyMaterial(wxCommandEvent &event)
+{
+    DocObj  obj;
+    const std::vector<std::string> &sel = obj.getSelection();
+    if(sel.size() != 1)
+        return;
+    gme::ObjectNode *pNode = obj.getRootObject().findObject(sel[0],NULL);
+    if(pNode && !pNode->matid().empty())
+    {
+        DocMat      mat;
+        std::string content;
+        if(mat.saveMaterialToString(pNode->matid(),content))
+        {
+            DECLARE_WXCONVERT;
+            wxString   cont(content.c_str(),gme_wx_utf8_conv);
+            if (wxTheClipboard->Open())
+            {
+                // This data objects are held by the clipboard,
+                // so do not delete them in the app.
+                wxTheClipboard->SetData( new wxTextDataObject(cont) );
+                wxTheClipboard->Close();
+
+                std::string content = boost::str(boost::format(__("将对象'%s'的材质拷贝到剪切板。")) % pNode->name() );
+                Log_Adapter(Doc::LOG_STATUS,content.c_str(),NULL);
+            }
+        }
+    }
+}
+
+void
+MainFrame::onPasteMaterial(wxCommandEvent &event)
+{
+    DocObj  obj;
+    const std::vector<std::string> &sel = obj.getSelection();
+    if(sel.size() != 1)
+        return;
+    gme::ObjectNode *pNode = obj.getRootObject().findObject(sel[0],NULL);
+    if(!pNode || pNode->matid().empty())
+        return;
+
+    wxBusyCursor wait;
+    bool bPasteOK = false;
+    std::string  objName = pNode->name();
+
+    if (wxTheClipboard->Open())
+    {
+        if (wxTheClipboard->IsSupported( wxDF_TEXT ))
+        {
+            wxTextDataObject data;
+            wxTheClipboard->GetData( data );
+            std::string content = boost::locale::conv::utf_to_utf<char>(data.GetText().ToStdWstring());
+
+            DocMat      mat;
+            bPasteOK = mat.loadMaterialFromString(pNode,content);
+        }
+        wxTheClipboard->Close();
+    }
+
+    std::string  error = __("失败。");
+    if(bPasteOK)
+    {
+       error = __("成功。");
+    }
+    std::string content = boost::str(boost::format(__("从剪切板拷贝材质到对象'%s'%s")) % objName % error);
+    Log_Adapter(Doc::LOG_STATUS,content.c_str(),NULL);
+}
+
+void
 MainFrame::onSaveMaterial(wxCommandEvent &event)
 {
     SaveMaterialDialog  dialog(this);
@@ -879,6 +978,27 @@ MainFrame::onUpdateMaterialOperator(wxUpdateUIEvent &event)
 {
     DocObj  obj;
     event.Enable(obj.getSelection().size() == 1);
+}
+
+void
+MainFrame::onUpdatePasteMaterial(wxUpdateUIEvent &event)
+{
+    bool    bEnable = false;
+    DocObj  obj;
+    if(obj.getSelection().size() == 1)
+    {
+        if (wxTheClipboard->Open())
+        {
+            if (wxTheClipboard->IsSupported( wxDF_TEXT ))
+            {
+                wxTextDataObject data;
+                wxTheClipboard->GetData( data );
+                bEnable = data.GetText().StartsWith(DocMat::CLIPBOARD_MAGIC);
+            }
+            wxTheClipboard->Close();
+        }
+    }
+    event.Enable(bEnable);
 }
 
 

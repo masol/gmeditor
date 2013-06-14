@@ -113,12 +113,11 @@ static inline void		initOption_descritpion(boost::program_options::options_descr
 	cmdline.add_options()
 		("help,h", ("Display this information."))
 		("version,v", ("Display  version informationl."))
-		("mergematerial,m", ("merge material from sps."))
-		("mergemesh,e", ("merge mesh from model file."))
 		("config,c", boost::program_options::value<std::string>(),("Specify config file."))
 		("source,s", boost::program_options::value<std::string>(),("Specify source scene file."))
-		("model,d", boost::program_options::value<std::string>(),("Specify source model file."))
 		("output,o", boost::program_options::value<std::string>(),("Place the result image into <file>."))
+		("camera,a", boost::program_options::value<std::string>(),("Render the specify camera to result."))
+		("pass,p", boost::program_options::value<std::string>(),("Specify the terminate pass count.default is 16000."))
 		("lang,l", boost::program_options::value<std::string>(),("Set the language."))
 		;
 }
@@ -126,9 +125,9 @@ static inline void		initOption_descritpion(boost::program_options::options_descr
 struct  parser_context{
     boost::program_options::options_description     &cmdline_options;
     std::vector<std::string>                        sources;
-    std::vector<std::string>                        models;
     Option                                          &option;
-    std::string                                     outfile;
+    std::vector<std::string>                        outfile;
+    std::vector<std::string>                        cameras;
     std::string                                     lang;
     parser_context(boost::program_options::options_description &clo,Option &o) : cmdline_options(clo),option(o)
     {
@@ -237,30 +236,39 @@ static	bool	parser_Option(boost::program_options::parsed_options &option,parser_
 			}
 		}else if(it->string_key == "output")
 		{
-		    if(it->value.size() > 0)
-                ctx.outfile = *(it->value.begin());
+			std::vector<std::string>::iterator value_it = it->value.begin();
+			while(value_it != it->value.end())
+			{
+				if(std::find(ctx.outfile.begin(),ctx.outfile.end(),*value_it) == ctx.outfile.end())
+				{
+					ctx.outfile.push_back(*value_it);
+				}
+				value_it++;
+			}
 		}else if(it->string_key == "lang")
 		{
             if(it->value.size() > 0)
             {
                 ctx.lang = *(it->value.begin());
             }
-		}else if(it->string_key == "model")
-		{
+		}else if(it->string_key == "pass")
+        {
             if(it->value.size() > 0)
             {
-                BOOST_FOREACH(const std::string &var,it->value)
-                {
-                    ctx.models.push_back(var);
-                }
+                ctx.option.put("pass",boost::lexical_cast<long>(*(it->value.begin())));
             }
-		}else if(it->string_key == "mergematerial")
-        {
-            ctx.option.put("mergematerial",1);
-        }else if(it->string_key == "mergemesh")
-        {
-            ctx.option.put("mergemesh",1);
-        }
+        }else if(it->string_key == "camera")
+		{
+			std::vector<std::string>::iterator value_it = it->value.begin();
+			while(value_it != it->value.end())
+			{
+				if(std::find(ctx.cameras.begin(),ctx.cameras.end(),*value_it) == ctx.cameras.end())
+				{
+					ctx.cameras.push_back(*value_it);
+				}
+				value_it++;
+			}
+		}
 		it++;
 	}
 
@@ -315,7 +323,7 @@ Option::initFromArgs(int argc,char** argv)
     // fix path in non-utf8 platform.
     {
         std::locale global_loc = std::locale();
-        std::locale loc(global_loc, new boost::filesystem::detail::utf8_codecvt_facet); 
+        std::locale loc(global_loc, new boost::filesystem::detail::utf8_codecvt_facet);
         //std::locale::global(loc);
         //std::locale::global(boost::locale::generator().generate(""));
         boost::filesystem::path::imbue(loc);
@@ -344,9 +352,13 @@ Option::initFromArgs(int argc,char** argv)
 		{
 			this->put("document.source",ctx.sources);
 		}
-        if(ctx.outfile.length())
+        if(ctx.outfile.size())
         {
             this->put("document.output",ctx.outfile);
+        }
+        if(ctx.cameras.size())
+        {
+            this->put("document.camera",ctx.cameras);
         }
         //这里检查是否配置了语言选项。
         if(!ctx.lang.empty())

@@ -78,11 +78,11 @@ MaterialPage::onDocumentItemDeselected(const std::string &id)
 void
 MaterialPage::clearPage(void)
 {
+    m_currentObject.clear();
     //清空当前页面。
     this->ClearModifiedStatus();
-    this->ClearSelection();
+    //this->ClearSelection();
     this->Clear();
-    m_currentObject.clear();
 }
 
 void
@@ -656,6 +656,9 @@ MaterialPage::OnRefreshMaterialProp(wxCommandEvent &event)
 void
 MaterialPage::OnPropertyChanging( wxPropertyGridEvent& event )
 {
+    ///处在clearPage调用中。
+    if(m_currentObject.empty())
+        return;
     wxBusyCursor wait;
 
     wxPGProperty* p = event.GetProperty();

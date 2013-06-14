@@ -93,14 +93,6 @@ public:
         	if(!gme::Option::instance().initFromArgs(argc,mb_args ))
 		        return false;
 
-            //check tools require.
-            if(gme::Option::instance().is_existed("mergematerial"))
-            {
-                return false;
-            }else if(gme::Option::instance().is_existed("mergemesh"))
-            {
-                return false;
-            }
         }
         m_mainFrame = new gme::MainFrame(NULL);
         SetTopWindow(m_mainFrame);
@@ -116,12 +108,15 @@ public:
 	        gme::DocIO docio;
 		    std::vector<std::string> srcset = gme::Option::instance().get<std::vector<std::string> >(source);
 		    std::vector<std::string>::iterator it = srcset.begin();
+		    int idx = 0;
 		    while(it != srcset.end())
 		    {
     		    if(docio.loadScene(*it))
     		        break;
 		        it++;
+		        idx++;
             }
+            m_mainFrame->setOpenFromCommandLine(idx);
         }
 
         return true;
