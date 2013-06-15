@@ -35,6 +35,36 @@ namespace gme{
 
 class PrepareDrawEnv
 {
+private:
+    void gldPerspective(GLdouble fovx, GLdouble aspect, GLdouble zNear, GLdouble zFar)
+    {
+       // This code is based off the MESA source for gluPerspective
+       // *NOTE* This assumes GL_PROJECTION is the current matrix
+
+
+       GLdouble xmin, xmax, ymin, ymax;
+       GLdouble m[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+       xmax = zNear * tan(fovx * M_PI / 360.0);
+       xmin = -xmax;
+
+       ymin = xmin / aspect;
+       ymax = xmax / aspect;
+
+       // Set up the projection matrix
+       m[0] = (2.0 * zNear) / (xmax - xmin);
+       m[5] = (2.0 * zNear) / (ymax - ymin);
+       m[10] = -(zFar + zNear) / (zFar - zNear);
+
+       m[2] = (xmax + xmin) / (xmax - xmin);
+       m[6] = (ymax + ymin) / (ymax - ymin);
+       m[11] = -1.0;
+
+       m[14] = -(2.0 * zFar * zNear) / (zFar - zNear);
+
+       // Add to current matrix
+       glMultMatrixd(m);
+    }
 public:
     PrepareDrawEnv(DocImg::ViewPort &vp,slg::RenderSession *session)
     {
@@ -53,12 +83,15 @@ public:
 
         slg::PerspectiveCamera *camera = session->renderConfig->scene->camera;
         //adjustment fovy.
-        double fovy = camera->fieldOfView;
+        double fovx = camera->fieldOfView;
+        //coordinate covert.need to know detail about slg coordinate.
         if(aspect > 1.0f)
-            fovy = fovy / aspect;
-        //float aspectradius = (aspect < 1.0f ? 1.0f : aspect);
-        ///@todo coordinate covert.need to know detail about slg coordinate.
-        gluPerspective( fovy, aspect , camera->clipHither, camera->clipYon);
+        {
+            gldPerspective(fovx,aspect, camera->clipHither, camera->clipYon);
+        }else{
+            double fovy = fovx;
+            gluPerspective( fovy, aspect , camera->clipHither, camera->clipYon);
+        }
         // switch to modelview matrix
         glMatrixMode(GL_MODELVIEW);
         // save current modelview matrix

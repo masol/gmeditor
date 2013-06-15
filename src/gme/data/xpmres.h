@@ -28,6 +28,7 @@ extern  type_xpm cut;
 extern  type_xpm _delete;
 extern  type_xpm _export;
 extern  type_xpm help;
+extern  type_xpm about;
 extern  type_xpm import;
 extern  type_xpm open;
 extern  type_xpm pause;
@@ -40,6 +41,7 @@ extern  type_xpm zoomCam;
 extern  type_xpm rotateCamAroundCenter;
 extern  type_xpm rotateCam;
 extern  type_xpm select;
+extern  type_xpm sundirection;
 
 extern  type_xpm ambLight;
 extern  type_xpm camera;

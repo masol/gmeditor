@@ -27,7 +27,7 @@ IconList::IconList(){
 	m_imagelist = new wxImageList(16, 16, true);
 	// 添加所有需要用得到的icon
 	this->addIcon("icon_camera",wxBitmap(xpm::camera));
-	this->addIcon("icon_object",wxBitmap(xpm::camera));
+	this->addIcon("icon_object",wxBitmap(xpm::object));
 }
 
 

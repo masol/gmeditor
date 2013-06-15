@@ -45,7 +45,7 @@ FStream_CTMwritefn(const void * aBuf, CTMuint aCount, void * aUserData)
 }
 
 template<class T>
-bool    SaveCtmFile(bool useplynormals,T *pMesh,const std::string &filename,gme::conditional_md5 &md5)
+bool    SaveCtmFile(bool &useplynormals,T *pMesh,const std::string &filename,gme::conditional_md5 &md5)
 {
     boost::filesystem::ofstream stream(filename,std::ios::out | std::ios::binary);
     if(!stream)
@@ -75,8 +75,17 @@ bool    SaveCtmFile(bool useplynormals,T *pMesh,const std::string &filename,gme:
             aNormals[idx * 3] = n.x;
             aNormals[idx * 3 + 1] = n.y;
             aNormals[idx * 3 + 2] = n.z;
+            if(boost::math::isfinite(n.x) || boost::math::isfinite(n.y) || boost::math::isfinite(n.z) )
+            {
+                gme::Doc::SysLog(gme::Doc::LOG_WARNING,boost::str(boost::format(__("发现法线中有无限值，保存模型到文件'%s'时忽略法线数据。")) % filename ) );
+                delete[] aNormals;
+                aNormals = NULL;
+                useplynormals = false;
+                break;
+            }
         }
-        md5.update((const unsigned char *)(void*)aNormals,vertCount * 3 * sizeof(CTMfloat));
+        if(aNormals)
+            md5.update((const unsigned char *)(void*)aNormals,vertCount * 3 * sizeof(CTMfloat));
     }
 
     context = ctmNewContext(CTM_EXPORT);
@@ -96,6 +105,11 @@ bool    SaveCtmFile(bool useplynormals,T *pMesh,const std::string &filename,gme:
     //ctmSave(context, filename.c_str());
     ctmSaveCustom(context,FStream_CTMwritefn,&stream);
 
+    if(ctmGetError(context) != CTM_NONE)
+    {
+        gme::Doc::SysLog(gme::Doc::LOG_ERROR,boost::str(boost::format(__("保存模型到文件'%s'时失败。")) % filename ) );
+    }
+
     //ctxHashValue = md5.finalize().hexdigest();
 
     if(aNormals)
@@ -111,7 +125,7 @@ bool    SaveCtmFile(bool useplynormals,T *pMesh,const std::string &filename,gme:
 }
 
 static
-bool    SaveCtmFile(bool useplynormals,luxrays::ExtMesh* extMesh,const std::string &filename,gme::conditional_md5 &md5)
+bool    SaveCtmFile(bool &useplynormals,luxrays::ExtMesh* extMesh,const std::string &filename,gme::conditional_md5 &md5)
 {
     luxrays::ExtInstanceTriangleMesh*   pMesh = dynamic_cast<luxrays::ExtInstanceTriangleMesh*>(extMesh);
     if(pMesh)
@@ -339,7 +353,9 @@ ObjectNode::dump(type_xml_node &parent,dumpContext &ctx)
                     }else{
 		                boost::filesystem::path target_model = ctx.target / "mesh%%%%%%.ctm";
                         target = boost::filesystem::unique_path(target_model);
-                        SaveCtmFile(this->useplynormals(),extMesh,target.string(),md5);
+                        bool useplynormals = this->useplynormals();
+                        SaveCtmFile(useplynormals,extMesh,target.string(),md5);
+                        this->useplynormals(useplynormals);
                     }
                     write_file = target.filename().string();
                 }else{//不保存资源，直接保存m_filepath.
@@ -352,7 +368,9 @@ ObjectNode::dump(type_xml_node &parent,dumpContext &ctx)
 	                boost::filesystem::path target_model = ctx.target / "mesh%%%%%%.ctm";
                     boost::filesystem::path target = boost::filesystem::unique_path(target_model);
                     //extMesh->WritePly(target.string());
-                    SaveCtmFile(this->useplynormals(),extMesh,target.string(),md5);
+                    bool usenormals = this->useplynormals();
+                    SaveCtmFile(usenormals,extMesh,target.string(),md5);
+                    this->useplynormals(usenormals);
                     write_file = target.filename().string();
                 }
             }

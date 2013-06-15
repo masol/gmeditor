@@ -519,8 +519,7 @@ MainFrame::createMenubar()
 
 	{//Help
 		wxMenu *pHelpMenu = new wxMenu();
-		pHelpMenu->Append(wxID_ABOUT,gmeWXT("关于(&A)"),gmeWXT("关于飞鹿材质编辑器"));
-
+		createMenuImageItem(pHelpMenu,wxID_ABOUT, gmeWXT("关于(&A)"), gmeWXT("关于飞鹿材质编辑器"),wxBitmap(xpm::about));
 
 		pMenuBar->Append(pHelpMenu,gmeWXT("帮助(&H)"));
 	}
@@ -584,7 +583,7 @@ MainFrame::createToolbar()
 		pViewTbr->AddTool(cmd::GID_MD_ROTATE_AROUND_FOCUS,gmeWXT("焦点旋转"),wxBitmap(xpm::rotateCamAroundCenter),gmeWXT("焦点旋转说明"),wxITEM_RADIO);
 		pViewTbr->AddTool(cmd::GID_MD_ZOOM,gmeWXT("缩放"),wxBitmap(xpm::zoomCam),gmeWXT("缩放说明"),wxITEM_RADIO);
 		pViewTbr->AddTool(cmd::GID_MD_SELECT,gmeWXT("选择"),wxBitmap(xpm::select),gmeWXT("选择说明"),wxITEM_RADIO);
-		pViewTbr->AddTool(cmd::GID_MD_SETSUNLIGHT,gmeWXT("阳光方向"),wxBitmap(xpm::help),gmeWXT("阳光方向说明"),wxITEM_RADIO);
+		pViewTbr->AddTool(cmd::GID_MD_SETSUNLIGHT,gmeWXT("阳光方向"),wxBitmap(xpm::sundirection),gmeWXT("阳光方向说明"),wxITEM_RADIO);
 
 		pViewTbr->Realize();
 
@@ -596,9 +595,9 @@ MainFrame::createToolbar()
 		wxAuiToolBar *pHelpTbr = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
                                                   wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW| wxAUI_TB_HORIZONTAL);
 
-		wxBitmap bmpHelp(xpm::help);
+		wxBitmap bmpAbout(xpm::about);
 
-		pHelpTbr->AddTool(wxID_ABOUT,gmeWXT("Help"),bmpHelp,gmeWXT("关于(&A)"));
+		pHelpTbr->AddTool(wxID_ABOUT,gmeWXT("Help"),bmpAbout,gmeWXT("关于(&A)"));
 
 		pHelpTbr->Realize();
 
