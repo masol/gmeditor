@@ -200,6 +200,7 @@ const char* constDef::burn = "burn";
 const char* constDef::usenormal = "usenormal";
 const char* constDef::truevalue = "true";
 const char* constDef::falsevalue = "false";
+const char* constDef::pass = "pass";
 
 
 bool    ObjectNode::sv_exprtNewMesh = false;

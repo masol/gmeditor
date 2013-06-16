@@ -473,6 +473,8 @@ DocCamera::dumpOne(type_xml_node &parent,const Camera &cam)
         pSelf->append_attribute(allocate_attribute(pDoc,constDef::lensRadius,boost::lexical_cast<std::string>(cam.lensRadius)));
     if(!cam.isDefaultFocalDistance())
         pSelf->append_attribute(allocate_attribute(pDoc,constDef::focalDistance,boost::lexical_cast<std::string>(cam.focalDistance)));
+    if(!cam.isDefaultPass())
+        pSelf->append_attribute(allocate_attribute(pDoc,constDef::pass,boost::lexical_cast<std::string>(cam.pass)));
 }
 
 int
@@ -530,6 +532,11 @@ DocCamera::importOne(type_xml_node &self,Camera &cam)
     if(pAttr)
     {
         cam.focalDistance = boost::lexical_cast<float>(pAttr->value());
+    }
+    pAttr = self.first_attribute(constDef::pass);
+    if(pAttr)
+    {
+        cam.pass = boost::lexical_cast<long>(pAttr->value());
     }
 
 }

@@ -96,6 +96,7 @@ namespace gme
         static  const char* usenormal;
         static  const char* truevalue;
         static  const char* falsevalue;
+        static  const char* pass;
     };
 
     //inline const char* getFilepathFromDocument(const type_xml_node &node)
@@ -241,7 +242,7 @@ namespace gme
             return false;
         }
     };
-	
+
 	inline void		recursion_remove_attribute(type_xml_node *pNode,const char* attr_name)
 	{
 		type_xml_attr	*pAttr = pNode->first_attribute(attr_name);

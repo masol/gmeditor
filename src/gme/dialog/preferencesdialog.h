@@ -34,11 +34,25 @@ private:
 	bool Create(wxWindow *parent);
 	wxPanel* CreateLoadSettingPage(wxWindow* parent);
     wxPanel* CreateTestPage(wxWindow* parent);
+
 private:
 	enum{
-		ID_LOAD_ENABLE = 1,
-		ID_LOAD_TEST1,
-		ID_LOAD_TEST2,
+		GID_SET_BEGIN = 0,
+		GID_SET_FORCEREFRESH,
+		GID_SET_REFRESH_WHEN_ERROR,
+		GID_SET_EXPORT_NEWIMG,
+		GID_SET_EXPORT_NEWMESH,
+		GID_SET_ValidateDataStructure,
+		GID_SET_JoinIdenticalVertices,
+		GID_SET_RemoveRedundantMaterials,
+		GID_SET_ImproveCacheLocality,
+		GID_SET_FixInfacingNormals,
+		GID_SET_FindDegenerates,
+		GID_SET_FindInvalidData,
+		GID_SET_FlipUVs,
+		GID_SET_OptimizeMeshes,
+		GID_SET_Debone,
+		GID_SET_END,
 		ID_LIST_ENABLE,
 		ID_LIST_TEST1,
 		ID_LIST_TEST2

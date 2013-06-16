@@ -444,7 +444,7 @@ MainFrame::createMenubar()
 		pEditMenu->AppendSeparator();
         pEditMenu->Append(cmd::GID_CAM_NEWFROMCURRENT,gmeWXT("保存当前视角(&M)"),gmeWXT("为当前视角新建一个摄像机位。"));
         name = gmeWXT("立即刷新(&R)");
-		pEditMenu->Append(cmd::GID_IMM_REFRESH, appendShortCutString(cmd::GID_IMM_REFRESH,name), gmeWXT("立即刷新GPU缓冲。"));
+		createMenuImageItem(pEditMenu,cmd::GID_IMM_REFRESH, appendShortCutString(cmd::GID_IMM_REFRESH,name), gmeWXT("立即刷新GPU缓冲。"),wxBitmap(xpm::refresh));
 
         pMenuBar->Append(pEditMenu, gmeWXT("编辑(&E)"));
     }
@@ -480,7 +480,7 @@ MainFrame::createMenubar()
 		pLogLevel->AppendRadioItem(cmd::GID_LOG_SYSERROR, gmeWXT("SysError(&S)"), gmeWXT("设置日志级别到SysError"));
 		pLogLevel->AppendRadioItem(cmd::GID_LOG_FATALERROR, gmeWXT("FAtalError(&F)"), gmeWXT("设置日志级别到FAtalError"));
 		pViewMenu->AppendSubMenu(pLogLevel,gmeWXT("日志级别(&L)"),gmeWXT("设置系统显示的日志级别。"));
-        pViewMenu->Append(cmd::GID_CLEAR_LOG,gmeWXT("清空日志(&C)"),gmeWXT("清空当前日志的内容。"));
+		createMenuImageItem(pViewMenu,cmd::GID_CLEAR_LOG, gmeWXT("清空日志(&C)"), gmeWXT("清空当前日志的内容。"),wxBitmap(xpm::clearLog));
 
 		pMenuBar->Append(pViewMenu, gmeWXT("视图(&V)"));
 	}
@@ -512,7 +512,7 @@ MainFrame::createMenubar()
 		pSettingMenu->AppendCheckItem(cmd::GID_SET_EXPORT_NEWIMG, gmeWXT("导出新贴图"), gmeWXT("每次导出时，每个贴图元素都强制导出新文件。"));
 		pSettingMenu->AppendCheckItem(cmd::GID_SET_EXPORT_NEWMESH, gmeWXT("导出新模型"), gmeWXT("每次导出时，每个模型元素都强制导出新文件。"));
 		pSettingMenu->AppendSeparator();
-		pSettingMenu->Append(cmd::GID_PREFERENCES, gmeWXT("参数设置(&P)"), gmeWXT("参数设置"));
+		createMenuImageItem(pSettingMenu,cmd::GID_PREFERENCES, gmeWXT("参数设置(&P)"), gmeWXT("参数设置"),wxBitmap(xpm::preferences));
 
 		pMenuBar->Append(pSettingMenu, gmeWXT("设置(&S)"));
 	}
@@ -727,6 +727,15 @@ MainFrame::setOpenFromCommandLine(int srcIdx)
     if(pBar)
         pBar->setOpenFromCommandLine(srcIdx);
 }
+
+void
+MainFrame::setTerminatePass(int pass)
+{
+    GMEStatusBar *pBar = dynamic_cast<GMEStatusBar*>(this->GetStatusBar());
+    if(pBar)
+        pBar->setTerminatePass(pass);
+}
+
 
 bool
 MainFrame::saveMaterial(const std::string &objID,const std::string &fpath,bool bExport)

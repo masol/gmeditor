@@ -32,6 +32,10 @@ public:
     virtual ~GMEStatusBar();
     ///@brief 设置从命令行打开了文件。srcIdx为当前打开文件的id.此时需要检查option选项并设置退出条件。
     void setOpenFromCommandLine(int srcIdx);
+    inline void setTerminatePass(int pass)
+    {
+        m_targetPass = pass;
+    }
 protected:
 	enum{
 		Field_TEXT,

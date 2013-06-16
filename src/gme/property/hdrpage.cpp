@@ -25,6 +25,7 @@
 #include "slg/slg.h"
 #include "slg/film/tonemapping.h"
 #include "utils/i18n.h"
+#include "utils/option.h"
 #include "hdrpage.h"
 #include "../stringutil.h"
 #include "dm/docio.h"
@@ -32,6 +33,8 @@
 #include "dm/docsetting.h"
 #include "dm/doccamera.h"
 #include "../cmdids.h"
+#include "../mainframe.h"
+#include "imgfileeditor.h"
 
 
 BEGIN_EVENT_TABLE(gme::HDRPage, gme::HDRPage::inherit)
@@ -114,6 +117,7 @@ HDRPage::buildCamera(wxPGProperty *pCamCate)
         this->AppendIn(pCamCate,new wxFloatProperty(gmeWXT("聚焦距离"),wxString("focaldistance"),cam.focalDistance) );
         this->AppendIn(pCamCate,new wxFloatProperty(gmeWXT("近平面"),wxString("hither"),cam.clipHither) );
         this->AppendIn(pCamCate,new wxFloatProperty(gmeWXT("远平面"),wxString("yon"),cam.clipYon) );
+        this->AppendIn(pCamCate,new wxIntProperty(gmeWXT("终止条件"),wxString("pass"),cam.pass) );
     }
 }
 
@@ -164,6 +168,22 @@ HDRPage::buildPage(void)
             this->AppendIn(pCate,new wxEnumProperty(gmeWXT("反走样"),wxString(constDef::filter), soc,setting.getFilmFilter()));
         }
 
+        //设置文件保存
+        {
+            std::string output("document.output");
+            std::string     filename1,filename2;
+            if(gme::Option::instance().is_existed(output))
+            {
+                std::vector<std::string>    outset = gme::Option::instance().get<std::vector<std::string> >(output);
+                if(outset.size() >= 1)
+                    filename1 = outset[0];
+                if(outset.size() >= 2)
+                    filename2 = outset[1];
+            }
+
+            this->AppendIn(pCate,new gmeImageFileProperty(gmeWXT("保存照片1"),wxString("filename1"), filename1));
+            this->AppendIn(pCate,new gmeImageFileProperty(gmeWXT("保存照片2"),wxString("filename2"), filename2));
+        }
     }
 
 	wxPGProperty* pCamCate = this->Append(new wxPropertyCategory(gmeWXT("相机"),wxString(constDef::camera)));
@@ -210,6 +230,12 @@ HDRPage::updateCamera(void)
         updateCameraField("focaldistance",cam.focalDistance);
         updateCameraField("hither",cam.clipHither);
         updateCameraField("yon",cam.clipYon);
+
+        wxPGProperty  *pprop = this->GetProperty(constDef::pass);
+        if(pprop)
+        {
+            pprop->SetValue(cam.pass);
+        }
     }
 }
 
@@ -389,6 +415,46 @@ void HDRPage::OnPropertyChanging( wxPropertyGridEvent& event )
 
         slg::Reinhard02ToneMapParams  param(pOrig->preScale,pOrig->postScale,value);
         setting.setToneMapParams(param);
+    }else if(boost::equals(id,"pass"))
+    {
+        wxAny any_value = event.GetValue();
+        DocCamera   doccam;
+        int sel = doccam.getSelected();
+        if(sel >= 0 && sel < (int)doccam.size())
+        {
+            int  pass = any_value.As<int>();
+            doccam.get(sel).pass = pass;
+            gme::MainFrame* mainfrm = dynamic_cast<gme::MainFrame*>(wxTheApp->GetTopWindow());
+            if(mainfrm)
+            {
+                mainfrm->setTerminatePass(pass);
+            }
+        }
+    }else if(boost::starts_with(id,"filename"))
+    {
+        std::string     output("document.output");
+        std::vector<std::string>    outset;
+        if(gme::Option::instance().is_existed(output))
+        {
+            outset = gme::Option::instance().get<std::vector<std::string> >(output);
+        }
+
+        if(outset.size() < 2)
+            outset.resize(2);
+
+        int idx = boost::lexical_cast<int>(id.substr(strlen("filename")));
+        std::cerr << "idx=" << idx << std::endl;
+
+        wxAny any_value = event.GetValue();
+        std::string value;
+        if(any_value.CheckType<wxString>()){
+            wxString  wxvalue = any_value.As<wxString>();
+            value = boost::locale::conv::utf_to_utf<char>(wxvalue.ToStdWstring());
+        }else{
+            value =  event.GetValue().GetString().c_str();
+        }
+        outset[idx] = value;
+        gme::Option::instance().put(output,outset);
     }else
     {//设置camera.
         Camera      cam;

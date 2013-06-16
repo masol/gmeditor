@@ -51,6 +51,7 @@ public:
     bool importGlueMaterial(const std::string &objID);
     bool saveMaterial(const std::string &objID,const std::string &filepath,bool bExport);
     void setOpenFromCommandLine(int srcIdx);
+    void setTerminatePass(int pass);
     void quitProgram(bool bPromptWhenQuit = false);
 protected:
 	void onClose(wxCloseEvent& event);

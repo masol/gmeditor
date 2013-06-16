@@ -27,6 +27,7 @@
 #include "stringutil.h"
 #include "cmdids.h"
 #include "iconlist.h"
+#include "mainframe.h"
 
 namespace gme{
 
@@ -77,6 +78,12 @@ CameraView::OnSelectionChanged(wxListEvent& event)
     {
         Camera  &cam = doccam.get(idx);
         doccam.restoreFrom(cam);
+
+        gme::MainFrame* mainfrm = dynamic_cast<gme::MainFrame*>(wxTheApp->GetTopWindow());
+        if(mainfrm)
+        {
+            mainfrm->setTerminatePass(cam.pass);
+        }
     }
 }
 

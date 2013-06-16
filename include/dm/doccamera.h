@@ -40,6 +40,8 @@ public:
     float 	            lensRadius;
     float 	            focalDistance;
     std::string         name;
+    ///@brief       本摄像机的目标pass数。
+    long                pass;
 public:
     Camera()
     {
@@ -49,6 +51,7 @@ public:
         clipYon = 1e30f;
         lensRadius = 0.f;
         focalDistance = 10.f;
+        pass = 0;
     }
     inline  bool    isValid(void)const
     {
@@ -74,6 +77,10 @@ public:
     {
         return (focalDistance == 10.f);
     }
+    inline  bool    isDefaultPass(void)const
+    {
+        return (pass == 0);
+    }
     Camera(const Camera &ref)
     {
         assignFrom(ref);
@@ -82,6 +89,14 @@ public:
     {
         assignFrom(ref);
         return *this;
+    }
+    inline  long    getPass(void)const
+    {
+        return pass;
+    }
+    inline  void    setPass(long pn)
+    {
+        pass = pn;
     }
 public:
     ///@brief get/set the default camera.the orig,target and name are ignored.
@@ -99,6 +114,7 @@ private:
         this->lensRadius = ref.lensRadius;
         this->focalDistance = ref.focalDistance;
         this->name = ref.name;
+        this->pass = ref.pass;
     }
 };
 
