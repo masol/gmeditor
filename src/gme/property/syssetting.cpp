@@ -16,54 +16,80 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_CAMERAVIEW_H
-#define  GME_CAMERAVIEW_H
+#include "config.h"
+#include <boost/bind.hpp>
+#include <boost/format.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
+#include "slg/slg.h"
+#include "slg/film/tonemapping.h"
+#include "utils/i18n.h"
+#include "utils/option.h"
+#include "dm/docio.h"
+#include "dm/docsetting.h"
+#include "syssetting.h"
+#include "../stringutil.h"
+#include "../cmdids.h"
+#include "../mainframe.h"
 
-#include <wx/wx.h>
-#include <wx/listctrl.h>
 
-namespace gme
+BEGIN_EVENT_TABLE(gme::SysPage, gme::SysPage::inherit)
+    EVT_PG_CHANGING( wxID_ANY, gme::SysPage::OnPropertyChanging )
+END_EVENT_TABLE()
+
+
+namespace gme{
+
+
+void
+SysPage::onDocumentLoaded(void)
 {
+    clearPage();
+    buildPage();
+}
 
-class CameraView : public wxListCtrl
+void
+SysPage::clearPage(void)
 {
-private:
-    typedef wxListCtrl inherited;
-    long    m_menuCmdTarget;
-protected:
-    bool doSwitchCamera(int idx,bool bSetPass = false);
-    void OnSelectionChanged(wxListEvent& event);
-    void OnEndLabelEdit(wxListEvent& event);
-    void OnContextMenu(wxContextMenuEvent& event);
-    void onMenuNewFromCurrent(wxCommandEvent &event);
-    void onMenuDelete(wxCommandEvent& event);
-    void refresh(void);
-private:
-	void  onDocumentOpend(void);
-	void  onDocumentClosed(void);
-public:
-    CameraView(wxWindow* parent, wxWindowID id,const wxPoint& pos, const wxSize& size);
-    ~CameraView();
-    void    newCamFromCurrent(void);
-    void    selectCamera(int select);
-private:
-    wxDECLARE_EVENT_TABLE();
-	//wxImageList *m_imagelist;
+    //清空当前页面。
+    this->Clear();
+}
 
-	//enum{
-    //    ICON_CAMERA = 0,
-	//	ICON_MAX
-    //};
-
-	//int iconmap[ICON_MAX];
-	//boost::unordered_map<std::string, int> iconmap;
-	//void addIcon(int name,wxBitmap bitmap){
-	//	int index = m_imagelist->Add(bitmap);
-	//	iconmap[name] = index;
-	//}
-};
-
+void
+SysPage::buildPage(void)
+{
 }
 
 
-#endif //GME_CAMERAVIEW_H
+void
+SysPage::onDocumentClosed(void)
+{
+    clearPage();
+}
+
+SysPage::SysPage()
+{
+    DocIO   dio;
+    dio.onSceneLoaded(boost::bind(&SysPage::onDocumentLoaded,this));
+    dio.onSceneClosed(boost::bind(&SysPage::onDocumentClosed,this));
+}
+
+SysPage::~SysPage()
+{
+}
+
+
+void SysPage::OnPropertyChanging( wxPropertyGridEvent& event )
+{
+    wxBusyCursor wait;
+
+    wxPGProperty* p = event.GetProperty();
+
+
+    std::string     id(p->GetName().c_str());
+}
+
+
+}
+

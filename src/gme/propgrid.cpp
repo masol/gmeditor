@@ -27,6 +27,7 @@
 #include "property/hdrpage.h"
 #include "property/materialpage.h"
 #include "property/envlightpage.h"
+#include "property/syssetting.h"
 #include "property/pgeditor.h"
 #include "data/xpmres.h"
 
@@ -80,6 +81,7 @@ void PropFrame::initPages()
 	wxPropertyGridPage *pPage = m_pPropGridManager->AddPage(gmeWXT("高动态图映射"),wxBitmap(xpm::hdrprop),new HDRPage());
 	m_pPropGridManager->AddPage(gmeWXT("材质属性"),wxBitmap(xpm::matprop),new MaterialPage());
 	m_pPropGridManager->AddPage(gmeWXT("环境光"),wxBitmap(xpm::ambLight),new EnvLightPage());
+	m_pPropGridManager->AddPage(gmeWXT("系统设置"),wxBitmap(xpm::ambLight),new SysPage());
 
 
 

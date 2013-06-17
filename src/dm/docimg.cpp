@@ -443,7 +443,7 @@ DocImg::getData(ImageDataBase *pdata)
 }
 
 bool
-DocImg::getImage(const std::string& filepath,int &w,int &h,const float* &pixels)
+DocImg::getImage(const std::string& filepath,int &w,int &h,int &c,const float* &pixels)
 {
     bool bDataOk = false;
     if(pDocData->getSession())
@@ -456,6 +456,7 @@ DocImg::getImage(const std::string& filepath,int &w,int &h,const float* &pixels)
                 {
                     w = im->GetWidth();
                     h = im->GetHeight();
+                    c = im->GetChannelCount();
                     pixels = im->GetPixels();
                     bDataOk = true;
                 }

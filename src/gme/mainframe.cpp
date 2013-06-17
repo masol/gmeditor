@@ -719,6 +719,11 @@ MainFrame::onUpdateViewmode(wxUpdateUIEvent& event)
     event.Check(this->m_renderView->isCurrentViewmodeFromCmd(event.GetId()));
 }
 
+void
+MainFrame::selectCamera(int select)
+{
+    m_camView->selectCamera(select);
+}
 
 void
 MainFrame::setOpenFromCommandLine(int srcIdx)

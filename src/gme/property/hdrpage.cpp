@@ -181,8 +181,10 @@ HDRPage::buildPage(void)
                     filename2 = outset[1];
             }
 
-            this->AppendIn(pCate,new gmeImageFileProperty(gmeWXT("保存照片1"),wxString("filename1"), filename1));
-            this->AppendIn(pCate,new gmeImageFileProperty(gmeWXT("保存照片2"),wxString("filename2"), filename2));
+            wxPGProperty *pProp = new wxFileProperty(gmeWXT("保存照片1"),wxString("filename1"), filename1);
+            this->AppendIn(pCate,pProp);
+            pProp = new wxFileProperty(gmeWXT("保存照片2"),wxString("filename2"), filename2);
+            this->AppendIn(pCate,pProp);
         }
     }
 
@@ -442,8 +444,7 @@ void HDRPage::OnPropertyChanging( wxPropertyGridEvent& event )
         if(outset.size() < 2)
             outset.resize(2);
 
-        int idx = boost::lexical_cast<int>(id.substr(strlen("filename")));
-        std::cerr << "idx=" << idx << std::endl;
+        int idx = boost::lexical_cast<int>(id.substr(strlen("filename"))) - 1;
 
         wxAny any_value = event.GetValue();
         std::string value;

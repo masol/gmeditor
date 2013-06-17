@@ -146,9 +146,15 @@ GMEStatusBar::switchToNextCamera(void)
                 int camId = doccam.find(camset[idx]);
                 if(camId >= 0 && doccam.setSelected(camId))
                 {
-                    //cameraview会自动切换，所以这里不需要切换camera.
-                    m_currentCamera = idx;
-                    return true;
+                    gme::MainFrame* mainfrm = dynamic_cast<gme::MainFrame*>(wxTheApp->GetTopWindow());
+                    if(mainfrm)
+                    {
+                        //cameraview会自动切换，所以这里不需要切换camera.
+                        mainfrm->selectCamera(camId);
+                        m_currentCamera = idx;
+                        return true;
+                    }
+                    return false;
                 }
             }
         }

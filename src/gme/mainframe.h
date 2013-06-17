@@ -53,6 +53,7 @@ public:
     void setOpenFromCommandLine(int srcIdx);
     void setTerminatePass(int pass);
     void quitProgram(bool bPromptWhenQuit = false);
+    void selectCamera(int select);
 protected:
 	void onClose(wxCloseEvent& event);
 

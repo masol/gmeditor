@@ -70,21 +70,42 @@ CameraView::onDocumentClosed(void)
 }
 
 void
+CameraView::selectCamera(int select)
+{
+    long itemIndex = this->GetNextItem(-1,wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED);
+    if( itemIndex != select && doSwitchCamera(select,false) )
+    {
+        this->SetItemState(select, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+    }
+}
+
+bool
+CameraView::doSwitchCamera(int select,bool bSetPass)
+{
+    DocCamera doccam;
+    if(select >= 0 && doccam.setSelected(select))
+    {
+        Camera  &cam = doccam.get(select);
+        doccam.restoreFrom(cam);
+        if(bSetPass)
+        {
+            gme::MainFrame* mainfrm = dynamic_cast<gme::MainFrame*>(wxTheApp->GetTopWindow());
+            if(mainfrm)
+            {
+                mainfrm->setTerminatePass(cam.pass);
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
+
+void
 CameraView::OnSelectionChanged(wxListEvent& event)
 {
     long idx = this->GetItemData(event.m_itemIndex);
-    DocCamera doccam;
-    if(idx >= 0 && doccam.setSelected(idx))
-    {
-        Camera  &cam = doccam.get(idx);
-        doccam.restoreFrom(cam);
-
-        gme::MainFrame* mainfrm = dynamic_cast<gme::MainFrame*>(wxTheApp->GetTopWindow());
-        if(mainfrm)
-        {
-            mainfrm->setTerminatePass(cam.pass);
-        }
-    }
+    doSwitchCamera(idx,true);
 }
 
 void

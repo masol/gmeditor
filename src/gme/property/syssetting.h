@@ -16,54 +16,32 @@
 //  GMEditor website: http://www.render001.com/gmeditor                     //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef  GME_CAMERAVIEW_H
-#define  GME_CAMERAVIEW_H
+#ifndef  GME_PROPERTY_SYSSETTING_H
+#define  GME_PROPERTY_SYSSETTING_H
 
 #include <wx/wx.h>
-#include <wx/listctrl.h>
+#include <wx/propgrid/manager.h>
+#include "gmeproppage.h"
 
-namespace gme
-{
+namespace gme{
 
-class CameraView : public wxListCtrl
+class SysPage : public GmePropPage
 {
-private:
-    typedef wxListCtrl inherited;
-    long    m_menuCmdTarget;
-protected:
-    bool doSwitchCamera(int idx,bool bSetPass = false);
-    void OnSelectionChanged(wxListEvent& event);
-    void OnEndLabelEdit(wxListEvent& event);
-    void OnContextMenu(wxContextMenuEvent& event);
-    void onMenuNewFromCurrent(wxCommandEvent &event);
-    void onMenuDelete(wxCommandEvent& event);
-    void refresh(void);
-private:
-	void  onDocumentOpend(void);
-	void  onDocumentClosed(void);
+    typedef GmePropPage inherit;
 public:
-    CameraView(wxWindow* parent, wxWindowID id,const wxPoint& pos, const wxSize& size);
-    ~CameraView();
-    void    newCamFromCurrent(void);
-    void    selectCamera(int select);
+    SysPage();
+    virtual ~SysPage();
 private:
-    wxDECLARE_EVENT_TABLE();
-	//wxImageList *m_imagelist;
-
-	//enum{
-    //    ICON_CAMERA = 0,
-	//	ICON_MAX
-    //};
-
-	//int iconmap[ICON_MAX];
-	//boost::unordered_map<std::string, int> iconmap;
-	//void addIcon(int name,wxBitmap bitmap){
-	//	int index = m_imagelist->Add(bitmap);
-	//	iconmap[name] = index;
-	//}
+    void clearPage(void);
+    void buildPage(void);
+protected:
+    void onDocumentLoaded(void);
+    void onDocumentClosed(void);
+    void OnPropertyChanging( wxPropertyGridEvent& event );
+private:
+    DECLARE_EVENT_TABLE()
 };
 
 }
 
-
-#endif //GME_CAMERAVIEW_H
+#endif //GME_PROPERTY_SYSSETTING_H

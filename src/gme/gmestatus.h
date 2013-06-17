@@ -34,7 +34,8 @@ public:
     void setOpenFromCommandLine(int srcIdx);
     inline void setTerminatePass(int pass)
     {
-        m_targetPass = pass;
+        if(!m_autoRender)
+            m_targetPass = pass;
     }
 protected:
 	enum{

@@ -82,6 +82,7 @@ set(GME_PROP_SRC
     property/envlightpage.cpp
 	property/pgeditor.cpp
 	property/imgfileeditor.cpp	
+	property/syssetting.cpp
   )
 
 

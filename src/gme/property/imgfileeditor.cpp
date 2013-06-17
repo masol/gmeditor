@@ -79,28 +79,32 @@ void gmeImageFileProperty::OnCustomPaint( wxDC& dc,
     if ( !m_pBitmap && !m_filepath.empty() )
     {
         DocImg  img;
-        int w,h;
+        int w,h,chanel;
         const float *pixels;
-        if(img.getImage(m_filepath,w,h,pixels))
+        if(img.getImage(m_filepath,w,h,chanel,pixels))
         {
             wxImage image(w,h,false);
             unsigned char* data = image.GetData();
-            int pitch = w * 3;
+            int destPitch = w * 3;
 
             for(int y = 0; y < h; y++)
             {
-                unsigned char* line = &data[(h - y - 1) * pitch];
+                unsigned char* line = &data[(h - y - 1) * destPitch];
                 const float* srcline;
                 ///TODO:do nearest match resize here to improve effective.
-                srcline = &pixels[y * w * 3];
+                srcline = &pixels[y * w * chanel];
                 for(int x = 0; x < w; x++)
                 {
                     unsigned char r,g,b;
-                    int index = x * 3;
-                    r = (unsigned char)(srcline[index] * 255 );
-                    b = (unsigned char)(srcline[index + 2]* 255 );
-                    g = (unsigned char)(srcline[index + 1]* 255 );
-
+                    int index = x * chanel;
+                    if(chanel >= 3)
+                    {
+                        r = (unsigned char)(srcline[index] * 255 );
+                        b = (unsigned char)(srcline[index + 2]* 255 );
+                        g = (unsigned char)(srcline[index + 1]* 255 );
+                    }else{
+                        r = g = b = (unsigned char)(srcline[index] * 255 );
+                    }
                     int c = x * 3;
                     line[c] = r;
                     line[c+1] = g;
