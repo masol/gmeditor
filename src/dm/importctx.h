@@ -53,6 +53,7 @@ private:
     std::string          m_height;
     std::string          m_film_gamma;
     std::string          m_renderengine_type;
+    std::string          m_sampler_type;
 public:
     inline const aiScene*  getAiScene(void)const
     {

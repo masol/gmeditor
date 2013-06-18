@@ -23,7 +23,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include "slg/slg.h"
-#include "slg/film/tonemapping.h"
+#include "slg/sampler/sampler.h"
 #include "utils/i18n.h"
 #include "utils/option.h"
 #include "dm/docio.h"
@@ -59,6 +59,20 @@ SysPage::clearPage(void)
 void
 SysPage::buildPage(void)
 {
+    DECLARE_WXCONVERT;
+
+    wxPGProperty* pCate = this->Append(new wxPropertyCategory(gmeWXT("系统设置"),"sys"));
+
+    {
+        DocSetting  setting;
+        wxPGChoices soc;
+        soc.Add( gmeWXT("随机"),slg::RANDOM);
+        soc.Add( gmeWXT("蒙特卡罗"),slg::METROPOLIS);
+        soc.Add( gmeWXT("索博尔"),slg::SOBOL);
+        wxPGProperty* pSampler = new wxEnumProperty(gmeWXT("采样方式"),"sampler", soc);
+        this->SetPropertyValue(pSampler,setting.getSamplerType());
+        this->AppendIn(pCate,pSampler);
+    }
 }
 
 
@@ -88,6 +102,19 @@ void SysPage::OnPropertyChanging( wxPropertyGridEvent& event )
 
 
     std::string     id(p->GetName().c_str());
+
+    if(boost::equals(id,"sampler"))
+    {
+        wxAny any_value = event.GetValue();
+        BOOST_ASSERT(any_value.CheckType<int>());
+        int type = any_value.As<int>();
+
+        DocSetting  setting;
+        if(!setting.setSamplerType(type) && event.CanVeto())
+        {
+            event.Veto();
+        }
+    }
 }
 
 

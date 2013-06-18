@@ -121,6 +121,9 @@ public:
      *@deprecated : not support software render.
     **/
     bool    getData(ImageDataBase *pdata);
+
+    bool    hasContribute(void);
+    void    invalidContribute(void);
 };
 
 }

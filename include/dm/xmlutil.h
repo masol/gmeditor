@@ -97,6 +97,8 @@ namespace gme
         static  const char* truevalue;
         static  const char* falsevalue;
         static  const char* pass;
+        static  const char* sys;
+        static  const char* sampler;
     };
 
     //inline const char* getFilepathFromDocument(const type_xml_node &node)

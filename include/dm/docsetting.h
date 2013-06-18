@@ -95,6 +95,10 @@ public:
     bool  changeSunTurbidity(float t);
     bool  changeSunRelsize(float t);
 
+    ///@brief 返回采样方式。
+    int   getSamplerType(void);
+    bool  setSamplerType(int type);
+
     //@brief 当前设置在编辑时是否强制刷新。
     static  bool    forceRefresh(void);
     static  void    forceRefresh(bool forceRefresh);

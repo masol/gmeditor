@@ -143,7 +143,7 @@ DocImg::setSize(int w,int h)
         slg::RenderSession  *session = pDocData->m_session.get();
         int ow = session->film->GetWidth ();
         int oh = session->film->GetHeight ();
-        if(ow != w && oh != h)
+        if(ow != w || oh != h)
         {
             // RTPATHOCL doesn't support FILM_EDIT so I use a stop/start here
             session->Stop();
@@ -469,6 +469,16 @@ DocImg::getImage(const std::string& filepath,int &w,int &h,int &c,const float* &
     return bDataOk;
 }
 
+bool
+DocImg::hasContribute(void)
+{
+    return pDocData->cachefilm().hasContribute();
+}
 
+void
+DocImg::invalidContribute(void)
+{
+    pDocData->cachefilm().invalidate();
+}
 
 } //end namespace gme.

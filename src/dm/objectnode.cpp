@@ -201,6 +201,8 @@ const char* constDef::usenormal = "usenormal";
 const char* constDef::truevalue = "true";
 const char* constDef::falsevalue = "false";
 const char* constDef::pass = "pass";
+const char* constDef::sys = "sys";
+const char* constDef::sampler = "sampler";
 
 
 bool    ObjectNode::sv_exprtNewMesh = false;

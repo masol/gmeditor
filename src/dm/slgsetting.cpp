@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "config.h"
+#include "slg/sampler/sampler.h"
 #include "utils/pathext.h"
 #include "dm/doc.h"
 #include "dm/setting.h"
@@ -124,16 +125,22 @@ ExtraSettingManager::dumpSettings(type_xml_node &parent,dumpContext &ctx)
                 }
                 break;
             }
-            
+
         }
     }
 
-    if(clHardwareInfo::instance().getPlatforms().size() == 0)
+    {//dump sys.
+        type_xml_node *pSelf = pDoc->allocate_node(NS_RAPIDXML::node_element,allocate_string(pDoc,constDef::film));
+        parent.append_node(pSelf);
+    }
+
+    if(clHardwareInfo::instance().getPlatforms().size() != 0)
     {//dump render engine.
         type_xml_node *pEngine = pDoc->allocate_node(NS_RAPIDXML::node_element,allocate_string(pDoc,constDef::renderengine));
         parent.append_node(pEngine);
         //type
         pEngine->append_attribute(allocate_attribute(pDoc,constDef::type,nameFromRenderengine(session->renderEngine->GetEngineType())));
+        pEngine->append_attribute(allocate_attribute(pDoc,constDef::sampler,session->renderConfig->cfg.GetString("sampler.type","METROPOLIS")));
     }
 }
 
@@ -171,7 +178,7 @@ ExtraSettingManager::loadSettings(ImportContext &ctx,type_xml_node &parents)
                 assignFromXmlAttr(pTonemapping,constDef::prescale,value);
                 if(!value.empty())
                     pReinhard02->preScale = boost::lexical_cast<float>(value);
-                
+
                 value.clear();
                 assignFromXmlAttr(pTonemapping,constDef::postscale,value);
                 if(!value.empty())
@@ -201,6 +208,7 @@ ExtraSettingManager::loadSettings(ImportContext &ctx,type_xml_node &parents)
         if(pRenderEngine)
         {
             assignFromXmlAttr(pRenderEngine,constDef::type,ctx.m_renderengine_type);
+            assignFromXmlAttr(pRenderEngine,constDef::sampler,ctx.m_sampler_type);
         }
     }
 

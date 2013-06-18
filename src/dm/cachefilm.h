@@ -114,6 +114,11 @@ public:
     static  void            saveToFile(slg::Film *pFilm,const std::string &filename);
     static  void            saveToStream(std::ostream &out,const slg::Film* pFilm,const RenderInfo &ri);
     static  void            loadFromStream(std::istream &in,slg::Film* pFilm,RenderInfo &ri);
+
+    inline  bool    hasContribute(void)const
+    {
+        return (m_contributeFilmSet.size() > 0);
+    }
 public:
     CacheFilm(void);
     ~CacheFilm(void);

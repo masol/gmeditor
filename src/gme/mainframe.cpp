@@ -169,6 +169,9 @@ BEGIN_EVENT_TABLE(MainFrame, inherited)
 	EVT_UPDATE_UI(cmd::GID_RENDER_STOP,MainFrame::onUpdateRenderStop)
 	EVT_MENU(cmd::GID_RENDER_PAUSE,MainFrame::onRenderPause)
 	EVT_UPDATE_UI(cmd::GID_RENDER_PAUSE,MainFrame::onUpdateRenderPause)
+    EVT_MENU(cmd::GID_RENDER_INVALIDCACHE,MainFrame::OnRenderInvalidCache)
+	EVT_UPDATE_UI(cmd::GID_RENDER_INVALIDCACHE,MainFrame::onUpdateRenderInvalidCache)
+    
 
 	EVT_MENU(cmd::GID_AUTO_TARGET,MainFrame::onAutoTarget)
 	EVT_UPDATE_UI(cmd::GID_AUTO_TARGET,MainFrame::onUpdateAutoTarget)
@@ -417,6 +420,7 @@ MainFrame::createMenubar()
 		createMenuImageItem(pEditMenu,cmd::GID_RENDER_START,gmeWXT("开始渲染"),gmeWXT("开始渲染当前场景"),wxBitmap(xpm::start));
 		createMenuImageItem(pEditMenu,cmd::GID_RENDER_STOP,gmeWXT("结束渲染"),gmeWXT("结束当前场景的渲染"),wxBitmap(xpm::stop));
 		createMenuImageItem(pEditMenu,cmd::GID_RENDER_PAUSE,gmeWXT("暂停渲染"),gmeWXT("暂停渲染当前场景"),wxBitmap(xpm::pause));
+		createMenuImageItem(pEditMenu,cmd::GID_RENDER_INVALIDCACHE,gmeWXT("放弃缓冲"),gmeWXT("使当前的贡献缓冲无效"),wxBitmap(xpm::pause));
 		pEditMenu->AppendSeparator();
         wxMenu *pEditmodeMenu = new wxMenu();
 
@@ -820,7 +824,7 @@ MainFrame::importGlueMaterial(const std::string &objID)
     cmdline << "\"";
     cmdline << " --url=\"http://";
     cmdline << m_glueserver;
-    cmdline << "/session.html?redirect=/modules/materiallib/index.html\"";
+    cmdline << "/session.html?redirect=/modules/gutil/materiallib/index.html\"";
     cmdline << " --glueserver=";
     cmdline << m_glueserver;
     cmdline << "  openweb";
@@ -1568,6 +1572,13 @@ MainFrame::onRenderPause(wxCommandEvent &event)
 }
 
 void
+MainFrame::OnRenderInvalidCache(wxCommandEvent &event)
+{
+    DocImg  img;
+    img.invalidContribute();
+}
+
+void
 MainFrame::onUpdateRenderStart(wxUpdateUIEvent& event)
 {
 	DocCtl dctl;
@@ -1586,6 +1597,13 @@ MainFrame::onUpdateRenderPause(wxUpdateUIEvent& event)
 {
 	DocCtl dctl;
     event.Enable(dctl.isRuning());
+}
+
+void
+MainFrame::onUpdateRenderInvalidCache(wxUpdateUIEvent& event)
+{
+    DocImg  img;
+    event.Enable(img.hasContribute());
 }
 
 

@@ -337,6 +337,12 @@ DocIO::initAndStartScene(slg::Scene *scene,ImportContext *pctx)
         confgSS << "film.gamma = " << ctx.m_film_gamma << std::endl;
     }
 
+    if(!ctx.m_sampler_type.empty())
+    {
+        confgSS << "sampler.type = " << ctx.m_sampler_type << std::endl;
+        confgSS << "path.sampler.type = " << ctx.m_sampler_type << std::endl;
+    }
+
     if(ctx.m_pTonemapParams)
     {
         if(ctx.m_pTonemapParams->GetType() == slg::TONEMAP_LINEAR)

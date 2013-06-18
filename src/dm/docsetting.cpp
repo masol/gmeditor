@@ -500,6 +500,44 @@ DocSetting::setGamma(float g)
     return false;
 }
 
+int
+DocSetting::getSamplerType(void)
+{
+    int sampler = -1;
+    if(pDocData->getSession())
+    {
+        sampler = (int)slg::Sampler::String2SamplerType(pDocData->getSession()->renderConfig->cfg.GetString("sampler.type","METROPOLIS"));
+    }
+    return sampler;
+}
+
+bool
+DocSetting::setSamplerType(int type)
+{
+    if(pDocData->getSession())
+    {
+        try{
+            std::string   typestr = slg::Sampler::SamplerType2String((const slg::SamplerType)type);
+
+            //pDocData->getSession()->Stop();
+            pDocData->pause();
+
+            pDocData->getSession()->renderConfig->cfg.SetString("sampler.type",typestr);
+            pDocData->getSession()->renderConfig->cfg.SetString("path.sampler.type",typestr);
+
+            //pDocData->getSession()->Start();
+            //pDocData->cachefilm().invalidate();
+            //pDocData->setModified();
+            pDocData->start();
+            return true;
+        }catch(std::runtime_error e)
+        {
+        }
+    }
+    return false;
+}
+
+
 
 //
 //// get toneMap properties

@@ -114,23 +114,19 @@ protected:
 	void onViewPane(wxCommandEvent &event);
     void onUpdateViewPane(wxUpdateUIEvent &event);
 
-	/** Processes Render Start**/
-	void onRenderStart(wxCommandEvent &event);
-
-	/** Processes Render Stop**/
-	void onRenderStop(wxCommandEvent &event);
-
-	/** Processes Render Pause**/
-	void onRenderPause(wxCommandEvent &event);
-
 	/** Updata Render Menu Edit Delete UI**/
 	void onUpdateMenuEditDelete(wxUpdateUIEvent& event);
 
+	/** Processes Render Start/Stop/Pause/Invalid**/
+	void onRenderStart(wxCommandEvent &event);
+	void onRenderStop(wxCommandEvent &event);
+	void onRenderPause(wxCommandEvent &event);
+	void OnRenderInvalidCache(wxCommandEvent &event);
 	/** Updata Render UI**/
 	void onUpdateRenderStart(wxUpdateUIEvent& event);
 	void onUpdateRenderStop(wxUpdateUIEvent& event);
 	void onUpdateRenderPause(wxUpdateUIEvent& event);
-
+    void onUpdateRenderInvalidCache(wxUpdateUIEvent& event);
 
     void onEditmodeChanged(wxCommandEvent &event);
     void onUpdateEditmode(wxUpdateUIEvent &event);
