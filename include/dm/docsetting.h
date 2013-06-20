@@ -73,7 +73,7 @@ public:
 
     //engine 接口:
     int    getEngineType(void);
-    void   setEngineType(int type);
+    bool   setEngineType(int type);
     int    getAccelType(void);
     void   setAccelType(int type);
 
@@ -98,6 +98,32 @@ public:
     ///@brief 返回采样方式。
     int   getSamplerType(void);
     bool  setSamplerType(int type);
+    ///@brief 设置pathdepth。
+    int   getPathDepth(void);
+    bool  setPathDepth(int depth);
+    int   getRouletteDepth(void);
+    bool  setRouletteDepth(int depth);
+    float getRouletteCap(void);
+    bool  setRouletteCap(float cap);
+    float getLargesteprate(void);
+    void setLargesteprate(float);
+    float getImagemutationrate(void);
+    void setImagemutationrate(float);
+    float getMaxconsecutivereject(void);
+    void setMaxconsecutivereject(float);
+
+    int getPathFilterType(void);
+    bool  setPathFilterType(int type);
+    float getPFWidthX(void);
+    bool  setPFWidthX(float value);
+    float getPFWidthY(void);
+    bool  setPFWidthY(float value);
+    float getPFAlpha(void);
+    bool  setPFAlpha(float value);
+    float getPFilterB(void);
+    bool  setPFilterB(float value);
+    float getPFilterC(void);
+    bool  setPFilterC(float value);
 
     //@brief 当前设置在编辑时是否强制刷新。
     static  bool    forceRefresh(void);

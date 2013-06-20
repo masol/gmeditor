@@ -54,6 +54,18 @@ private:
     std::string          m_film_gamma;
     std::string          m_renderengine_type;
     std::string          m_sampler_type;
+    std::string          m_PathDepth;
+    std::string          m_RouletteDepth;
+    std::string          m_RouletteCap;
+    std::string          m_largesteprate;
+    std::string          m_imagemutationrate;
+    std::string          m_maxconsecutivereject;
+    std::string          m_pathFilter_type;
+    std::string          m_pathFilter_widthx;
+    std::string          m_pathFilter_widthy;
+    std::string          m_pathFilter_alpha;
+    std::string          m_pathFilter_b;
+    std::string          m_pathFilter_c;
 public:
     inline const aiScene*  getAiScene(void)const
     {

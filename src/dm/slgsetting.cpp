@@ -140,7 +140,44 @@ ExtraSettingManager::dumpSettings(type_xml_node &parent,dumpContext &ctx)
         parent.append_node(pEngine);
         //type
         pEngine->append_attribute(allocate_attribute(pDoc,constDef::type,nameFromRenderengine(session->renderEngine->GetEngineType())));
-        pEngine->append_attribute(allocate_attribute(pDoc,constDef::sampler,session->renderConfig->cfg.GetString("sampler.type","METROPOLIS")));
+        std::string samplerType = session->renderConfig->cfg.GetString("sampler.type","METROPOLIS");
+        pEngine->append_attribute(allocate_attribute(pDoc,constDef::sampler,samplerType));
+        pEngine->append_attribute(allocate_attribute(pDoc,constDef::path,session->renderConfig->cfg.GetString("path.maxdepth","8")));
+        pEngine->append_attribute(allocate_attribute(pDoc,constDef::roulette,session->renderConfig->cfg.GetString("path.russianroulette.depth","3")));
+        pEngine->append_attribute(allocate_attribute(pDoc,constDef::roulettecap,session->renderConfig->cfg.GetString("path.russianroulette.cap","0.5")));
+
+        if(boost::iequals(samplerType,"METROPOLIS"))
+        {
+            pEngine->append_attribute(allocate_attribute_withkey(pDoc,"largesteprate",session->renderConfig->cfg.GetString("sampler.largesteprate","0.4")));
+            pEngine->append_attribute(allocate_attribute_withkey(pDoc,"imagemutationrate",session->renderConfig->cfg.GetString("sampler.imagemutationrate","0.1")));
+            pEngine->append_attribute(allocate_attribute_withkey(pDoc,"maxconsecutivereject",session->renderConfig->cfg.GetString("sampler.maxconsecutivereject","512")));
+        }
+
+        type_xml_node *pFilter = pDoc->allocate_node(NS_RAPIDXML::node_element,allocate_string(pDoc,constDef::filter));
+        pEngine->append_node(pFilter);
+        std::string value = session->renderConfig->cfg.GetString("path.filter.type","NONE");
+        if(!boost::equals(value,"NONE"))
+            pFilter->append_attribute(allocate_attribute(pDoc,constDef::type,value));
+
+        value = session->renderConfig->cfg.GetString("path.filter.width.x","1.5");
+        if(!boost::equals(value,"1.5"))
+            pFilter->append_attribute(allocate_attribute_withkey(pDoc,"widthx",value));
+
+        value = session->renderConfig->cfg.GetString("path.filter.width.y","1.5");
+        if(!boost::equals(value,"1.5"))
+            pFilter->append_attribute(allocate_attribute_withkey(pDoc,"widthy",value));
+
+        value = session->renderConfig->cfg.GetString("path.filter.alpha","2.0");
+        if(!boost::equals(value,"2.0"))
+            pFilter->append_attribute(allocate_attribute(pDoc,constDef::alpha,value));
+
+        value = session->renderConfig->cfg.GetString("path.filter.B","0.3333");
+        if(!boost::equals(value,"0.3333"))
+            pFilter->append_attribute(allocate_attribute_withkey(pDoc,"b",value));
+
+        value = session->renderConfig->cfg.GetString("path.filter.C","0.3333");
+        if(!boost::equals(value,"0.3333"))
+            pFilter->append_attribute(allocate_attribute_withkey(pDoc,"c",value));
     }
 }
 
@@ -209,6 +246,24 @@ ExtraSettingManager::loadSettings(ImportContext &ctx,type_xml_node &parents)
         {
             assignFromXmlAttr(pRenderEngine,constDef::type,ctx.m_renderengine_type);
             assignFromXmlAttr(pRenderEngine,constDef::sampler,ctx.m_sampler_type);
+            assignFromXmlAttr(pRenderEngine,constDef::path,ctx.m_PathDepth);
+            assignFromXmlAttr(pRenderEngine,constDef::roulette,ctx.m_RouletteDepth);
+            assignFromXmlAttr(pRenderEngine,constDef::roulettecap,ctx.m_RouletteCap);
+
+            assignFromXmlAttr(pRenderEngine,"largesteprate",ctx.m_largesteprate);
+            assignFromXmlAttr(pRenderEngine,"imagemutationrate",ctx.m_imagemutationrate);
+            assignFromXmlAttr(pRenderEngine,"maxconsecutivereject",ctx.m_maxconsecutivereject);
+
+            type_xml_node *pFilterNode = pRenderEngine->first_node(constDef::filter);
+            if(pFilterNode)
+            {//读取filter信息。
+                assignFromXmlAttr(pFilterNode,constDef::type,ctx.m_pathFilter_type);
+                assignFromXmlAttr(pFilterNode,"widthx",ctx.m_pathFilter_widthx);
+                assignFromXmlAttr(pFilterNode,"widthy",ctx.m_pathFilter_widthy);
+                assignFromXmlAttr(pFilterNode,constDef::alpha,ctx.m_pathFilter_alpha);
+                assignFromXmlAttr(pFilterNode,"b",ctx.m_pathFilter_b);
+                assignFromXmlAttr(pFilterNode,"c",ctx.m_pathFilter_c);
+            }
         }
     }
 

@@ -343,6 +343,44 @@ DocIO::initAndStartScene(slg::Scene *scene,ImportContext *pctx)
         confgSS << "path.sampler.type = " << ctx.m_sampler_type << std::endl;
     }
 
+    if(!ctx.m_largesteprate.empty())
+    {
+        confgSS << "sampler.largesteprate = " << ctx.m_largesteprate << std::endl;
+    }
+    if(!ctx.m_imagemutationrate.empty())
+    {
+        confgSS << "sampler.imagemutationrate = " << ctx.m_imagemutationrate << std::endl;
+    }
+    if(!ctx.m_maxconsecutivereject.empty())
+    {
+        confgSS << "sampler.maxconsecutivereject = " << ctx.m_maxconsecutivereject << std::endl;
+    }
+
+    if(!ctx.m_pathFilter_type.empty())
+    {
+        confgSS << "path.filter.type = " << ctx.m_pathFilter_type << std::endl;
+    }
+    if(!ctx.m_pathFilter_widthx.empty())
+    {
+        confgSS << "path.filter.width.x = " << ctx.m_pathFilter_widthx << std::endl;
+    }
+    if(!ctx.m_pathFilter_widthy.empty())
+    {
+        confgSS << "path.filter.width.y = " << ctx.m_pathFilter_widthy << std::endl;
+    }
+    if(!ctx.m_pathFilter_alpha.empty())
+    {
+        confgSS << "path.filter.alpha = " << ctx.m_pathFilter_alpha << std::endl;
+    }
+    if(!ctx.m_pathFilter_b.empty())
+    {
+        confgSS << "path.filter.B = " << ctx.m_pathFilter_b << std::endl;
+    }
+    if(!ctx.m_pathFilter_c.empty())
+    {
+        confgSS << "path.filter.C = " << ctx.m_pathFilter_c << std::endl;
+    }
+
     if(ctx.m_pTonemapParams)
     {
         if(ctx.m_pTonemapParams->GetType() == slg::TONEMAP_LINEAR)
@@ -365,8 +403,26 @@ DocIO::initAndStartScene(slg::Scene *scene,ImportContext *pctx)
     //see Pathoclthread.cpp#101
     //confgSS << "opencl.kernelcache = VOLATILE" << std::endl; //
     confgSS << "opencl.gpu.workgroup.size = " << 64 << std::endl;
-    confgSS << "path.maxdepth = " << 8 << std::endl;
-    confgSS << "path.russianroulette.depth = " << 5 << std::endl;
+    if(ctx.m_PathDepth.empty())
+    {
+        confgSS << "path.maxdepth = " << 8 << std::endl;
+    }else{
+        confgSS << "path.maxdepth = " << ctx.m_PathDepth << std::endl;
+    }
+
+    if(ctx.m_RouletteDepth.empty())
+    {
+        confgSS << "path.russianroulette.depth = " << 5 << std::endl;
+    }else{
+        confgSS << "path.russianroulette.depth = " << ctx.m_RouletteDepth << std::endl;
+    }
+
+    if(!ctx.m_RouletteCap.empty())
+    {
+        confgSS << "path.russianroulette.cap = " << ctx.m_RouletteCap << std::endl;
+    }
+
+
     confgSS << "batch.halttime = 0" << std::endl;
 
     std::cerr << confgSS.str();

@@ -38,7 +38,10 @@ protected:
     void onDocumentLoaded(void);
     void onDocumentClosed(void);
     void OnPropertyChanging( wxPropertyGridEvent& event );
+    void OnRefreshPage(wxCommandEvent &event);
 private:
+    //指示是否处于清理页面状态。
+    bool        m_bInClearStage;
     DECLARE_EVENT_TABLE()
 };
 

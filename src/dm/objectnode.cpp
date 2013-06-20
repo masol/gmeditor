@@ -203,6 +203,9 @@ const char* constDef::falsevalue = "false";
 const char* constDef::pass = "pass";
 const char* constDef::sys = "sys";
 const char* constDef::sampler = "sampler";
+const char* constDef::path = "path";
+const char* constDef::roulette = "roulette";
+const char* constDef::roulettecap = "roulettecap";
 
 
 bool    ObjectNode::sv_exprtNewMesh = false;

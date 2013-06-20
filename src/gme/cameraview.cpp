@@ -83,7 +83,7 @@ bool
 CameraView::doSwitchCamera(int select,bool bSetPass)
 {
     DocCamera doccam;
-    if(select >= 0 && doccam.setSelected(select))
+    if(select >= 0 && select != doccam.getSelected() && doccam.setSelected(select))
     {
         Camera  &cam = doccam.get(select);
         doccam.restoreFrom(cam);

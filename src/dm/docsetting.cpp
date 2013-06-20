@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "config.h"
+#include <boost/algorithm/string.hpp>
 #include "dm/setting.h"
 #include "dm/docsetting.h"
 #include "slg/slg.h"
@@ -519,20 +520,391 @@ DocSetting::setSamplerType(int type)
         try{
             std::string   typestr = slg::Sampler::SamplerType2String((const slg::SamplerType)type);
 
-            //pDocData->getSession()->Stop();
             pDocData->pause();
 
             pDocData->getSession()->renderConfig->cfg.SetString("sampler.type",typestr);
             pDocData->getSession()->renderConfig->cfg.SetString("path.sampler.type",typestr);
 
-            //pDocData->getSession()->Start();
-            //pDocData->cachefilm().invalidate();
-            //pDocData->setModified();
             pDocData->start();
+            pDocData->setModified();
             return true;
         }catch(std::runtime_error e)
         {
         }
+    }
+    return false;
+}
+
+int
+DocSetting::getEngineType(void)
+{
+    if(pDocData->getSession() && pDocData->getSession()->renderEngine)
+    {
+        return pDocData->getSession()->renderEngine->GetEngineType();
+    }
+    return -1;
+}
+
+bool
+DocSetting::setEngineType(int type)
+{
+    if(pDocData->getSession())
+    {
+        if(!pDocData->getSession()->renderEngine || type != pDocData->getSession()->renderEngine->GetEngineType())
+        {
+            try{
+                pDocData->cachefilm().saveNativeFilm();
+                pDocData->getSession()->SetRenderingEngineType((const slg::RenderEngineType)type);
+                pDocData->setModified();
+                return true;
+            }catch(std::runtime_error e)
+            {
+            }
+        }
+    }
+    return false;
+}
+
+int
+DocSetting::getPathDepth(void)
+{
+    int depth = 8;
+    if(pDocData->getSession())
+    {
+        depth = pDocData->getSession()->renderConfig->cfg.GetInt("path.maxdepth",8);
+    }
+    return depth;
+}
+
+bool
+DocSetting::setPathDepth(int depth)
+{
+    if(depth != getPathDepth() && pDocData->getSession())
+    {
+        try{
+            pDocData->pause();
+
+            pDocData->getSession()->renderConfig->cfg.SetString("path.maxdepth",boost::lexical_cast<std::string>(depth));
+
+            pDocData->start();
+            pDocData->setModified();
+            return true;
+        }catch(std::runtime_error e)
+        {
+        }
+    }
+    return false;
+}
+
+int
+DocSetting::getRouletteDepth(void)
+{
+    int depth = 3;
+    if(pDocData->getSession())
+    {
+        depth = pDocData->getSession()->renderConfig->cfg.GetInt("path.russianroulette.depth",3);
+    }
+    return depth;
+}
+
+bool
+DocSetting::setRouletteDepth(int depth)
+{
+    if(depth != getRouletteDepth() && pDocData->getSession())
+    {
+        pDocData->pause();
+
+        pDocData->getSession()->renderConfig->cfg.SetString("path.russianroulette.depth",boost::lexical_cast<std::string>(depth));
+
+        pDocData->start();
+        pDocData->setModified();
+        return true;
+    }
+    return false;
+}
+
+float
+DocSetting::getRouletteCap(void)
+{
+    float cap = 0.5f;
+    if(pDocData->getSession())
+    {
+        cap = pDocData->getSession()->renderConfig->cfg.GetFloat("path.russianroulette.cap",0.5f);
+    }
+    return cap;
+}
+
+bool
+DocSetting::setRouletteCap(float cap)
+{
+    if(cap != getRouletteCap() && pDocData->getSession())
+    {
+        pDocData->pause();
+
+        pDocData->getSession()->renderConfig->cfg.SetString("path.russianroulette.cap",boost::lexical_cast<std::string>(cap));
+
+        pDocData->start();
+        pDocData->setModified();
+        return true;
+    }
+    return false;
+}
+
+float
+DocSetting::getLargesteprate(void)
+{
+    float value = 0.4f;
+    if(pDocData->getSession())
+    {
+        value = pDocData->getSession()->renderConfig->cfg.GetFloat("sampler.largesteprate",0.4f);
+    }
+    return value;
+}
+
+void
+DocSetting::setLargesteprate(float value)
+{
+    if(value != getLargesteprate() && pDocData->getSession())
+    {
+        pDocData->pause();
+
+        pDocData->getSession()->renderConfig->cfg.SetString("sampler.largesteprate",boost::lexical_cast<std::string>(value));
+
+        pDocData->start();
+        pDocData->setModified();
+    }
+}
+
+float
+DocSetting::getImagemutationrate(void)
+{
+    float value = 0.1f;
+    if(pDocData->getSession())
+    {
+        value = pDocData->getSession()->renderConfig->cfg.GetFloat("sampler.imagemutationrate",0.1f);
+    }
+    return value;
+}
+
+void
+DocSetting::setImagemutationrate(float value)
+{
+    if(value != getImagemutationrate() && pDocData->getSession())
+    {
+        pDocData->pause();
+
+        pDocData->getSession()->renderConfig->cfg.SetString("sampler.imagemutationrate",boost::lexical_cast<std::string>(value));
+
+        pDocData->start();
+        pDocData->setModified();
+    }
+}
+
+float
+DocSetting::getMaxconsecutivereject(void)
+{
+    float value = 512.0f;
+    if(pDocData->getSession())
+    {
+        value = pDocData->getSession()->renderConfig->cfg.GetFloat("sampler.maxconsecutivereject",512.0f);
+    }
+    return value;
+}
+
+void
+DocSetting::setMaxconsecutivereject(float value)
+{
+    if(value != getMaxconsecutivereject() && pDocData->getSession())
+    {
+        pDocData->pause();
+
+        pDocData->getSession()->renderConfig->cfg.SetString("sampler.maxconsecutivereject",boost::lexical_cast<std::string>(value));
+
+        pDocData->start();
+        pDocData->setModified();
+    }
+}
+
+int
+DocSetting::getPathFilterType(void)
+{
+    int retType = (int)slg::ocl::FILTER_NONE;
+    if(pDocData->getSession())
+    {
+        std::string ft = pDocData->getSession()->renderConfig->cfg.GetString("path.filter.type","NONE");
+        if(boost::equals(ft,"NONE"))
+        {
+            retType = (int)slg::ocl::FILTER_NONE;
+        }else if(boost::equals(ft,"BOX"))
+        {
+            retType = (int)slg::ocl::FILTER_BOX;
+        }else if(boost::equals(ft,"GAUSSIAN"))
+        {
+            retType = (int)slg::ocl::FILTER_GAUSSIAN;
+        }else if(boost::equals(ft,"MITCHELL"))
+        {
+            retType = (int)slg::ocl::FILTER_MITCHELL;
+        }
+    }
+    return retType;
+}
+
+bool
+DocSetting::setPathFilterType(int type)
+{
+    bool    bSetOK = false;
+    if(type != getPathFilterType() && pDocData->getSession())
+    {
+        bSetOK = true;
+        switch(type)
+        {
+        case slg::ocl::FILTER_NONE:
+            pDocData->getSession()->renderConfig->cfg.SetString("path.filter.type","NONE");
+            break;
+        case slg::ocl::FILTER_BOX:
+            pDocData->getSession()->renderConfig->cfg.SetString("path.filter.type","BOX");
+            break;
+        case slg::ocl::FILTER_GAUSSIAN:
+            pDocData->getSession()->renderConfig->cfg.SetString("path.filter.type","GAUSSIAN");
+            break;
+        case slg::ocl::FILTER_MITCHELL:
+            pDocData->getSession()->renderConfig->cfg.SetString("path.filter.type","MITCHELL");
+            break;
+        default:
+            bSetOK = false;
+            break;
+        }
+        if(bSetOK)
+        {
+            pDocData->pause();
+            pDocData->start();
+            pDocData->setModified();
+        }
+    }
+    return bSetOK;
+}
+
+float
+DocSetting::getPFWidthX(void)
+{
+    float value = 1.5f;
+    if(pDocData->getSession())
+    {
+        value = pDocData->getSession()->renderConfig->cfg.GetFloat("path.filter.width.x",1.5f);
+    }
+    return value;
+}
+
+bool
+DocSetting::setPFWidthX(float value)
+{
+    if(value != getPFWidthX() && pDocData->getSession() && value > 0.0f && value <= 1.5f)
+    {
+        pDocData->pause();
+        pDocData->getSession()->renderConfig->cfg.SetString("path.filter.width.x",boost::lexical_cast<std::string>(value));
+        pDocData->start();
+        pDocData->setModified();
+        return true;
+    }
+    return false;
+}
+
+float
+DocSetting::getPFWidthY(void)
+{
+    float value = 1.5f;
+    if(pDocData->getSession())
+    {
+        value = pDocData->getSession()->renderConfig->cfg.GetFloat("path.filter.width.y",1.5f);
+    }
+    return value;
+}
+
+bool
+DocSetting::setPFWidthY(float value)
+{
+    if(value != getPFWidthY() && pDocData->getSession() && value > 0.0f && value <= 1.5f)
+    {
+        pDocData->pause();
+        pDocData->getSession()->renderConfig->cfg.SetString("path.filter.width.y",boost::lexical_cast<std::string>(value));
+        pDocData->start();
+        pDocData->setModified();
+        return true;
+    }
+    return false;
+}
+
+float
+DocSetting::getPFAlpha(void)
+{
+    float value = 2.0f;
+    if(pDocData->getSession())
+    {
+        value = pDocData->getSession()->renderConfig->cfg.GetFloat("path.filter.alpha",2.0f);
+    }
+    return value;
+}
+
+bool
+DocSetting::setPFAlpha(float value)
+{
+    if(value != getPFAlpha() && pDocData->getSession())
+    {
+        pDocData->pause();
+        pDocData->getSession()->renderConfig->cfg.SetString("path.filter.alpha",boost::lexical_cast<std::string>(value));
+        pDocData->start();
+        pDocData->setModified();
+        return true;
+    }
+    return false;
+}
+
+float
+DocSetting::getPFilterB(void)
+{
+    float value = 1.f / 3.f;
+    if(pDocData->getSession())
+    {
+        value = pDocData->getSession()->renderConfig->cfg.GetFloat("path.filter.B",value);
+    }
+    return value;
+}
+
+bool
+DocSetting::setPFilterB(float value)
+{
+    if(value != getPFilterB() && pDocData->getSession())
+    {
+        pDocData->pause();
+        pDocData->getSession()->renderConfig->cfg.SetString("path.filter.B",boost::lexical_cast<std::string>(value));
+        pDocData->start();
+        pDocData->setModified();
+        return true;
+    }
+    return false;
+}
+
+float
+DocSetting::getPFilterC(void)
+{
+    float value = 1.f / 3.f;
+    if(pDocData->getSession())
+    {
+        value = pDocData->getSession()->renderConfig->cfg.GetFloat("path.filter.C",value);
+    }
+    return value;
+}
+
+bool
+DocSetting::setPFilterC(float value)
+{
+    if(value != getPFilterC() && pDocData->getSession())
+    {
+        pDocData->pause();
+        pDocData->getSession()->renderConfig->cfg.SetString("path.filter.C",boost::lexical_cast<std::string>(value));
+        pDocData->start();
+        pDocData->setModified();
+        return true;
     }
     return false;
 }
